@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School Wits — Question Bank</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ============================================================ HEADER / CONTROL CONSOLE -->
+      <header class="console">
+        <div class="console-brand">
+          <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits" />
+          <div class="brand-text">
+            <span class="brand-name">School Wits</span>
+            <span class="brand-sub">Question Bank</span>
+          </div>
+        </div>
+
+        <nav class="sitenav">
+          <a href="index.html" class="active">Browse</a>
+          <a href="upload.html">Upload</a>
+          <a href="modules.html">Modules</a>
+        </nav>
+
+        <div class="searchbar">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            id="fText"
+            placeholder="Search any question, topic or reference…"
+          />
+        </div>
+
+        <div class="console-filters" id="filterBar">
+          <div class="field">
+            <label for="fSubject">Subject</label>
+            <select id="fSubject">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fPaper">Paper</label>
+            <select id="fPaper">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fVariant">Variant</label>
+            <select id="fVariant">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fSession">Session</label>
+            <select id="fSession">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fYear">Year</label>
+            <select id="fYear">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fTopic">Topic</label>
+            <select id="fTopic">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="field field--browse">
+            <label for="fBrowse">Group by</label>
+            <select id="fBrowse">
+              <option value="Yearly">Paper (yearly)</option>
+              <option value="Topical">Topic</option>
+              <option value="Subject">Subject</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- ============================================================ BODY -->
+      <main class="main" id="main">
+        <div class="statstrip" id="statStrip"></div>
+        <div class="paperstrip-row">
+          <div class="paperstrip" id="paperStrip"></div>
+          <div class="viewmode-toggle" id="viewModeToggle" hidden>
+            <button class="vm-btn" data-vm="single" type="button">
+              Question-by-question
+            </button>
+            <button class="vm-btn" data-vm="full" type="button">
+              Full paper view
+            </button>
+          </div>
+        </div>
+
+        <!-- Horizontal question navigator — populated by renderHorizontalNav() -->
+        <div class="qnav-strip" id="qnavStrip" hidden></div>
+
+        <!-- ===================== FULL PAPER VIEW ===================== -->
+        <section class="paperdoc" id="paperDoc" hidden>
+          <div class="paperdoc-tabs" id="paperDocTabs" role="tablist">
+            <button class="pd-tab active" data-doc="paper" role="tab">
+              <span class="tabnum">01</span>Question Paper
+            </button>
+            <button class="pd-tab" data-doc="markscheme" role="tab">
+              <span class="tabnum">02</span>Mark Scheme
+            </button>
+            <button class="pd-tab" data-doc="exemplar" role="tab">
+              <span class="tabnum">03</span>Exemplar &amp; Model Answers
+            </button>
+          </div>
+          <div class="paperdoc-sheet">
+            <div class="pd-doc active" id="pdDoc-paper"></div>
+            <div class="pd-doc" id="pdDoc-markscheme"></div>
+            <div class="pd-doc" id="pdDoc-exemplar"></div>
+          </div>
+        </section>
+
+        <section class="card" id="card" hidden>
+          <div class="card-head">
+            <div class="card-head-left">
+              <div class="qtitle" id="qTitle">Question 1</div>
+              <div class="qsub" id="qSub">&nbsp;</div>
+            </div>
+            <div class="card-head-right">
+              <div class="stamp" id="stamp">
+                <span id="stampMarks">—</span><small>marks</small>
+              </div>
+              <div class="qnav">
+                <button
+                  id="prevBtn"
+                  class="navbtn"
+                  aria-label="Previous question"
+                >
+                  &larr; Prev
+                </button>
+                <button id="nextBtn" class="navbtn" aria-label="Next question">
+                  Next &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs" id="tabs" role="tablist">
+            <button class="tab active" data-tab="question" role="tab">
+              <span class="tabnum">01</span>Question
+            </button>
+            <button class="tab" data-tab="markscheme" role="tab">
+              <span class="tabnum">02</span>Mark Scheme
+            </button>
+            <button class="tab" data-tab="exemplar" role="tab">
+              <span class="tabnum">03</span>Exemplar
+            </button>
+            <button class="tab" data-tab="video" role="tab">
+              <span class="tabnum">04</span>Video
+            </button>
+          </div>
+
+          <div class="panels">
+            <div class="panel active" id="panel-question">
+              <div class="eyebrow">Question</div>
+              <div class="qbody" id="qBody"></div>
+            </div>
+
+            <div class="panel" id="panel-markscheme">
+              <div class="eyebrow">Mark Scheme</div>
+              <table class="mstable" id="msTable">
+                <thead>
+                  <tr>
+                    <th>Part</th>
+                    <th>Expected answer</th>
+                    <th>Marks</th>
+                  </tr>
+                </thead>
+                <tbody id="msBody"></tbody>
+              </table>
+            </div>
+
+            <div class="panel" id="panel-exemplar">
+              <div class="eyebrow">Exemplar / Sample Answer</div>
+              <div class="band">Full-mark response</div>
+              <div class="exemplar-box" id="exemplarBody"></div>
+            </div>
+
+            <div class="panel" id="panel-video">
+              <div class="eyebrow">Video Explanation</div>
+              <div id="videoArea"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="emptystate" id="emptyState" hidden>
+          <div class="emptystate-mark">&mdash;</div>
+          <h2 id="emptyTitle">No questions match yet</h2>
+          <p id="emptyText">
+            Try widening a filter, or clear the search box. Nothing uploaded
+            yet? Head to <a href="upload.html">Upload</a> to add a paper from a
+            .tex file.
+          </p>
+        </div>
+
+        <footer class="foot">
+          <span
+            >School Wits &middot; Every result below traces back to a .tex file
+            you uploaded — nothing is invented</span
+          >
+        </footer>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/seed-data.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

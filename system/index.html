@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>School Wits — Question Bank</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============================================================ HEADER / CONTROL CONSOLE -->
+  <header class="console">
+    <div class="console-brand">
+      <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits">
+      <div class="brand-text">
+        <span class="brand-name">School Wits</span>
+        <span class="brand-sub">Past Paper Question Bank</span>
+      </div>
+    </div>
+
+    <div class="console-filters" id="filterBar">
+      <div class="field">
+        <label for="fSubject">Subject</label>
+        <select id="fSubject">
+          <option value="Physics">Physics</option>
+          <option value="Chemistry">Chemistry</option>
+          <option value="Biology">Biology</option>
+          <option value="Math">Math</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fPaper">Paper</label>
+        <select id="fPaper">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fVariant">Variant</label>
+        <select id="fVariant">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fSession">Session</label>
+        <select id="fSession">
+          <option value="Jan">Jan</option>
+          <option value="M/J">M/J</option>
+          <option value="Std">Std.</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fYear">Year</label>
+        <select id="fYear">
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+        </select>
+      </div>
+      <div class="field field--browse">
+        <label for="fBrowse">Browse by</label>
+        <select id="fBrowse">
+          <option value="Yearly">Yearly</option>
+          <option value="Topical">Topical</option>
+          <option value="Subject">Subject</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================ BODY -->
+  <div class="body-grid">
+
+    <!-- Question rail -->
+    <nav class="rail" id="rail" aria-label="Question navigator">
+      <div class="rail-heading">Questions</div>
+      <div class="rail-list" id="railList"></div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main" id="main">
+
+      <div class="paperstrip" id="paperStrip"></div>
+
+      <section class="card" id="card">
+
+        <div class="card-head">
+          <div class="card-head-left">
+            <div class="qtitle" id="qTitle">Question 1</div>
+            <div class="qsub" id="qSub">5054/21/M/J/25 &middot; Forces &amp; Motion</div>
+          </div>
+          <div class="card-head-right">
+            <div class="stamp" id="stamp"><span id="stampMarks">9</span><small>marks</small></div>
+            <div class="qnav">
+              <button id="prevBtn" class="navbtn" aria-label="Previous question">&larr; Prev</button>
+              <button id="nextBtn" class="navbtn" aria-label="Next question">Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs" id="tabs" role="tablist">
+          <button class="tab active" data-tab="question" role="tab">
+            <span class="tabnum">01</span>Question
+          </button>
+          <button class="tab" data-tab="markscheme" role="tab">
+            <span class="tabnum">02</span>Mark Scheme
+          </button>
+          <button class="tab" data-tab="exemplar" role="tab">
+            <span class="tabnum">03</span>Exemplar
+          </button>
+          <button class="tab" data-tab="video" role="tab">
+            <span class="tabnum">04</span>Video
+          </button>
+        </div>
+
+        <div class="panels">
+          <div class="panel active" id="panel-question">
+            <div class="eyebrow">Question</div>
+            <div class="qbody" id="qBody"></div>
+          </div>
+
+          <div class="panel" id="panel-markscheme">
+            <div class="eyebrow">Mark Scheme</div>
+            <table class="mstable" id="msTable">
+              <thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>
+              <tbody id="msBody"></tbody>
+            </table>
+          </div>
+
+          <div class="panel" id="panel-exemplar">
+            <div class="eyebrow">Exemplar / Sample Answer</div>
+            <div class="band">Full-mark response</div>
+            <div class="exemplar-box" id="exemplarBody"></div>
+          </div>
+
+          <div class="panel" id="panel-video">
+            <div class="eyebrow">Video Explanation</div>
+            <div id="videoArea"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <div class="emptystate" id="emptyState" hidden>
+        <div class="emptystate-mark">&mdash;</div>
+        <h2>No questions loaded yet</h2>
+        <p>This combination of subject, paper, variant, session and year isn't in the bank yet. Try
+          <b>Physics &middot; Paper 1 &middot; Variant 1 &middot; M/J &middot; 2025</b> to see the full May/June 2025 set.</p>
+      </div>
+
+      <footer class="foot">
+        <span>School Wits &middot; Content sourced from the uploaded paper &amp; mark scheme</span>
+      </footer>
+
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

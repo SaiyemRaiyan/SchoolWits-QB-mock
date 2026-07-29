@@ -1,0 +1,506 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,linktoc=none]{hyperref}
+
+\geometry{margin=2.5cm}
+
+% Short forced heading lines (sub-answer labels, topic headers) are intentionally
+% short; stop TeX reporting them as underfull (no overfull boxes exist).
+\hbadness=10000
+\vbadness=10000
+
+% ===== Pastel colours (cycled per question number) =====
+\definecolor{q1color}{HTML}{D6EAF8}
+\definecolor{q2color}{HTML}{D5F5E3}
+\definecolor{q3color}{HTML}{FDEBD0}
+\definecolor{q4color}{HTML}{F9E79F}
+\definecolor{q5color}{HTML}{E8DAEF}
+\definecolor{q6color}{HTML}{FADBD8}
+\definecolor{q7color}{HTML}{D1F2EB}
+\definecolor{q8color}{HTML}{FCF3CF}
+\definecolor{q9color}{HTML}{EBDEF0}
+\definecolor{q10color}{HTML}{F5EEF8}
+\definecolor{q11color}{HTML}{EBF5FB}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+
+% Question heading: unnumbered, never orphaned at a page bottom
+\newcommand{\qsection}[1]{\needspace{10\baselineskip}\section*{#1}}
+
+% Running headers: current session left, page number right
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\itshape\leftmark}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% Mark-scheme table (Paper 2 only), tinted per question colour
+\newenvironment{mstab}[1]{%
+  {\color{#1!75!black} Mark Scheme}\par\nopagebreak\smallskip
+  \arrayrulecolor{#1!70!black}%
+  \renewcommand{\arraystretch}{1.3}%
+  \tabularx{\textwidth}{%
+ |>{\columncolor{#1!12}\raggedright\arraybackslash}p{1.9cm}|%
+ >{\columncolor{#1!12}}X|%
+ >{\columncolor{#1!12}\centering\arraybackslash}p{1.1cm}|}%
+  \hline
+  \rowcolor{#1!45} Question & Answer & Marks \\ \hline
+}{\endtabularx\arrayrulecolor{black}\par\medskip}
+
+% Exemplar-answer box
+\newtcolorbox{ansbox}[1]{
+  colback=#1!8, colbacktitle=#1!30, colframe=#1!70!black, coltitle=black,
+  fonttitle=\normalfont, title=Exemplar Key, boxrule=0.6pt, arc=2mm,
+  left=4pt, right=4pt, top=4pt, bottom=4pt, breakable}
+
+% Session banner: flows inline, no page break, sets the running header
+\newcommand{\sessionheader}[3]{%
+  \par\Needspace*{14\baselineskip}\bigskip
+  \markboth{#1 - #2}{}%
+  \begin{tcolorbox}[colback=black!6, colframe=black!55, arc=2mm,
+ boxrule=0.9pt, left=8pt, right=8pt, top=7pt, bottom=7pt]
+ \centering {\LARGE\bfseries #1 \ - \ #2}\\[5pt] {\normalsize #3}
+  \end{tcolorbox}\medskip}
+
+% Main-TOC session line (non-clickable page number)
+\newcommand{\tocsess}[2]{\noindent #1\ \dotfill\ p.\,\pageref*{#2}\par\vspace{3pt}}
+
+% Topic header for the multicol topic index
+\newcommand{\topichead}[1]{%
+  \par\addvspace{7pt}%
+  \noindent\begin{minipage}{\linewidth}
+ \raggedright{\normalsize\bfseries #1}\par
+ \vspace{1pt}\noindent{\color{black!35}\rule{\linewidth}{0.4pt}}%
+  \end{minipage}%
+  \par\nopagebreak\vspace{3pt}}
+
+% Topic index entry (non-clickable page number)
+\newcommand{\topicentry}[2]{\noindent{\small #1}\ \dotfill\ {\small \pageref*{#2}}\par}
+
+\begin{document}
+
+
+\sessionheader{5054/22/O/N/25}{October/November 2025}{Theory: Mark Scheme \& Model Answers}
+
+\label{sess:p2_on25}
+
+\qsection{5054/22/O/N/25 - Q1}\label{p2_on25:q1}
+
+\begin{mstab}{q1color}
+1(a)(i) & $29$ (m/s) & B1 \\ \hline
+ & ($s =$) $vt$ or $29 \times (6.4 - 5.7)$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(a)(ii)} & $20$ (m) & A1 \\ \hline
+ & (distance travelled $=$) area under graph or $\tfrac{1}{2}bh$ or $\tfrac{1}{2}(w_1 + w_2)h$ & C1 \\ \cline{2-3}
+ & $\tfrac{1}{2} \times 29 \times (11.2 - 6.4)$ or $\tfrac{1}{2} \times 29 \times 4.8$ or $69.6$ (m) or $\tfrac{1}{2} \times 29 \times (11.2 + 6.4)$ & C1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{1(a)(iii)} & $260$ (m) & A1 \\ \hline
+ & any one factor from: \newline $\bullet$~(mass) of load / car \newline $\bullet$~(condition / wear on) tyres \newline $\bullet$~(state of) road \newline $\bullet$~brakes \newline $\bullet$~reference to friction & B1 \\ \cline{2-3}
+ & any one matching explanation from: \newline $\bullet$~heavy load \newline $\bullet$~worn tyres \newline $\bullet$~slippery / smooth road reference to reduced friction & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{1(b)} & reduced deceleration or increases the time taken (to stop) & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+(a)(i) Speed at $t = 0$\\[4pt]
+The car starts at constant speed, so reading the flat part of the graph gives
+\[
+v = \boxed{29\ \mathrm{m/s}}
+\]
+
+\vspace{4pt}
+(a)(ii) Distance During the Driver's Reaction\\[4pt]
+The car keeps its constant speed from $t = 5.7\,\mathrm{s}$ until braking begins at $t = 6.4\,\mathrm{s}$:
+\[
+s = vt = 29 \times (6.4 - 5.7) = 29 \times 0.7
+\]
+\[
+s = \boxed{20\ \mathrm{m}}
+\]
+
+\vspace{4pt}
+(a)(iii) Distance Between $t = 0$ and $t = 11.2\,\mathrm{s}$\\[4pt]
+This is the area under the graph, a trapezium (constant top of width $6.4\,\mathrm{s}$, base of width $11.2\,\mathrm{s}$, height $29\,\mathrm{m/s}$):
+\[
+s = \tfrac{1}{2}(w_1 + w_2)h = \tfrac{1}{2} \times (6.4 + 11.2) \times 29 = 255\ \mathrm{m}
+\]
+\[
+s = \boxed{260\ \mathrm{m}} \ \text{(2 s.f.)}
+\]
+
+\vspace{4pt}
+(b) A Factor Affecting Only the Braking Distance\\[4pt]
+Factor: the condition / wear of the tyres (also acceptable: state of the road, the brakes, or the load).
+
+Explanation: worn tyres (or a wet / smooth road) reduce the friction between the tyres and the road, so the braking force is smaller. A smaller decelerating force gives a smaller deceleration, so the car takes longer to stop and the braking distance increases.
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q2}\label{p2_on25:q2}
+
+\begin{mstab}{q2color}
+ & (initially its weight causes) acceleration or speeds up or gains kinetic energy & B1 \\ \cline{2-3}
+ & friction / drag / resistance / resistive force / viscous force increases (as the speed increases) or resultant force decreases & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{2(a)} & acceleration decreases to zero or friction / drag / resistance / resistive force / viscous force is (eventually) equal to weight or forces balance or resultant force $= 0$ & B1 \\ \hline
+ & ($\Delta E_P =$) $mg\Delta h$ or $74.0 \times 9.8 \times 32$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{2(b)(i)} & $2.3 \times 10^{4}$ (J) & A1 \\ \hline
+ & energy can be neither created nor destroyed & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{2(b)(ii)} & energy can be transferred from one energy store to another & B1 \\ \hline
+ & (energy transferred) by doing work against friction / drag / resistance / resistive force & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{2(b)(iii)} & to internal (energy) store & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+(a) Motion Until Terminal Velocity\\[4pt]
+At first the weight of the container is much larger than the resistive force, so there is a large resultant downward force and the container accelerates (speeds up, gaining kinetic energy). As it speeds up, the drag (water resistance / viscous force) increases, so the resultant force and the acceleration both decrease. Eventually the drag (with upthrust) balances the weight: the resultant force is zero and the container falls at a constant, terminal velocity.
+
+\vspace{4pt}
+(b)(i) Energy from the Gravitational Potential Store\\[4pt]
+\[
+\Delta E_P = mg\Delta h = 74.0 \times 9.8 \times 32
+\]
+\[
+\Delta E_P = \boxed{2.3 \times 10^{4}\ \mathrm{J}}
+\]
+
+\vspace{4pt}
+(b)(ii) Principle of Conservation of Energy\\[4pt]
+Energy can be neither created nor destroyed; it can only be transferred from one energy store to another, so the total amount of energy stays constant.
+\clearpage
+\vspace{4pt}
+(b)(iii) Transfer at Terminal Velocity\\[4pt]
+As the container falls at constant speed, work is done against the drag (resistive force) of the water. This transfers energy from the gravitational potential store to the internal (thermal) energy store of the water, warming it slightly.
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q3}\label{p2_on25:q3}
+
+\begin{mstab}{q3color}
+ & ($m =$) $\rho V$ or $1000 \times 7.5 \times 10^{-3}$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(a)(i)} & $7.5$ (kg) & A1 \\ \hline
+ & ($p =$) $mv$ or $7.5 \times 24$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(a)(ii)} & $180$ (kg\,m/s) & A1 \\ \hline
+ & force needed to change momentum or answer to (a)(ii) is change in momentum & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(b)} & force $=$ $\dfrac{\text{change in momentum}}{\text{time taken}}$ or the momentum of the water that hits the wall in $1.0\,$s is the rate of change of momentum & A1 \\ \hline
+ & Newton's third law quoted or when object A exerts a force on object B, then object B exerts an equal and opposite force on object A or forces (only) occur in pairs & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(c)} & the wall exerts a force on the water & B1 \\ \hline
+3(d) & mass (flowing through pipe / hitting the wall in $1.0\,$s) doubles and momentum (water hitting wall in $1.0\,$s) increases by a factor of 4 & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+(a)(i) Mass of Water Hitting the Wall\\[4pt]
+\[
+m = \rho V = 1000 \times 7.5 \times 10^{-3}
+\]
+\[
+m = \boxed{7.5\ \mathrm{kg}}
+\]
+
+\vspace{4pt}
+(a)(ii) Horizontal Momentum\\[4pt]
+\[
+p = mv = 7.5 \times 24
+\]
+\[
+p = \boxed{180\ \mathrm{kg\,m/s}}
+\]
+
+\vspace{4pt}
+(b) Why the Momentum Equals the Force\\[4pt]
+The horizontal momentum of the water falls from $180\,\mathrm{kg\,m/s}$ to zero in a time of $1.0\,\mathrm{s}$. Force is the rate of change of momentum, so
+\[
+F = \frac{\text{change in momentum}}{\text{time}} = \frac{180}{1.0} = 180\ \mathrm{N}
+\]
+which is numerically equal to the momentum, because the change happens in exactly $1.0\,\mathrm{s}$.
+\clearpage
+\vspace{4pt}
+(c) Newton's Third Law\\[4pt]
+To stop the water, the wall exerts a horizontal force on the water. By Newton's third law, forces act in equal and opposite pairs on two different objects, so the water exerts an equal and opposite horizontal force back on the wall.
+
+\vspace{4pt}
+(d) Force Increases by a Factor of 4\\[4pt]
+If the water's speed doubles, then in each second twice as much mass reaches the wall, and each part of it also arrives at twice the speed. The momentum delivered per second is proportional to $mv \propto v \times v = v^2$, so the force (rate of change of momentum) increases by a factor of $2^2 = 4$.
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q4}\label{p2_on25:q4}
+
+\begin{mstab}{q4color}
+4(a) & the temperature remains constant / the line is horizontal (at $63\,^{\circ}$C) / gradient of line becomes zero (at $63\,^{\circ}$C) & B1 \\ \hline
+ & $48$ ($^{\circ}$C) or $27$ ($^{\circ}$C) or $(48 - 21)$ seen & C1 \\ \cline{2-3}
+ & ($E =$) $mc(\Delta\theta)$ or $0.040 \times 2100 \times (48 - 21)$ or $0.040 \times 2100 \times 27$ & C1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{4(b)(i)} & $2300$ (J) & A1 \\ \hline
+ & gain kinetic energy / move faster & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{4(b)(ii)} & vibrate more vigorously / faster & B1 \\ \hline
+ & work is done (on the molecules) or latent heat supplied & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{4(c)} & force between molecules overcome or molecules separated against (attractive) force or break bonds & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+(a) Showing the Melting Temperature is $63\,^{\circ}$C\\[4pt]
+While the wax melts its temperature does not change: the graph has a horizontal section (zero gradient) at $63\,^{\circ}$C. During this flat part the supplied energy is changing the state, not raising the temperature, so $63\,^{\circ}$C is the melting temperature.
+
+\vspace{4pt}
+(b)(i) Increase in Internal Energy from $t = 0$ to $t = 220\,\mathrm{s}$\\[4pt]
+From the graph, at $t = 220\,\mathrm{s}$ the temperature is $48\,^{\circ}$C, so $\Delta\theta = 48 - 21 = 27\,^{\circ}$C.
+\[
+E = mc\,\Delta\theta = 0.040 \times 2100 \times 27
+\]
+\[
+E = \boxed{2300\ \mathrm{J}}
+\]
+
+\vspace{4pt}
+(b)(ii) Motion of the Molecules\\[4pt]
+The molecules gain kinetic energy and move faster, vibrating more vigorously about their fixed positions in the solid.
+
+\vspace{4pt}
+(c) Why Energy is Needed to Melt the Wax\\[4pt]
+At the melting temperature the supplied energy (latent heat) does work against the attractive forces between the molecules, pulling them apart and breaking the bonds that hold the solid lattice together. Because this energy separates the molecules rather than speeding them up, the temperature stays constant while the wax melts.
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q5}\label{p2_on25:q5}
+
+\begin{mstab}{q5color}
+5(a) & UV marked in the third region from the left and M marked in the sixth region (immediately left of radio waves) & B1 \\ \hline
+ & ($\lambda =$) $\dfrac{c}{f}$ or $\dfrac{3.0 \times 10^{8}}{1.2 \times 10^{N}}$ & C1 \\ \cline{2-3}
+ & $2.5 \times 10^{X}$ (m) & C1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{5(b)(i)} & $0.025$ (m) & A1 \\ \hline
+ & encoded microwave / microwave signal / microwave carrying data / microwave transmitting data (to satellite from Earth) & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{5(b)(ii)} & satellite transmits microwave to Earth / dish / antenna / subscriber / television & B1 \\ \hline
+ & to prevent microwaves escaping / leaving the oven / spreading out of the device & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{5(c)} & microwaves / they can cause burns (in living tissue / people) / damage to tissue through heating / blisters & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q5color}
+(a) Labelling the Spectrum\\[4pt]
+In order of increasing wavelength the seven regions are gamma rays, X-rays, ultraviolet, visible, infrared, microwaves, radio waves. So write UV in the third box from the left, and M (microwaves) in the sixth box, immediately to the left of the radio-waves box.
+
+\vspace{4pt}
+(b)(i) Wavelength of the Microwaves\\[4pt]
+The frequency is $12\,\mathrm{GHz} = 1.2 \times 10^{10}\,\mathrm{Hz}$.
+\[
+\lambda = \frac{c}{f} = \frac{3.0 \times 10^{8}}{1.2 \times 10^{10}}
+\]
+\[
+\lambda = \boxed{0.025\ \mathrm{m}} \quad (2.5 \times 10^{-2}\ \mathrm{m})
+\]
+
+\vspace{4pt}
+(b)(ii) Microwaves in Satellite Television\\[4pt]
+An encoded microwave signal carrying the television data is transmitted from a ground station up to the satellite. The satellite then re-transmits microwaves back down to Earth, where they are received by a dish / antenna at the subscriber's television.
+
+\vspace{4pt}
+(c) Why the Oven Switches Off\\[4pt]
+If the oven kept running with the door open, microwaves could escape from the device. Microwaves are strongly absorbed by the water in body tissue and can heat and burn living tissue, so the switch turns the oven off to prevent this harm.
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q6}\label{p2_on25:q6}
+
+\begin{mstab}{q6color}
+6(a) & a d.c. / it has one direction or does not (repeatedly) reverse direction or polarity / direction does not change & B1 \\ \hline
+ & ($Q =$) $It$ or $41 \times 120$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{6(b)(i)} & $4.9 \times 10^{3}$ (C) & A1 \\ \hline
+ & (number $=$) $\dfrac{41}{1.6 \times 10^{-19}}$ or $\dfrac{4.9 \times 10^{3}}{120 \times 1.6 \times 10^{-19}}$ or $2.6 \times 10^{N}$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{6(b)(ii)} & $2.6 \times 10^{20}$ and towards the positive terminal / away from the motor & A1 \\ \hline
+ & (electrical) work done (by a source) in moving charge around a (complete) circuit & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{6(c)(i)} & work done (by a source) per unit charge & B1 \\ \hline
+ & (e.m.f. $=$) $92 \times 3.7$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{6(c)(ii)} & $340$ (V) & A1 \\ \hline
+6(c)(iii) & same answer as candidate's 6(c)(ii) or $340$ (V) & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+(a) Direct Current Compared With Alternating Current\\[4pt]
+A direct current flows in one direction only and does not reverse - its polarity / direction stays the same - whereas an alternating current repeatedly reverses its direction.
+
+\vspace{4pt}
+(b)(i) Charge Through Point P\\[4pt]
+\[
+Q = It = 41 \times 120
+\]
+\[
+Q = \boxed{4.9 \times 10^{3}\ \mathrm{C}}
+\]
+
+\vspace{4pt}
+(b)(ii) Direction and Number of Electrons\\[4pt]
+Direction: the electrons move towards the positive terminal (away from the motor), opposite to the conventional current.
+\[
+\text{number in } 1.0\,\mathrm{s} = \frac{I}{e} = \frac{41}{1.6 \times 10^{-19}}
+\]
+\[
+\text{number} = \boxed{2.6 \times 10^{20}}
+\]
+
+\vspace{4pt}
+(c)(i) Definition of Electromotive Force\\[4pt]
+The electromotive force is the electrical work done by a source in driving unit charge around a complete circuit (that is, the work done per unit charge by the source).
+
+\vspace{4pt}
+(c)(ii) E.m.f.\ of One Battery (92 cells in series)\\[4pt]
+\[
+\text{e.m.f.} = 92 \times 3.7
+\]
+\[
+\text{e.m.f.} = \boxed{340\ \mathrm{V}}
+\]
+\clearpage
+\vspace{4pt}
+(c)(iii) E.m.f.\ of the Power Supply (85 batteries in parallel)\\[4pt]
+Identical batteries connected in parallel do not increase the e.m.f., so the supply e.m.f.\ equals that of one battery:
+\[
+\text{e.m.f.} = \boxed{340\ \mathrm{V}}
+\]
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q7}\label{p2_on25:q7}
+
+\begin{mstab}{q7color}
+ & ($I =$) $\dfrac{P}{V}$ or $\dfrac{2300}{230}$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{7(a)(i)} & $10$ (A) & A1 \\ \hline
+ & $13$ (A) & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{7(a)(ii)} & does not blow when kettle is used / is larger than the current in the kettle / operating current and protects the cable / wiring in the wall / power supply or is slightly larger than the current in the kettle & B1 \\ \hline
+7(b)(i) & live (line) wire and no part of kettle live if fuse blows / disconnects live wire from kettle / disconnects high-voltage wire from kettle & B1 \\ \hline
+ & (large) current in earth / live wire / casing or casing live / causes shock when touched & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{7(b)(ii)} & fuse blows / melts & B1 \\ \hline
+ & (energy used $=$) $34 \times 2.3$ or $34 \times 2300$ or $78$ or $78\,000$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{7(c)} & \$25.02 & A1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q7color}
+(a)(i) Current in the Heater\\[4pt]
+\[
+I = \frac{P}{V} = \frac{2300}{230}
+\]
+\[
+I = \boxed{10\ \mathrm{A}}
+\]
+
+\vspace{4pt}
+(a)(ii) Most Appropriate Fuse\\[4pt]
+Most appropriate fuse rating: $\boxed{13\ \mathrm{A}}$.
+
+Explanation: the normal operating current is $10\,\mathrm{A}$, so the fuse must be rated just above this ($13\,\mathrm{A}$) so it does not blow during normal use. It is still below the safe limits of the cable ($15\,\mathrm{A}$) and the wall wiring ($20\,\mathrm{A}$), so it will melt and protect them if the current becomes too large.
+
+\vspace{4pt}
+(b)(i) Wire the Fuse is Connected Into\\[4pt]
+The live (line) wire. This means that when the fuse blows it disconnects the live (high-voltage) supply from the kettle, so no part of the appliance is left live.
+
+\vspace{4pt}
+(b)(ii) Exposed Live Wire Touching the Casing\\[4pt]
+The metal casing becomes connected to the live wire (the casing goes live), so a large current flows through the earth wire to earth. This large current makes the fuse blow (melt), disconnecting the supply before anyone touching the casing can receive a shock.
+
+\vspace{4pt}
+(c) Cost of Using the Kettle in a Year\\[4pt]
+\[
+\text{energy} = P \times t = 2.3\,\mathrm{kW} \times 34\,\mathrm{h} = 78.2\ \mathrm{kW\,h}
+\]
+\[
+\text{cost} = 78.2 \times 0.32 = \boxed{\$25.02}
+\]
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q8}\label{p2_on25:q8}
+
+\begin{mstab}{q8color}
+8(a)(i) & number of protons / electrons (is same) & B1 \\ \hline
+8(a)(ii) & number of neutrons / nucleons (is different) & B1 \\ \hline
+ & ($X =$) $5$ & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{8(b)(i)} & ($Y =$) $3$ & B1 \\ \hline
+8(b)(ii) & (only) two small black dots (in the orbits / shells) or one small black dot fewer / missing & B1 \\ \hline
+8(c)(i) & any one from: \newline $\bullet$~cell death \newline $\bullet$~mutations \newline $\bullet$~cancer \newline $\bullet$~radiation sickness / hair loss \newline $\bullet$~cataracts \newline $\bullet$~burns \newline $\bullet$~ionisation of cells & B1 \\ \hline
+ & random: (emission) is unpredictable (in time, direction) or no fixed time intervals (between decays) or (emission follows) no pattern or no fixed value or (emission) rate varies / differs in time & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{8(c)(ii)} & spontaneous: emission not influenced by external factors / temperature / pressure / chemical combination / no trigger / cannot be controlled / happens on its own / just happens & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+(a)(i) What is the Same for All Isotopes\\[4pt]
+They all have the same number of protons (and, in the neutral atom, the same number of electrons) - lithium always has 3.
+
+\vspace{4pt}
+(a)(ii) What is Different Between Isotopes\\[4pt]
+They have a different number of neutrons, and therefore a different nucleon (mass) number.
+
+\vspace{4pt}
+(b)(i) Values of $X$ and $Y$\\[4pt]
+The neutral atom has 3 electrons, so it has 3 protons: the proton number $Y = 3$. The nucleus shown contains 5 nucleons in total (3 protons and 2 neutrons), so the nucleon number $X = 5$.
+\[
+X = \boxed{5}, \qquad Y = \boxed{3}
+\]
+\clearpage
+\vspace{4pt}
+(b)(ii) Diagram for the Ion\\[4pt]
+The $\mathrm{Li}^{+}$ ion has lost one electron, so its diagram shows only two electrons - one small dot fewer than Fig.\ 8.1.
+
+\vspace{4pt}
+(c)(i) A Damaging Effect of Nuclear Radiation\\[4pt]
+For example, it can cause cancer (other acceptable answers: cell death, mutations, radiation sickness, cataracts, burns, or ionisation of cells).
+
+\vspace{4pt}
+(c)(ii) Random and Spontaneous\\[4pt]
+Random: it cannot be predicted which nucleus will decay or exactly when; there is no pattern and no fixed time interval between decays.
+
+Spontaneous: the decay is not influenced by external conditions such as temperature, pressure or chemical state - it happens on its own and cannot be triggered or controlled.
+\end{ansbox}
+
+\qsection{5054/22/O/N/25 - Q9}\label{p2_on25:q9}
+
+\begin{mstab}{q9color}
+ & $9.5 \times 10^{12}$ (km) $\times\, 26\,000$ or $2.5 \times 10^{17}$ (km) seen & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{9(a)(i)} & $2.5 \times 10^{17}$ (km) & A1 \\ \hline
+ & ($v =$) $\dfrac{2\pi r}{T}$ or $\dfrac{2\pi \times 26\,000}{2.3 \times 10^{8}}\,(\times\, 3.0 \times 10^{8})$ or $\dfrac{2\pi \times 2.5 \times 10^{20}}{2.3 \times 10^{8} \times 365 \times 24 \times 3600}$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{9(a)(ii)} & $2.1 \times 10^{5}$ (m/s) or $2.2 \times 10^{5}$ (m/s) & A1 \\ \hline
+9(b)(i) & any two from: \newline $\bullet$~most of the hydrogen has been converted to helium / it runs out of hydrogen / fuel \newline $\bullet$~(outer region) expands / (radiation pushes) the surface of the star outwards \newline $\bullet$~centre of star / core contracts or centre of star / core becomes hotter \newline $\bullet$~hydrogen surrounding centre of star / core begins to fuse / burn \newline $\bullet$~radiation pressure increases & B2 \\ \hline
+ & (red supergiant / it) explodes & B1 \\ \cline{2-3}
+ & (as a) supernova & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{9(b)(ii)} & producing a nebula (and leaving behind a black hole) & B1 \\ \hline
+9(b)(iii) & (in a supernova explosion) lighter nuclei / elements joined / forced together / small nuclei fuse & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+(a)(i) Distance to the Centre in km\\[4pt]
+One light-year is $9.5 \times 10^{12}\,\mathrm{km}$, and the Sun is $26\,000$ light-years out:
+\[
+d = 9.5 \times 10^{12} \times 26\,000
+\]
+\[
+d = \boxed{2.5 \times 10^{17}\ \mathrm{km}}
+\]
+\clearpage
+\vspace{4pt}
+(a)(ii) Orbital Speed $v$\\[4pt]
+Radius $r = 2.5 \times 10^{17}\,\mathrm{km} = 2.5 \times 10^{20}\,\mathrm{m}$, and the period is
+\[
+T = 2.3 \times 10^{8} \times 365 \times 24 \times 3600 = 7.25 \times 10^{15}\ \mathrm{s}
+\]
+\[
+v = \frac{2\pi r}{T} = \frac{2\pi \times 2.5 \times 10^{20}}{7.25 \times 10^{15}}
+\]
+\[
+v = \boxed{2.2 \times 10^{5}\ \mathrm{m/s}}
+\]
+
+\vspace{4pt}
+(b)(i) Becoming a Red Supergiant\\[4pt]
+The core runs out of hydrogen (most of it has fused into helium). The core then contracts and heats up, while the outer layers are pushed outwards and expand, so the star swells into a red supergiant (with hydrogen now fusing in a shell around the core).
+
+\vspace{4pt}
+(b)(ii) Producing a Black Hole\\[4pt]
+The red supergiant becomes unstable and explodes as a supernova. The explosion throws off the outer layers (producing a nebula), and the remaining core collapses under its own gravity to leave behind a black hole.
+
+\vspace{4pt}
+(b)(iii) Forming the Heaviest Elements\\[4pt]
+The heaviest elements are made in the supernova explosion, where lighter nuclei are forced (fused) together to build the most massive nuclei.
+\end{ansbox}
+
+
+
+\end{document}

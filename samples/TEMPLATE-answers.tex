@@ -1,0 +1,110 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+% ============================================================================
+%  HOW THIS FILE IS STRUCTURED — READ THIS BEFORE EDITING
+%
+%  There are TWO different "begin/end" pairs below and they are NOT the
+%  same thing — mixing them up is the #1 cause of "no question blocks were
+%  found" errors on upload.
+%
+%   1) \begin{document} ... \end{document}
+%      Plain, standard LaTeX. It appears EXACTLY ONCE in the whole file —
+%      right here, and again at the very bottom — and wraps everything.
+%      Never add a second copy of it anywhere in the middle of the file.
+%
+%   2) \begin{question}{n} ... \end{question}
+%      Our own custom tag (this is what the parser actually looks for, and
+%      it MUST match the same {n} used in TEMPLATE-questions.tex). It
+%      appears ONCE PER QUESTION, nested inside \begin{document} ...
+%      \end{document}. Every question needs BOTH its own \begin{question}{n}
+%      AND its own \end{question} placed right after that question's
+%      mark scheme and exemplar. The single \end{document} at the bottom
+%      of the file does NOT close your questions for you — if even one
+%      question is missing its \end{question}, the parser cannot find ANY
+%      question in the file and you will see "no question blocks were
+%      found in the answers file", even if the questions file is fine.
+%
+%  Rule of thumb: count your questions, then count your \end{question}
+%  lines — they must match exactly.
+% ============================================================================
+
+\begin{document}
+
+% --- Document Metadata (optional here if already in the questions file) ---
+\subject{Physics}
+\subjectcode{5054}
+\paper{2}
+\variant{1}
+\session{M/J}
+\year{2025}
+
+% --- Answers ---
+% One \begin{question}{n} ... \end{question} block per question. The
+% number in {n} MUST match the same number used in TEMPLATE-questions.tex.
+
+\begin{question}{1}
+\markscheme
+\row{1(a)}{Curve upwards with decreasing gradient}{B1}
+\row{}{Horizontal line labelled B}{B1}
+\row{1(b)}{Gradient decreases as speed increases}{B1}
+\endms
+
+\exemplar
+The gradient of a speed--time graph equals the acceleration. As the curve
+flattens, its gradient falls, so the acceleration decreases as the speed
+increases. The resultant force is given by
+$$ R = \sqrt{400^{2} + 100^{2}} = 410\ \text{N} $$
+\endexemplar
+\end{question}
+% ^^^ \end{question} above closes QUESTION 1. Every question needs this line.
+
+\begin{question}{2}
+\markscheme
+\row{2(a)}{Sum of clockwise moments equals sum of anticlockwise moments about a pivot}{B1}
+\row{2(b)}{Moment $= F \times d$}{C1}
+\row{}{$F \times 1.0 = 5.0 \times 0.4$}{M1}
+\row{}{$F = 2.0\ \text{N}$}{A1}
+\endms
+
+\exemplar
+Taking moments about the pivot at the centre, the anticlockwise moment
+is $5.0 \times 0.4 = 2.0\ \text{N m}$, so the balancing force at
+$1.0\ \text{m}$ on the opposite side must satisfy
+$$ F \times 1.0 = 2.0 \quad \Rightarrow \quad F = 2.0\ \text{N}. $$
+\endexemplar
+\end{question}
+% ^^^ \end{question} above closes QUESTION 2.
+
+\begin{question}{3}
+\markscheme
+\row{3(a)}{$E_p = mgh$}{C1}
+\row{}{$E_p = 0.20 \times 9.8 \times 1.8 = 3.5\ \text{J}$}{A1}
+\row{3(b)}{$\tfrac{1}{2}mv^{2} = mgh$ or $v = \sqrt{2gh}$}{C1}
+\row{}{$v = \sqrt{2 \times 9.8 \times 1.8}$}{M1}
+\row{}{$v = 5.9\ \text{m/s}$}{A1}
+\endms
+
+\exemplar
+The gravitational potential energy at the release point is
+$$ E_p = mgh = 0.20 \times 9.8 \times 1.8 = 3.53\ \text{J}. $$
+Since air resistance is ignored, all of this converts to kinetic energy
+at ground level, so
+$$ \tfrac{1}{2}mv^{2} = mgh \quad\Rightarrow\quad v = \sqrt{2gh} = \sqrt{2 \times 9.8 \times 1.8} \approx 5.9\ \text{m/s}. $$
+\endexemplar
+\end{question}
+% ^^^ \end{question} above closes QUESTION 3.
+
+% To add another question, copy one whole block above — from its opening
+% \begin{question}{N} tag down to its own closing \end{question} tag — and
+% edit the contents. (Written as {N} here on purpose: the parser scans the
+% raw text and does not understand "%" comments, so writing a real digit
+% like {4} in a comment would be read as an actual — and broken — question.)
+
+\end{document}
+% ^^^ This single \end{document} closes the FILE, not any individual
+%     question — every \begin{question}{n} above must already have its own
+%     \end{question} before this line.

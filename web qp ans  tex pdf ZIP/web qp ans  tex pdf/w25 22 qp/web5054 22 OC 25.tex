@@ -1,0 +1,602 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Page Setup & Margins ---
+\usepackage[
+  a4paper,
+  left=25mm,
+  right=25mm,
+  top=20mm,
+  bottom=20mm
+]{geometry}
+
+% --- Core Packages ---
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{array,tabularx}
+\usepackage{enumitem}
+\usepackage{enumitem}
+\usepackage{calc}
+
+% --- Typography ---
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault} % Clean Sans-Serif font
+
+% --- Disable Headers & Footers Completely ---
+\pagestyle{empty}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% --- Custom Exam Macros ---
+\newcommand{\qnum}[1]{\vspace{6pt}\noindent\textbf{#1}\hspace{0.5em}}
+\newcommand{\qmarks}[1]{\hfill\textbf{[#1]}}
+\newcommand{\totalmarks}[1]{\par\nopagebreak\hfill\textbf{[Total: #1]}\par}
+
+% Dotted line for text responses
+\newcommand{\wline}{\par\vspace{1.5pt}\noindent\dotfill\par\vspace{1.5pt}}
+
+% Answer field with label, dots, unit, and marks at right edge
+\newcommand{\ansfield}[3]{%
+  \par\vspace{6pt}
+  \noindent #1 = \dotfill\ \mathrm{#2} \quad [#3]\par\vspace{4pt}
+}
+
+\begin{document}
+\begin{center}
+	\textsc{This document contains Topic list and the Question paper}\\
+	\textsc{*Each question might contain more than one topic }
+\end{center}
+
+\textbf{Topic List}
+\begin{enumerate}[label=\textbf{Q\arabic*:}]
+    \item Motion or Kinematics, Forces or Dynamics
+    \item Forces or Dynamics, Work Energy and Power
+    \item Forces or Dynamics, Mass Weight and Density, Momentum
+    \item Kinetic Model of Matter, Thermal Properties \& Temperature
+    \item Electromagnetic Spectrum
+    \item Electric Charge, Electrical Quantities
+    \item Electrical Quantities, Practical Electricity / Electrical Safety
+    \item The Nuclear Atom, Radioactivity
+    \item The Stars \& Universe
+\end{enumerate}
+\newpage
+
+% =========================================================
+% PAGE 2 -- Question 1
+% =========================================================
+
+\qnum{1} A car travels along a straight horizontal road, initially at a constant speed. The speed--time graph in Fig.~1.1 shows the motion of the car from time $t = 0$.
+
+\begin{center}
+  \includegraphics[width=0.90\linewidth]{q1_fig1.1} \\ \vspace{4pt}
+  \textbf{Fig. 1.1}
+\end{center}
+
+At time $t = 5.7\,\mathrm{s}$, the driver sees an obstruction in the road.
+
+The driver applies the brakes a short time later, and the car begins to slow down.
+
+\textbf{(a)} Using Fig.~1.1, determine:
+
+\hspace*{1.5em}\textbf{(i)} the speed of the car at time $t = 0$
+\ansfield{speed}{m/s}{1}
+
+\hspace*{1.5em}\textbf{(ii)} the distance travelled by the car between the driver seeing the obstruction at $t = 5.7\,\mathrm{s}$ and the car beginning to slow down.
+
+\vspace{2cm}
+\ansfield{distance}{m}{2}
+
+\newpage
+
+% =========================================================
+% PAGE 3 -- Question 1 (Continued)
+% =========================================================
+
+\hspace*{1.5em}\textbf{(iii)} the distance travelled by the car between $t = 0$ and $t = 11.2\,\mathrm{s}$.
+
+\vspace{4cm}
+\ansfield{distance}{m}{3}
+
+\textbf{(b)} The speed of the car affects both the thinking distance and the braking distance.
+
+State \textbf{one} factor that affects \textbf{only} the braking distance of the car.
+
+Explain how a change in this factor increases the braking distance.
+
+\vspace{4pt}
+\noindent factor \dotfill \wline
+\noindent explanation \dotfill \wline \wline
+\hfill[3]
+
+\totalmarks{9}
+
+\newpage
+
+% =========================================================
+% PAGE 4 -- Question 2
+% =========================================================
+
+\qnum{2} A spherical container is used to carry measuring instruments to the bottom of a lake.
+
+Fig.~2.1 shows the container held at rest just below the water surface of a lake.
+
+\begin{center}
+  \includegraphics[width=0.80\linewidth]{q2_fig2.1} \\ \vspace{4pt}
+  \textbf{Fig. 2.1} (not to scale)
+\end{center}
+
+The container is released and falls through the water to the bottom of the lake.
+
+\textbf{(a)} The container reaches terminal velocity before it hits the bottom of the lake.
+
+Explain, in terms of the forces on the container, the motion of the container through the water until it reaches terminal velocity.
+
+\wline \wline \wline \wline \wline
+\hfill[3]
+
+\newpage
+
+% =========================================================
+% PAGE 5 -- Question 2 (Continued)
+% =========================================================
+
+\textbf{(b)} The container falls through a vertical distance of $32\,\mathrm{m}$ before it hits the bottom of the lake.
+
+The container and instruments have a total mass of $74\,\mathrm{kg}$.
+
+\hspace*{1.5em}\textbf{(i)} Calculate the energy transferred from the gravitational potential energy store of the container.
+
+\vspace{2.5cm}
+\ansfield{energy transferred}{J}{2}
+
+\hspace*{1.5em}\textbf{(ii)} State the principle of conservation of energy.
+
+\wline \wline \wline
+\hfill[2]
+
+\hspace*{1.5em}\textbf{(iii)} Work is done to transfer energy from the gravitational potential energy store as the container falls at terminal velocity.
+
+Describe, in terms of the work done, how the energy is transferred from the gravitational potential energy store to \textbf{one} other energy store in the water.
+
+\wline \wline \wline
+\hfill[2]
+
+\totalmarks{9}
+
+\newpage
+
+% =========================================================
+% PAGE 6 -- Question 3
+% =========================================================
+
+\qnum{3} Fig.~3.1 shows a firefighter directing a jet of water at a wall.
+
+\begin{center}
+  \includegraphics[width=0.8\linewidth]{q3_fig3.1} \\ \vspace{4pt}
+  \textbf{Fig. 3.1}
+\end{center}
+
+In $1.0\,\mathrm{s}$, a volume of $7.5 \times 10^{-3}\,\mathrm{m}^3$ of water hits the wall horizontally, at a speed of $24\,\mathrm{m/s}$.
+
+The density of water is $1000\,\mathrm{kg/m}^3$.
+
+\textbf{(a)} Calculate:
+
+\hspace*{1.5em}\textbf{(i)} the mass of the water that hits the wall in $1.0\,\mathrm{s}$
+\vspace{2cm}
+\ansfield{mass}{kg}{2}
+
+\hspace*{1.5em}\textbf{(ii)} the horizontal momentum of the water that hits the wall in $1.0\,\mathrm{s}$.
+\vspace{2cm}
+\ansfield{momentum}{kg\,m/s}{2}
+
+\textbf{(b)} The horizontal momentum of the water decreases to zero when the water hits the wall. None of the water bounces back from the wall.
+
+Explain why the momentum calculated in \textbf{(a)(ii)} is equal in size to the horizontal force exerted on the water by the wall.
+
+\wline \wline
+\hfill[2]
+
+\newpage
+
+% =========================================================
+% PAGE 7 -- Question 3 (Continued)
+% =========================================================
+
+\textbf{(c)} Explain, in terms of Newton's third law, why there is a horizontal force exerted on the wall by the water.
+
+\wline \wline \wline
+\hfill[2]
+
+\textbf{(d)} The pump that forces the water to flow through the hose is adjusted, and the speed of the water leaving the hose doubles.
+
+Explain why the force exerted by the water on the wall increases by a factor of 4.
+
+\wline \wline
+\hfill[1]
+
+\totalmarks{9}
+
+\newpage
+
+% =========================================================
+% PAGE 8 -- Question 4
+% =========================================================
+
+\qnum{4} A large test-tube contains a thermometer and some solid wax at a temperature of $21\,^{\circ}\mathrm{C}$.
+
+At time $t = 0$, the test-tube is partially immersed in a beaker of boiling water and the temperature of the wax is recorded for the next $600\,\mathrm{s}$.
+
+Fig.~4.1 shows the variation of the temperature of the wax with time $t$.
+
+\begin{center}
+  \includegraphics[width=0.99\linewidth]{q4_fig4.1} \\ \vspace{4pt}
+  \textbf{Fig. 4.1}
+\end{center}
+
+\textbf{(a)} Explain how Fig.~4.1 shows that the melting temperature of the wax is $63\,^{\circ}\mathrm{C}$.
+
+\wline \wline
+\hfill[1]
+
+\newpage
+
+% =========================================================
+% PAGE 9 -- Question 4 (Continued)
+% =========================================================
+
+\textbf{(b)} As the temperature of the wax increases, the energy in the internal energy store increases.
+
+\hspace*{1.5em}\textbf{(i)} The mass of the wax in the test-tube is $0.040\,\mathrm{kg}$ and its temperature at time $t = 0$ is $21\,^{\circ}\mathrm{C}$. The specific heat capacity of wax is $2100\,\mathrm{J/(kg\,^{\circ}C)}$.
+
+Using Fig.~4.1, determine the increase in the energy in the internal energy store of the wax between $t = 0$ and $t = 220\,\mathrm{s}$. Show your working.
+
+\vspace{3cm}
+\ansfield{increase in energy in internal energy store}{J}{3}
+
+\hspace*{1.5em}\textbf{(ii)} Describe what happens to the motion of the molecules of the solid wax as the internal energy of the wax increases.
+
+\wline \wline \wline
+\hfill[2]
+
+\textbf{(c)} When the wax reaches its melting temperature, energy continues to be transferred thermally to the wax.
+
+Describe, in terms of the forces between particles, why energy is required to melt the wax.
+
+\wline \wline \wline
+\hfill[2]
+
+\totalmarks{8}
+
+\newpage
+
+% =========================================================
+% PAGE 10 -- Question 5
+% =========================================================
+
+\qnum{5} The microwave region is one region of the electromagnetic spectrum.
+
+\textbf{(a)} Fig.~5.1 represents the electromagnetic spectrum divided into the seven main regions.
+
+\begin{center}
+  \includegraphics[width=0.90\linewidth]{q5_fig5.1} \\ \vspace{4pt}
+  \textbf{Fig. 5.1}
+\end{center}
+
+The regions are arranged from left to right in order of increasing wavelength.
+
+On Fig.~5.1:
+\begin{itemize}[leftmargin=2.5em,itemsep=1pt]
+  \item indicate the microwave region by marking it with the letter \textbf{M}
+  \item indicate the ultraviolet region by marking it with the letters \textbf{UV}.
+\end{itemize}
+\hfill[1]
+
+\textbf{(b)} The frequency of the microwaves used by some satellite television systems is $12\,\mathrm{GHz}$.
+
+\hspace*{1.5em}\textbf{(i)} The speed of microwaves in a vacuum is $3.0 \times 10^{8}\,\mathrm{m/s}$.
+
+Calculate the wavelength of these microwaves in a vacuum.
+
+\vspace{2.5cm}
+\ansfield{wavelength}{m}{3}
+
+\hspace*{1.5em}\textbf{(ii)} Describe how microwaves are used in satellite television systems.
+
+\wline \wline \wline
+\hfill[2]
+
+\newpage
+
+% =========================================================
+% PAGE 11 -- Question 5 (Continued)
+% =========================================================
+
+\textbf{(c)} All microwave ovens have a switch that turns the oven off when the door is opened.
+
+Suggest why it is important for a microwave oven to switch off when the door is opened.
+
+\wline \wline \wline
+\hfill[2]
+
+\totalmarks{8}
+
+\newpage
+
+% =========================================================
+% PAGE 12 -- Question 6
+% =========================================================
+
+\qnum{6} An electric car is driven by a direct current (d.c.) motor that is powered by a direct current power supply.
+
+\textbf{(a)} Describe how a direct current differs from an alternating current (a.c.).
+
+\wline \wline
+\hfill[1]
+
+\textbf{(b)} Fig.~6.1 represents the motor circuit. Point P is a point in the circuit between the motor and the positive terminal of the power supply.
+
+Point P is shown to the left of the motor in the circuit diagram.
+
+\begin{center}
+  \includegraphics[width=0.55\linewidth]{q6_fig6.1} \\ \vspace{4pt}
+  \textbf{Fig. 6.1}
+\end{center}
+
+During a time of $120\,\mathrm{s}$, the current in the circuit at point P is $41\,\mathrm{A}$.
+
+\hspace*{1.5em}\textbf{(i)} Calculate the charge that flows through point P in the time of $120\,\mathrm{s}$.
+
+\vspace{2.5cm}
+\ansfield{charge}{C}{2}
+
+\newpage
+
+% =========================================================
+% PAGE 13 -- Question 6 (Continued)
+% =========================================================
+
+\hspace*{1.5em}\textbf{(ii)} The current in the circuit is due to the flow of electrons. Each electron carries a charge of magnitude $1.6 \times 10^{-19}\,\mathrm{C}$.
+
+State the direction which the electrons move past point P and determine the number of electrons that pass point P in $1.0\,\mathrm{s}$.
+
+\vspace{4pt}
+\noindent direction \dotfill
+
+\vspace{2.5cm}
+\noindent number of electrons = \dotfill \hfill[2]
+
+\textbf{(c)} The power supply for the electric car is a number of batteries, each made from a large number of identical cells.
+
+The e.m.f. (electromotive force) of each cell is $3.7\,\mathrm{V}$.
+
+\hspace*{1.5em}\textbf{(i)} Define the term \textit{electromotive force}.
+
+\wline \wline
+\hfill[2]
+
+\hspace*{1.5em}\textbf{(ii)} Each battery consists of 92 cells in series.
+
+Calculate the e.m.f. of one battery.
+
+\vspace{1.5cm}
+\ansfield{e.m.f.}{V}{2}
+
+\hspace*{1.5em}\textbf{(iii)} The power supply is made by connecting 85 of these batteries in parallel.
+
+State the e.m.f. of the power supply.
+
+\vspace{0.8cm}
+\ansfield{e.m.f.}{V}{1}
+
+\totalmarks{10}
+
+\newpage
+
+% =========================================================
+% PAGE 14 -- Question 7
+% =========================================================
+
+\qnum{7} An electric kettle has an outer casing made of metal. Fig.~7.1 shows the kettle.
+
+\begin{center}
+  \includegraphics[width=0.80\linewidth]{q7_fig7.1} \\ \vspace{4pt}
+  \textbf{Fig. 7.1}
+\end{center}
+
+The heater in the electric kettle is connected to a $230\,\mathrm{V}$ mains power supply and has a power rating of $2300\,\mathrm{W}$.
+
+\textbf{(a)} The kettle is switched on.
+
+\hspace*{1.5em}\textbf{(i)} Calculate the current in the heater.
+
+\vspace{2.5cm}
+\ansfield{current}{A}{2}
+
+\hspace*{1.5em}\textbf{(ii)} The manufacturer of the kettle states that the cable for the kettle is safe for currents that are smaller than $15\,\mathrm{A}$. The wiring in the mains power supply in the wall is safe for currents that are smaller than $20\,\mathrm{A}$.
+
+The fuses available for the kettle have the ratings shown.
+
+\begin{center}
+\textbf{3A \quad 5A \quad 7A \quad 10A \quad 13A \quad 15A \quad 18A \quad 20A \quad 25A}
+\end{center}
+
+State which of these fuses is the most appropriate. Explain why it is the most appropriate.
+
+\vspace{4pt}
+\noindent most appropriate fuse rating = \dotfill\ \mathrm{A}
+
+\noindent explanation \dotfill \wline \wline
+\hfill[2]
+
+\newpage
+
+% =========================================================
+% PAGE 15 -- Question 7 (Continued)
+% =========================================================
+
+\textbf{(b)} There are three wires in the cable that connects the kettle to the mains power supply:
+\begin{itemize}[leftmargin=2.5em,itemsep=1pt]
+  \item the earth wire
+  \item the live (line) wire
+  \item the neutral wire.
+\end{itemize}
+
+The wires are all correctly connected.
+
+\hspace*{1.5em}\textbf{(i)} State the name of the wire that the fuse is connected into. Explain why the fuse is connected into this wire.
+
+\vspace{4pt}
+\noindent name of wire \dotfill
+
+\noindent explanation \dotfill \wline \wline
+\hfill[2]
+
+\hspace*{1.5em}\textbf{(ii)} The insulation on the live wire is damaged so that the wire is exposed.
+
+Explain what happens when the exposed live wire touches the metal outer casing.
+
+\wline \wline \wline
+\hfill[2]
+
+\textbf{(c)} The kettle is switched on for a total time of $34\,\mathrm{h}$ during one year.
+
+The cost of electricity is \$0.32 per kilowatt-hour (kWh).
+
+Calculate the cost of using the kettle during the year.
+
+\vspace{2.5cm}
+\noindent $\mathrm{cost} = \$\dotfill$ \hfill[2]
+
+\totalmarks{9}
+
+\newpage
+
+% =========================================================
+% PAGE 16 -- Question 8
+% =========================================================
+
+\qnum{8} The element lithium has several different isotopes.
+
+\textbf{(a)} \hspace*{0.3em}\textbf{(i)} State \textbf{one} way in which the compositions of the atoms of all lithium isotopes are the same.
+
+\wline \wline
+\hfill[1]
+
+\hspace*{1.5em}\textbf{(ii)} State \textbf{one} way in which the composition of a lithium atom of one isotope is different from the composition of a lithium atom of a different isotope.
+
+\wline \wline
+\hfill[1]
+
+\textbf{(b)} Fig.~8.1 is a diagram that represents a neutral atom of a radioactive isotope of lithium ($\mathrm{Li}$).
+
+\begin{center}
+  \includegraphics[width=0.7\linewidth]{q8_fig8.1} \\ \vspace{4pt}
+  \textbf{Fig. 8.1}
+\end{center}
+
+There are three electrons in orbit around the nucleus.
+
+\hspace*{1.5em}\textbf{(i)} The nuclide symbols for isotopes of lithium are represented as $^{X}_{Y}\mathrm{Li}$ where $X$ and $Y$ are numbers.
+
+Determine the values of $X$ and $Y$ for the isotope represented by Fig.~8.1.
+
+\vspace{6pt}
+\noindent $X = $ \dotfill
+
+\noindent $Y = $ \dotfill
+\hfill[2]
+
+\hspace*{1.5em}\textbf{(ii)} An ion of this isotope of lithium has a single positive charge and is represented as $\left(^{X}_{Y}\mathrm{Li}^{+}\right)$.
+
+Describe how the diagram that represents this ion differs from Fig.~8.1.
+
+\wline \wline
+\hfill[1]
+
+\newpage
+
+% =========================================================
+% PAGE 17 -- Question 8 (Continued)
+% =========================================================
+
+\textbf{(c)} Radioactive isotopes emit nuclear radiation which can affect living things.
+
+\hspace*{1.5em}\textbf{(i)} State \textbf{one} damaging effect of nuclear radiation.
+
+\wline \wline
+\hfill[1]
+
+\hspace*{1.5em}\textbf{(ii)} The emission of radioactive radiation from an unstable isotope is described as random and spontaneous.
+
+State what is meant by `random' and what is meant by `spontaneous'.
+
+\vspace{4pt}
+\noindent random \dotfill \wline
+
+\noindent spontaneous \dotfill \wline
+\hfill[2]
+
+\totalmarks{8}
+
+\newpage
+
+% =========================================================
+% PAGE 18 -- Question 9
+% =========================================================
+
+\qnum{9} Fig.~9.1 shows how the Sun and the rest of the Solar System orbit around the centre of the Milky Way in a circular path.
+
+\begin{center}
+  \includegraphics[width=0.8\linewidth]{q9_fig9.1} \\ \vspace{4pt}
+  \textbf{Fig. 9.1}
+\end{center}
+
+The Sun travels around the circular path at a speed $v$.
+
+\textbf{(a)} The speed of light in a vacuum is $9.5 \times 10^{12}\,\mathrm{km/year}$.
+
+The Sun is $26\,000$ light-years from the centre of the Milky Way.
+
+\hspace*{1.5em}\textbf{(i)} Determine the distance from the Sun to the centre of the Milky Way in kilometres ($\mathrm{km}$).
+
+\vspace{2.5cm}
+\ansfield{distance}{km}{2}
+
+\hspace*{1.5em}\textbf{(ii)} It takes the Sun $2.3 \times 10^{8}$ years to complete one orbit around the centre of the Milky Way.
+
+Calculate the speed $v$.
+
+\vspace{2.5cm}
+\ansfield{$v$}{m/s}{2}
+
+\newpage
+
+% =========================================================
+% PAGE 19 -- Question 9 (Continued)
+% =========================================================
+
+\textbf{(b)} Astronomical observations suggest that, at the centre of the Milky Way, there is a black hole.
+
+Black holes are produced from red supergiants.
+
+\hspace*{1.5em}\textbf{(i)} Near the end of its life, a massive star becomes a red supergiant.
+
+Describe what happens inside the star as it becomes a red supergiant.
+
+\wline \wline \wline
+\hfill[2]
+
+\hspace*{1.5em}\textbf{(ii)} Describe how a red supergiant produces a black hole.
+
+\wline \wline \wline \wline
+\hfill[3]
+
+\hspace*{1.5em}\textbf{(iii)} Describe how the heaviest elements are produced.
+
+\wline \wline
+\hfill[1]
+
+\totalmarks{10}
+
+\end{document}

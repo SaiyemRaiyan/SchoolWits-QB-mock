@@ -1,0 +1,464 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,linktoc=none]{hyperref}
+
+\geometry{margin=2.5cm}
+
+% Short forced heading lines (sub-answer labels, topic headers) are intentionally
+% short; stop TeX reporting them as underfull (no overfull boxes exist).
+\hbadness=10000
+\vbadness=10000
+
+% ===== Pastel colours (cycled per question number) =====
+\definecolor{q1color}{HTML}{D6EAF8}
+\definecolor{q2color}{HTML}{D5F5E3}
+\definecolor{q3color}{HTML}{FDEBD0}
+\definecolor{q4color}{HTML}{F9E79F}
+\definecolor{q5color}{HTML}{E8DAEF}
+\definecolor{q6color}{HTML}{FADBD8}
+\definecolor{q7color}{HTML}{D1F2EB}
+\definecolor{q8color}{HTML}{FCF3CF}
+\definecolor{q9color}{HTML}{EBDEF0}
+\definecolor{q10color}{HTML}{F5EEF8}
+\definecolor{q11color}{HTML}{EBF5FB}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+
+% Question heading: unnumbered, never orphaned at a page bottom
+\newcommand{\qsection}[1]{\needspace{10\baselineskip}\section*{#1}}
+
+% Running headers: current session left, page number right
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\itshape\leftmark}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% Mark-scheme table (Paper 2 only), tinted per question colour
+\newenvironment{mstab}[1]{%
+  {\color{#1!75!black} Mark Scheme}\par\nopagebreak\smallskip
+  \arrayrulecolor{#1!70!black}%
+  \renewcommand{\arraystretch}{1.3}%
+  \tabularx{\textwidth}{%
+ |>{\columncolor{#1!12}\raggedright\arraybackslash}p{1.9cm}|%
+ >{\columncolor{#1!12}}X|%
+ >{\columncolor{#1!12}\centering\arraybackslash}p{1.1cm}|}%
+  \hline
+  \rowcolor{#1!45} Question & Answer & Marks \\ \hline
+}{\endtabularx\arrayrulecolor{black}\par\medskip}
+
+% Exemplar-answer box
+\newtcolorbox{ansbox}[1]{
+  colback=#1!8, colbacktitle=#1!30, colframe=#1!70!black, coltitle=black,
+  fonttitle=\normalfont, title=Exemplar Key, boxrule=0.6pt, arc=2mm,
+  left=4pt, right=4pt, top=4pt, bottom=4pt, breakable}
+
+% Session banner: flows inline, no page break, sets the running header
+\newcommand{\sessionheader}[3]{%
+  \par\Needspace*{14\baselineskip}\bigskip
+  \markboth{#1 - #2}{}%
+  \begin{tcolorbox}[colback=black!6, colframe=black!55, arc=2mm,
+ boxrule=0.9pt, left=8pt, right=8pt, top=7pt, bottom=7pt]
+ \centering {\LARGE\bfseries #1 \ - \ #2}\\[5pt] {\normalsize #3}
+  \end{tcolorbox}\medskip}
+
+% Main-TOC session line (non-clickable page number)
+\newcommand{\tocsess}[2]{\noindent #1\ \dotfill\ p.\,\pageref*{#2}\par\vspace{3pt}}
+
+% Topic header for the multicol topic index
+\newcommand{\topichead}[1]{%
+  \par\addvspace{7pt}%
+  \noindent\begin{minipage}{\linewidth}
+ \raggedright{\normalsize\bfseries #1}\par
+ \vspace{1pt}\noindent{\color{black!35}\rule{\linewidth}{0.4pt}}%
+  \end{minipage}%
+  \par\nopagebreak\vspace{3pt}}
+
+% Topic index entry (non-clickable page number)
+\newcommand{\topicentry}[2]{\noindent{\small #1}\ \dotfill\ {\small \pageref*{#2}}\par}
+
+\begin{document}
+
+\sessionheader{5054/22/M/J/25}{May/June 2025}{Theory: Mark Scheme \& Model Answers}
+
+\label{sess:p2_mj25}
+
+\qsection{5054/22/M/J/25 - Q1}\label{p2_mj25:q1}
+
+\begin{mstab}{q1color}
+ & points plotted to within $1/2$ a small square & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(a)(i)} & smooth curve drawn & B1 \\ \hline
+ & (average speed =) $d/t$ in any form & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(a)(ii)} & 195 (cm/s) & A1 \\ \hline
+ & draw a tangent (at $t = 0.40$ s) & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(a)(iii)} & find the gradient / slope (of the graph) \newline or the gradient of the tangent & B1 \\ \hline
+ & mention of air resistance / resistive force & B1 \\ \cline{2-3}
+ & resultant force decreases \newline or air resistance / upwards force increases (as speed increases) / becomes high(er) & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{1(b)(i)} & (eventually) air resistance = weight (and acceleration is zero) \newline or air resistance balances / cancels weight & B1 \\ \hline
+ & straight line (of positive) \newline or (line of) constant gradient / slope & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(b)(ii)} &  &  \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+(a)(i) Plotting the Graph\\[4pt]
+Plot each coordinate pair from Table 1.1 carefully on the grid, ensuring points are within half a small square of their exact positions. Then, draw a single smooth curve passing through these plotted points.
+
+\vspace{4pt}
+(a)(ii) Average Speed\\[4pt]
+\[ \text{average speed} = \frac{\text{total distance}}{\text{total time}} \]
+At $t = 0.40 \text{ s}$, the distance fallen is $78 \text{ cm}$.
+\[ v = \frac{78}{0.40} \]
+\[ \text{speed} = \boxed{195 \text{ cm/s}} \]
+
+\vspace{4pt}
+(a)(iii) Instantaneous Speed\\[4pt]
+To find the speed at exactly $t = 0.40 \text{ s}$, draw a straight tangent line touching the curve at the point where $t = 0.40 \text{ s}$. Then, calculate the gradient (slope) of this tangent line.
+\clearpage
+\vspace{4pt}
+(b)(i) Changing Acceleration\\[4pt]
+As the ball falls and its speed increases, the upward force of air resistance acting against it also increases. This increasing upward force opposes the constant downward weight of the ball, meaning the overall downward resultant force decreases (causing acceleration to decrease). Eventually, the upward air resistance fully balances the downward weight, making the resultant force zero, which means the acceleration becomes zero.
+
+\vspace{4pt}
+(b)(ii) Graph with Zero Acceleration\\[4pt]
+When acceleration is zero, the ball moves at a constant terminal velocity, so the distance-time graph becomes a straight line with a constant positive gradient.
+\end{ansbox}
+
+\qsection{5054/22/M/J/25 - Q2}\label{p2_mj25:q2}
+
+\begin{mstab}{q2color}
+2(a) & work done or energy per unit time & B1 \\ \hline
+ & (input power =) power output / efficiency in any form & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{2(b)} & 860 (W) & A1 \\ \hline
+ & (work =) force $\times$ distance or $mgh$ & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{2(c)(i)} & 1100 (J) & A1 \\ \hline
+ & (time =) work / (output) power & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{2(c)(ii)} & 1.9 or 1.8 s & A1 \\ \hline
+2(d) & Any one of: \newline friction/air resistance \newline electrical heating & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+(a) Definition of Power\\[4pt]
+Power is the work done or energy transferred per unit time.
+
+\vspace{4pt}
+(b) Input Power\\[4pt]
+\[ \text{efficiency} = \frac{\text{power output}}{\text{power input}} \]
+\[ 0.70 = \frac{600}{\text{power input}} \]
+\[ \text{power input} = \frac{600}{0.70} = 857.14 \dots \]
+\[ \text{input power} = \boxed{860 \text{ W}} \]
+
+\vspace{4pt}
+(c)(i) Work Done\\[4pt]
+\[ \text{work} = \text{force} \times \text{distance} = mg \times h \]
+\[ \text{work} = 50 \times 9.8 \times 2.3 = 1127 \]
+\[ \text{work done} = \boxed{1100 \text{ J}} \]
+\clearpage
+
+\vspace{4pt}
+(c)(ii) Time Taken\\[4pt]
+\[ P = \frac{\text{work}}{\text{time}} \]
+\[ t = \frac{1127}{600} = 1.878 \dots \]
+\[ \text{time taken} = \boxed{1.9 \text{ s}} \]
+
+\vspace{4pt}
+(d) Thermal Energy Transfer\\[4pt]
+Energy is transferred to thermal energy due to friction between the moving mechanical parts of the fork-lift truck.
+\end{ansbox}
+
+\qsection{5054/22/M/J/25 - Q3}\label{p2_mj25:q3}
+
+\begin{mstab}{q3color}
+ & ($P =$) force / area in any form & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(a)(i)} & $1.9 \times 10^5$ (Pa) & A1 \\ \hline
+3(a)(ii) & (increasing pressure) decreases the area & B1 \\ \hline
+3(b)(i) & mass (of the particle) $\times$ velocity (of the particle) & B1 \\ \hline
+ & on collision: change of momentum/direction / velocity \newline or on collision: momentum transferred to wall & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(b)(ii)} & force related to change in momentum / time \newline or force of equal size on tyre / wall and on particle (Newton's 3rd law) & B1 \\ \hline
+ & (particles have) high(er) speed/ velocity/momentum/kinetic energy & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{3(c)} & more collisions per second \newline or hit (wall) hard(er) \newline or larger change in momentum per sec & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+(a)(i) Pressure Exerted\\[4pt]
+\[ P = \frac{F}{A} \]
+\[ P = \frac{1350}{0.0070} = 192857.1 \dots \]
+\[ \text{pressure} = \boxed{1.9 \times 10^5 \text{ Pa}} \]
+
+\vspace{4pt}
+(a)(ii) Change in Area\\[4pt]
+Since the force (weight) remains constant, increasing the internal pressure means the area of the tyre in contact with the road decreases.
+
+\vspace{4pt}
+(b)(i) Definition of Momentum\\[4pt]
+Momentum is the product of the mass of a particle and its velocity.
+\clearpage
+\vspace{4pt}
+(b)(ii) Force on the Wall\\[4pt]
+When an air particle collides with the tyre wall and bounces off, it undergoes a change in velocity, and thus a change in momentum. The rate of change of momentum exerts a force on the particle, and according to Newton's third law, an equal and opposite force is exerted by the particle onto the wall of the tyre.
+
+\vspace{4pt}
+(c) Pressure Increase with Temperature\\[4pt]
+As temperature rises, the air particles gain kinetic energy and move at higher speeds. Because they are moving faster, they hit the tyre walls harder (experiencing a larger change in momentum per collision) and collide with the walls more frequently. This increased rate of change of momentum over the tyre's area results in a higher pressure.
+\end{ansbox}
+
+\qsection{5054/22/M/J/25 - Q4}\label{p2_mj25:q4}
+
+\begin{mstab}{q4color}
+ & motion of particles: backwards and forwards / to and fro / closer and further apart & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{4(a)} & (oscillation) in the direction of travel of the wave / to the right/in direction of microphone/longitudinal / horizontal / parallel to vibrations of tuning fork \newline or mention of compressions and rarefactions & B1 \\ \hline
+4(b)(i) & number of oscillations per second \newline or number of wave (length)s (passing a point) per second & B1 \\ \hline
+ & 2.5 (waves) seen or (1 wave takes) 0.02 (s) \newline or ($f =$) $1/T$ or (number of) waves / time & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{4(b)(ii)} & 50 (Hz) & A1 \\ \hline
+4(b)(iii) & quieter / less volume & B1 \\ \hline
+4(b)(iv) & half frequency shown and at least one complete oscillation seen & B1 \\ \hline
+ & (at least) three correctly curved wavefronts centered on gap & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{4(c)(i)} & same wavelength as on left and some curving in correct direction & B1 \\ \hline
+4(c)(ii) & diffraction & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+(a) Motion of Air Particles\\[4pt]
+The air particles oscillate backwards and forwards (to and fro) parallel to the direction of travel of the wave. This longitudinal motion creates alternating regions of compressions and rarefactions.
+
+\vspace{4pt}
+(b)(i) Meaning of Frequency\\[4pt]
+Frequency is the number of complete oscillations or wavelengths passing a point per second.
+\clearpage
+\vspace{4pt}
+(b)(ii) Calculating Frequency\\[4pt]
+From the graph, exactly 2.5 complete waves are shown over a time interval of $0.050 \text{ s}$.
+\[ f = \frac{\text{number of waves}}{\text{time}} = \frac{2.5}{0.050} \]
+\[ \text{frequency} = \boxed{50 \text{ Hz}} \]
+
+\vspace{4pt}
+(b)(iii) Change in Sound\\[4pt]
+Because the amplitude decreases, the sound becomes quieter (lower volume).
+
+\vspace{4pt}
+(b)(iv) New Oscilloscope Trace\\[4pt]
+Draw a sine wave starting from the same zero point with the exact same peak amplitude, but stretched horizontally so that it completes only 1.25 waves across the entire grid (since half the frequency means the waves are twice as wide).
+\clearpage
+\vspace{4pt}
+(c)(i) Drawing Wavefronts\\[4pt]
+On the right side of the gap, draw three semi-circular arcs centered at the gap. The radial distance between these curved wavefronts must remain equal to the original wavelength (the spacing between the straight vertical lines on the left).
+
+\vspace{4pt}
+(c)(ii) Name of Process\\[4pt]
+Diffraction
+\end{ansbox}
+
+\qsection{5054/22/M/J/25 - Q5}\label{p2_mj25:q5}
+
+\begin{mstab}{q5color}
+ & swap voltmeter for ammeter & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{5(a)} & have cells all facing the same way, e.g. reverse left two cells & B1 \\ \hline
+ & ($R =$) $V/I$ in any form, e.g. 6/0.8 & C1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{5(b)(i)} & 7.5 ($\Omega$) & A1 \\ \hline
+ & shorter \newline and \newline one of: \newline resistance smaller or resistance proportional to length \newline larger current (for same voltage) \newline smaller voltage to produce (an equal) current & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{5(b)(ii)} &  &  \\ \hline
+5(b)(iii) & 6 (.0 cm) & B1 \\ \hline
+\end{mstab}
+\clearpage
+\begin{ansbox}{q5color}
+(a) Changes to Circuit\\[4pt]
+1. Swap the positions of the voltmeter and the ammeter so that the ammeter is in series with the wire and the voltmeter is placed in parallel across it.
+2. Reverse the orientation of the two cells on the left so that all four cells are facing the same direction (positive terminals all pointing the same way) to provide a non-zero electromotive force.
+
+\vspace{4pt}
+(b)(i) Resistance of 9.0 cm Wire\\[4pt]
+From line P on the graph, at a voltage of $6.0 \text{ V}$, the current is $0.80 \text{ A}$.
+\[ R = \frac{V}{I} = \frac{6.0}{0.80} \]
+\[ \text{resistance} = \boxed{7.5 \ \Omega} \]
+\clearpage
+%\vspace{4pt}
+(b)(ii) Length Comparison\\[4pt]
+Line Q represents a shorter wire. At any given voltage, line Q shows a larger current flowing than line P, meaning it has a smaller resistance. Because the resistance of a wire is directly proportional to its length, a smaller resistance must correspond to a shorter length.
+\clearpage
+%\vspace{4pt}
+(b)(iii) Length of Wire Q\\[4pt]
+From line Q, at a voltage of $4.0 \text{ V}$, the current is $0.80 \text{ A}$.
+\[ R_Q = \frac{4.0}{0.80} = 5.0 \ \Omega \]
+Since length is proportional to resistance:
+\[ \frac{L_Q}{L_P} = \frac{R_Q}{R_P} \implies L_Q = 9.0 \times \frac{5.0}{7.5} \]
+\[ \text{length} = \boxed{6.0 \text{ cm}} \]
+\end{ansbox}
+
+\qsection{5054/22/M/J/25 - Q6}\label{p2_mj25:q6}
+
+\begin{mstab}{q6color}
+ & ($I$) = $P/V$ or 2000/230 or 8.7 (A) & M1 \\ \cline{2-3}
+ & fuse rating 13 A underlined or circled & A1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{6(a)} & The fuse rating needs to be the lowest value above / slightly larger than the normal current/8.7 A \newline or 5/8 A fuse blows under normal operation / 8.7 A \newline or 30 A fuse may not blow / heater or circuit damaged if fault or current larger than normal 8.7 A & B1 \\ \hline
+6(b) & fuse melts/blows/ \newline or cuts off current/circuit & B1 \\ \hline
+6(c)(i) & 0.95 (A) & B1 \\ \hline
+6(c)(ii) & 17 & B1 \\ \hline
+ & Any two from: \newline (trip switches can / are) \newline be reset/used more than once \newline faster acting/turns off immeditaely \newline more sensitive \newline be tested without replacement \newline have an external indication that they are working \newline can trip on difference in live and neutral currents & B2 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+(a) Choosing a Fuse\\[4pt]
+\underline{13 A}
+Calculation:
+\[ I = \frac{P}{V} = \frac{2000}{230} = 8.695 \dots \text{ A} \]
+Explanation: The normal operating current is approximately 8.7 A. The fuse rating must be slightly larger than this working current. A 5 A or 8 A fuse would blow under normal operation, cutting power to the heater. A 30 A fuse is too large and might not blow during a fault, risking damage or a fire.
+
+\vspace{4pt}
+(b) Function of a Fuse\\[4pt]
+When the current becomes too large, the thin wire inside the fuse becomes hot and melts (blows), which breaks the circuit and cuts off the current.
+\clearpage
+\vspace{4pt}
+(c)(i) Current in Lighting Circuit Fuse\\[4pt]
+The total current is the sum of the currents in parallel branches:
+\[ I_{\text{total}} = 0.26 + 0.26 + 0.43 = 0.95 \]
+\[ \text{current} = \boxed{0.95 \text{ A}} \]
+
+\vspace{4pt}
+(c)(ii) Maximum Additional Lamps\\[4pt]
+The lighting fuse is rated at 5 A.
+The two existing type P lamps take $0.26 + 0.26 = 0.52 \text{ A}$.
+Current available for new lamps = $5.0 - 0.52 = 4.48 \text{ A}$.
+Number of additional type P lamps = $4.48 / 0.26 = 17.23$.
+\[ \text{number of additional lamps} = \boxed{17} \]
+
+\vspace{4pt}
+(d) Advantages of Trip Switches\\[4pt]
+1. A trip switch can simply be reset and used multiple times, whereas a blown fuse must be fully replaced.
+2. A trip switch is much faster acting, cutting off the current almost immediately when a fault is detected.
+\end{ansbox}
+\qsection{5054/22/M/J/25 - Q7}\label{p2_mj25:q7}
+\begin{mstab}{q7color}
+ & split ring commutator: \newline to reverse the current (in the coil) & B1 \\ \cline{2-3}
+ & reverse current/connections every half turn / twice in one turn / every $180^\circ$/ when coil is vertical & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{7(a)} & brushes: to connect coil/commutator or (split) rings to battery / (external) circuit \newline or to provide current to coil, commutator or (split) rings \newline or to avoid wires (to coil) tangling / twisting & B1 \\ \hline
+ & direction: (from left) to right/from magnet 1 to magnet 2 & B1 \\ \cline{2-3}
+ & explanation: \newline current is from plus to minus / towards front/out of plane/page/outwards / top to bottom of wire / downwards along wire / towards the split ring on the left & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{7(b)} & left-hand rule mentioned and explained using two of current, field or motion / force & B1 \\ \hline
+7(c) & no change & B1 \\ \hline
+ & (moment =) force $\times$ distance in any form & C1 \\ \cline{2-3}
+ & 0.69 & A1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{7(d)(i)} & Nm & B1 \\ \hline
+7(d)(ii) & (perpendicular) distance between (line of action of) forces decreases \newline or (sides of) coil enter weaker magnetic field \newline or coil leaves magnetic field & B1 \\ \hline
+\end{mstab}
+%\clearpage
+\begin{ansbox}{q7color}
+(a) Purpose of Commutator and Brushes\\[4pt]
+Split-ring commutator: Reverses the direction of the current in the coil every half turn (when the coil is vertical) to ensure the coil continues rotating in the same direction.
+Brushes: Provide a sliding electrical contact that transfers current from the stationary battery to the rotating commutator without the connecting wires tangling.
+
+\vspace{4pt}
+(b) Magnetic Field Direction\\[4pt]
+direction: From left to right (from magnet 1 to magnet 2).
+explanation: Using Fleming's left-hand rule. On the left side of the coil, the conventional current flows outwards (towards the split ring), and the resulting force is upwards. For the thumb (force) to point up and the second finger (current) to point outwards, the first finger must point from left to right, identifying the magnetic field direction.
+
+\vspace{4pt}
+(c) Reversing Both Field and Current\\[4pt]
+There is no change to the rotation of the coil (it continues rotating in the same direction).
+\clearpage
+
+(d)(i) Total Moment\\[4pt]
+\[ \text{total moment} = (\text{force} \times \text{distance})_{\text{left}} + (\text{force} \times \text{distance})_{\text{right}} \]
+\[ M = (2.3 \times 0.15) + (2.3 \times 0.15) = 0.345 + 0.345 = 0.69 \]
+\[ \text{moment} = \boxed{0.69} \quad \text{unit} = \boxed{\text{Nm}} \]
+
+\vspace{4pt}
+(d)(ii) Change in Turning Effect\\[4pt]
+As the coil rotates from the horizontal to the vertical position, the perpendicular distance from the axis of rotation to the vertical lines of action of the forces decreases, resulting in a smaller turning effect (moment).
+\end{ansbox}
+\vspace{-2.5cm}
+\qsection{5054/22/M/J/25 - Q8}\label{p2_mj25:q8}
+
+\begin{mstab}{q8color}
+ & shielding: protects workers / absorbs radiation & B1 \\ \cline{2-3}
+ & control rods: controls number of neutrons / absorbs neutrons & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{8(a)} & moderator: slows down the neutrons & B1 \\ \hline
+ & neutron hits / collides U-235 (nucleus) & B1 \\ \cline{2-3}
+ & nucleus splits/forms daughter nuclei & B1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{8(b)} & emits more neutrons & B1 \\ \hline
+ & amount of energy / heat needed for a unit rise in temperature & M1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{8(c)(i)} & for unit mass & A1 \\ \hline
+ & large (specific heat capacity) \newline and \newline one of: \newline smaller rise in temperature / temp. stays lower \newline heats up slower / longer time \newline less chance of boiling \newline smaller mass needed (for same temperature rise) / less flow rate / smaller pumps \newline more energy absorbed for same temp. rise \newline or & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{8(c)(ii)} & small(er heat capacity) and larger temperature rise (to heat boiler more efficiently) / heats up faster & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+(a) Purpose of Reactor Parts\\[4pt]
+concrete shielding: Absorbs hazardous radiation, protecting the workers outside.
+control rods: Absorbs neutrons to control the rate of the fission chain reaction.
+moderator: Slows down fast-moving neutrons so they can be absorbed by uranium-235 nuclei.
+
+\vspace{4pt}
+(b) Fission of Uranium-235\\[4pt]
+A slow-moving neutron hits and is absorbed by a uranium-235 nucleus, causing the nucleus to become highly unstable. This unstable nucleus splits into two smaller daughter nuclei, releasing a large amount of energy and emitting two or three more fast-moving neutrons.
+
+\vspace{4pt}
+(c)(i) Definition of Specific Heat Capacity\\[4pt]
+Specific heat capacity is the amount of thermal energy required to raise the temperature of a unit mass (e.g., 1 kg) of a substance by $1 ^\circ\text{C}$ (or 1 K).
+
+\vspace{4pt}
+(c)(ii) Choice of Coolant Capacity\\[4pt]
+The coolant should have a large specific heat capacity. This allows it to absorb a vast amount of thermal energy from the fuel rods while only experiencing a relatively small rise in temperature, preventing the coolant from boiling within the reactor core.
+\end{ansbox}
+
+\qsection{5054/22/M/J/25 - Q9}\label{p2_mj25:q9}
+
+\begin{mstab}{q9color}
+ & Mercury orbit inside Earth's orbit & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{9(a)} & Mars orbit between orbit of Earth and Jupiter & B1 \\ \hline
+9(b) & the Sun is in the way & B1 \\ \hline
+9(c)(i) & gravitational (force / attraction from Sun) & B1 \\ \hline
+9(c)(ii) & all four forces towards Sun by eye & B1 \\ \hline
+ & increases (from 1) to 3 and decreases (from 3 to 4) & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{9(c)(iii)} & explanation of statement in description \newline e.g. (stronger force) because comet is close(r) to Sun (at position 3) & B1 \\ \hline
+ & speed = $2\pi r/T$ in any form & C1 \\ \cline{2-3}
+ & time for Jupiter to orbit Sun $= 3.8 \times 10^8$ (s) \newline or time for Earth to orbit Sun $= 3.1 \times 10^7$ (s) \newline or distance increases by $7.8/1.5$ and speed decreases by $30/13$ \newline or $\frac{7.8(\times 10^8)}{1.5(\times 10^8)} \times \frac{30}{13}$ & C1 \\ \cline{2-3}
+\multirow{-3}{1.9cm}{9(d)} & number of orbits = 12 & A1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+(a) Drawing Orbits\\[4pt]
+Draw an approximately circular or slightly elliptical path completely inside the orbit of Earth, and label it "Mercury". Draw another orbit entirely between the orbit of Earth and the orbit of Jupiter, and label it "Mars".
+
+\vspace{4pt}
+(b) Visibility of Comet\\[4pt]
+When the comet is at position 3 and the Earth is at position 5, they are on exactly opposite sides of the Sun. Because the Sun is directly in the line of sight, the comet cannot be seen.
+\clearpage
+\vspace{4pt}
+(c)(i) Name of Force\\[4pt]
+Gravitational force
+
+\vspace{4pt}
+(c)(ii) Direction of Force\\[4pt]
+From each of the numbered points (1, 2, 3, 4), draw a straight arrow pointing directly inward toward the central black dot representing the Sun.
+
+\vspace{4pt}
+(c)(iii) Strength of Force\\[4pt]
+description: The magnitude of the force increases as the comet moves from position 1 to position 3, and then decreases as it moves from position 3 to position 4.
+explanation: Gravitational attraction is stronger when objects are closer together. Position 3 is the closest point to the Sun, so the force is strongest there.
+
+
+(d) Number of Orbits\\[4pt]
+The time for one orbit is $T = \frac{2\pi r}{v}$.
+For Earth:
+\[ T_E = \frac{2\pi \times 1.5 \times 10^8 \text{ km}}{30 \text{ km/s}} = \frac{3.0\pi \times 10^8}{30} = \pi \times 10^7 \text{ s} \]
+For Jupiter:
+\[ T_J = \frac{2\pi \times 7.8 \times 10^8 \text{ km}}{13 \text{ km/s}} = \frac{15.6\pi \times 10^8}{13} = 1.2\pi \times 10^8 \text{ s} \]
+To find the number of Earth orbits completed in Jupiter's orbital time:
+\[ \text{number of orbits} = \frac{T_J}{T_E} = \frac{1.2\pi \times 10^8}{\pi \times 10^7} = 1.2 \times 10 = 12 \]
+\[ \text{number of orbits} = \boxed{12} \]
+\end{ansbox}
+
+
+\end{document}

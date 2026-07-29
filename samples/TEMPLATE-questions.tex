@@ -1,0 +1,101 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+% ============================================================================
+%  HOW THIS FILE IS STRUCTURED — READ THIS BEFORE EDITING
+%
+%  There are TWO different "begin/end" pairs below and they are NOT the
+%  same thing — mixing them up is the #1 cause of "no question blocks were
+%  found" errors on upload.
+%
+%   1) \begin{document} ... \end{document}
+%      Plain, standard LaTeX. It appears EXACTLY ONCE in the whole file —
+%      right here, and again at the very bottom — and wraps everything.
+%      Never add a second copy of it anywhere in the middle of the file.
+%
+%   2) \begin{question}{n} ... \end{question}
+%      Our own custom tag (this is what the parser actually looks for).
+%      It appears ONCE PER QUESTION, nested inside \begin{document} ...
+%      \end{document}. Every question needs BOTH its own \begin{question}{n}
+%      AND its own \end{question} placed right after that question's
+%      content. The single \end{document} at the bottom of the file does
+%      NOT close your questions for you — if even one question is missing
+%      its \end{question}, the parser cannot find ANY question in the file
+%      and you will see "no question blocks were found".
+%
+%  Rule of thumb: count your questions, then count your \end{question}
+%  lines — they must match exactly.
+% ============================================================================
+
+\begin{document}
+
+\subject{Physics}
+\subjectcode{5054}
+\paper{2}
+\variant{1}
+\session{M/J}
+\year{2025}
+
+\begin{question}{1}
+\topic{Forces & Motion}
+\marks{9}
+\ref{5054/21/M/J/25 -- Q1}
+
+\qtext
+Fig. 1.1 shows a skydiver falling vertically through the air.
+
+\image{q1-fig1.png}{Fig. 1.1}
+
+In the first part of the fall, her speed increases and her acceleration decreases.
+
+\part{2} On Fig. 1.2 sketch the speed--time graph for the skydiver.
+
+\part{1} Explain how the graph shows that the acceleration decreases as the speed increases.
+\endq
+\end{question}
+% ^^^ \end{question} above closes QUESTION 1. Every question needs this line.
+
+\begin{question}{2}
+\topic{Moments}
+\marks{6}
+\ref{5054/21/M/J/25 -- Q2}
+
+\qtext
+A uniform beam of length $2.0\ \text{m}$ is pivoted at its centre.
+
+\part{2} State the principle of moments.
+
+\part{4} Calculate the force needed at one end to balance a $5.0\ \text{N}$ weight placed $0.4\ \text{m}$ from the opposite end.
+\endq
+\end{question}
+% ^^^ \end{question} above closes QUESTION 2.
+
+\begin{question}{3}
+\topic{Energy}
+\marks{5}
+\ref{5054/21/M/J/25 -- Q3}
+
+\qtext
+A ball of mass $0.20\ \text{kg}$ is dropped from a height of $1.8\ \text{m}$
+above the ground. Take $g = 9.8\ \text{m/s}^2$ and ignore air resistance.
+
+\part{2} Calculate the gravitational potential energy of the ball before it is released.
+
+\part{3} Calculate the speed of the ball just before it hits the ground.
+\endq
+\end{question}
+% ^^^ \end{question} above closes QUESTION 3.
+
+% To add another question, copy one whole block above — from its opening
+% \begin{question}{N} tag down to its own closing \end{question} tag — and
+% edit the contents. (Written as {N} here on purpose: the parser scans the
+% raw text and does not understand "%" comments, so writing a real digit
+% like {4} in a comment would be read as an actual — and broken — question.)
+
+\end{document}
+% ^^^ This single \end{document} closes the FILE, not any individual
+%     question — every \begin{question}{n} above must already have its own
+%     \end{question} before this line.

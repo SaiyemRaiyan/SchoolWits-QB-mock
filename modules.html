@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modules &middot; School Wits Question Bank</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="console">
+    <div class="console-brand">
+      <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits">
+      <div class="brand-text">
+        <span class="brand-name">School Wits</span>
+        <span class="brand-sub">Question Bank</span>
+      </div>
+    </div>
+    <nav class="sitenav">
+      <a href="index.html">Browse</a>
+      <a href="upload.html">Upload</a>
+      <a href="modules.html" class="active">Modules</a>
+    </nav>
+    <nav class="sitenav" id="modeTabs" style="margin-left:auto;">
+      <a href="#" data-mode="storefront" class="active">Storefront</a>
+      <a href="#" data-mode="builder">Builder</a>
+    </nav>
+  </header>
+
+  <main class="main" style="max-width:1180px;margin:0 auto;padding:28px 24px 60px;width:100%;">
+
+    <!-- ================= STOREFRONT ================= -->
+    <section id="viewStorefront">
+      <div class="pagehead">
+        <h1>Topic modules</h1>
+        <p>Bundles of questions pulled from any paper in the bank, grouped around one topic. Free modules open straight away; premium modules unlock after checkout.</p>
+      </div>
+      <div id="moduleGrid" class="module-grid"></div>
+      <div id="moduleDetail" style="margin-top:26px;"></div>
+    </section>
+
+    <!-- ================= BUILDER ================= -->
+    <section id="viewBuilder" hidden>
+      <div class="pagehead">
+        <h1>Build a module</h1>
+        <p>Pick a topic to narrow the list, tick the questions you want, then package and price them. Nothing here re-enters or duplicates content — it just points at questions already in the bank.</p>
+      </div>
+
+      <div class="section-card">
+        <h2>1 &middot; Filter the bank</h2>
+        <div class="pill-row" id="topicPills"></div>
+        <div class="searchbar" style="margin-top:14px;max-width:420px;background:var(--paper-warm);border-color:var(--line-strong);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4E5D72" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="builderSearch" placeholder="Search within results…" style="color:#121C2E;">
+        </div>
+      </div>
+
+      <div class="builder-grid">
+        <div class="section-card">
+          <h2>2 &middot; Select questions</h2>
+          <div class="selectedcount" id="selCount">0 selected</div>
+          <div id="pickList"></div>
+        </div>
+
+        <div class="section-card modform">
+          <h2>3 &middot; Package &amp; price</h2>
+          <label>Module title</label>
+          <input type="text" id="modTitle" placeholder="e.g. Forces &amp; Motion — Full Topic Pack">
+          <label>Topic label (shown on the storefront card)</label>
+          <input type="text" id="modTopic" placeholder="e.g. Forces & Motion">
+          <label>Description</label>
+          <textarea id="modDesc" placeholder="What's in this pack, and who it's for."></textarea>
+          <div class="row2">
+            <label style="flex:1;">Access
+              <select id="modPremium">
+                <option value="free">Free</option>
+                <option value="premium" selected>Premium (paid)</option>
+              </select>
+            </label>
+            <label style="flex:1;">Price (&#2547;)
+              <input type="number" id="modPrice" min="0" step="1" value="199">
+            </label>
+          </div>
+          <button class="btn btn--primary" id="saveModBtn" style="margin-top:16px;width:100%;">Save module</button>
+          <div id="modSaveResult" style="margin-top:10px;font-size:12.5px;"></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2>Modules you've built</h2>
+        <div id="builtList"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="js/store.js"></script>
+<script src="js/modules.js"></script>
+</body>
+</html>

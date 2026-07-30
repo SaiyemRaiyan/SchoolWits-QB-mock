@@ -44,6 +44,20 @@
           width: 100%;
         "
       >
+        <div id="adminGate" class="section-card" style="max-width:420px;margin:60px auto;">
+          <h2>Admin sign-in required</h2>
+          <p class="hint">Upload manages the shared question bank — sign in with an admin account to continue.</p>
+          <form id="adminGateForm" autocomplete="on">
+            <label>Email</label>
+            <input type="email" id="adminGateEmail" placeholder="you@example.com" required>
+            <label>Password</label>
+            <input type="password" id="adminGatePassword" required>
+            <button class="btn btn--primary" type="submit" style="margin-top:16px;width:100%;">Sign in</button>
+          </form>
+          <p id="adminGateError" class="hint" style="color:var(--marker-dark);margin-top:10px;" hidden></p>
+        </div>
+
+        <div id="adminGateContent" hidden>
         <div class="pagehead pagehead--upload">
           <div class="pagehead-glow"></div>
           <h1>Upload a paper from <span class="grad-text">.tex</span></h1>
@@ -421,12 +435,16 @@
             </div>
           </div>
         </div>
+        </div>
       </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-    <script src="js/store.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase/config.js"></script>
+    <script src="js/supabase/store.js"></script>
+    <script src="js/supabase/admin-gate.js"></script>
     <script src="js/latex.js"></script>
     <script src="js/upload.js"></script>
     <script src="js/compose.js"></script>

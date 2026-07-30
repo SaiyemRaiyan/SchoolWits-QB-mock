@@ -1,0 +1,19 @@
+{
+  "name": "schoolwits-qb-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Supabase-backed data layer for School Wits QB — replaces js/store.js's IndexedDB calls.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "gen:types": "supabase gen types typescript --project-id zzztbpbvxfpyzuxxlkdh > src/types/database.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}

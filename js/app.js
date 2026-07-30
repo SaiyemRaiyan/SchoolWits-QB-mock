@@ -58,7 +58,6 @@
   /* ---------------------------------------------------------- boot */
   async function boot(){
     await DB.open();
-    await DB.seedIfEmpty(SAMPLE_PAPER_META, SAMPLE_QUESTIONS);
     await refreshFilterOptions();
     initEvents();
     await runSearch();

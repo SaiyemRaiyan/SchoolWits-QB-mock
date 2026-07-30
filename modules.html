@@ -48,6 +48,21 @@
 
     <!-- ================= BUILDER ================= -->
     <section id="viewBuilder" hidden>
+
+      <div id="adminGate" class="section-card" style="max-width:420px;margin:60px auto;">
+        <h2>Admin sign-in required</h2>
+        <p class="hint">Building modules is an admin action — sign in to continue. The Storefront tab stays open to everyone without signing in.</p>
+        <form id="adminGateForm" autocomplete="on">
+          <label>Email</label>
+          <input type="email" id="adminGateEmail" placeholder="you@example.com" required>
+          <label>Password</label>
+          <input type="password" id="adminGatePassword" required>
+          <button class="btn btn--primary" type="submit" style="margin-top:16px;width:100%;">Sign in</button>
+        </form>
+        <p id="adminGateError" class="hint" style="color:var(--marker-dark);margin-top:10px;" hidden></p>
+      </div>
+
+      <div id="adminGateContent" hidden>
       <div class="pagehead">
         <h1>Build a module</h1>
         <p>Pick a topic to narrow the list, tick the questions you want, then package and price them. Nothing here re-enters or duplicates content — it just points at questions already in the bank.</p>
@@ -97,6 +112,7 @@
         <h2>Modules you've built</h2>
         <div id="builtList"></div>
       </div>
+      </div>
     </section>
 
   </main>
@@ -104,7 +120,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-<script src="js/store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase/config.js"></script>
+<script src="js/supabase/store.js"></script>
+<script src="js/supabase/admin-gate.js"></script>
 <script src="js/modules.js"></script>
 </body>
 </html>

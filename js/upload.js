@@ -6,6 +6,25 @@
 
 (function(){
 
+  // Custom math-mode macros the exam papers define in their own LaTeX
+  // preambles — see js/app.js for the full explanation. Kept in sync
+  // across every file that calls renderMathInElement().
+  const KATEX_MACROS = {
+    '\\dd': '\\mathrm{d}',
+    '\\dydx': '\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}',
+    '\\ncr': '{}^{#1}\\mathrm{C}_{#2}',
+    '\\npr': '{}^{#1}\\mathrm{P}_{#2}',
+    '\\cosec': '\\operatorname{cosec}',
+    '\\pow': '^{#1}',
+    '\\dg': '^{\\circ}',
+    '\\degC': '^{\\circ}\\mathrm{C}',
+    '\\ohms': '\\Omega',
+    '\\textperiodcentered': '\\cdot',
+    '\\textbf': '\\mathbf{#1}',
+    '\\textit': '\\mathit{#1}',
+    '\\texttt': '\\mathtt{#1}'
+  };
+
   // Cycled per question number so the segmented preview matches the
   // colour-coded full-paper view on the Browse page.
   const ACCENTS = ['#2F6FB3', '#1D8A5C', '#B9762A', '#8B4FB0', '#C0392B', '#1A9E96', '#7A6A1E', '#4A5568'];
@@ -511,6 +530,7 @@ $$ \\tfrac{1}{2}mv^{2} = mgh \\quad\\Rightarrow\\quad v = \\sqrt{2gh} = \\sqrt{2
           {left: '$$', right: '$$', display: true},
           {left: '$', right: '$', display: false}
         ],
+        macros: KATEX_MACROS,
         throwOnError: false
       });
     }

@@ -6,6 +6,27 @@
 
 (function(){
 
+  // Custom math-mode macros the exam papers define in their own LaTeX
+  // preambles (\newcommand{\dd}{...} etc.) — those preamble definitions
+  // are stripped as non-content, so KaTeX must be taught the same macros
+  // directly to render \dd, \dydx, \ncr{}{}, \npr{}{}, \cosec, \pow{},
+  // \dg, \degC and \ohms correctly wherever they appear inside math.
+  const KATEX_MACROS = {
+    '\\dd': '\\mathrm{d}',
+    '\\dydx': '\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}',
+    '\\ncr': '{}^{#1}\\mathrm{C}_{#2}',
+    '\\npr': '{}^{#1}\\mathrm{P}_{#2}',
+    '\\cosec': '\\operatorname{cosec}',
+    '\\pow': '^{#1}',
+    '\\dg': '^{\\circ}',
+    '\\degC': '^{\\circ}\\mathrm{C}',
+    '\\ohms': '\\Omega',
+    '\\textperiodcentered': '\\cdot',
+    '\\textbf': '\\mathbf{#1}',
+    '\\textit': '\\mathit{#1}',
+    '\\texttt': '\\mathtt{#1}'
+  };
+
   const els = {
     fSubject: document.getElementById('fSubject'),
     fPaper: document.getElementById('fPaper'),
@@ -203,8 +224,9 @@
 
     const msSections = questions.map((q, i) => {
       const accent = ACCENTS[i % ACCENTS.length];
-      const rows = (q.markScheme || []).map(row => `
-        <tr><td>${escHTML(row.part || '')}</td><td>${row.answer}</td><td>${escHTML(row.marks || '')}</td></tr>`).join('');
+      const rows = (q.markScheme || []).map(row => row.isBanner
+        ? `<tr class="ms-banner-row"><td colspan="3">${cleanupLegacyLatexStyles(row.answer || '')}</td></tr>`
+        : `<tr><td>${escHTML(row.part || '')}</td><td>${cleanupLegacyLatexStyles(row.answer || '')}</td><td>${escHTML(normalizeLegacyMarks(row.marks || ''))}</td></tr>`).join('');
       return `
         <article class="pd-qsection" style="--qaccent:${accent}">
           <div class="pd-qhead">
@@ -225,7 +247,7 @@
           <div class="pd-qhead">
             <span class="pd-qnum">Question ${q.id}</span>
           </div>
-          <div class="exemplar-box">${q.exemplarHTML || '<p><i>No exemplar answer uploaded for this question.</i></p>'}</div>
+          <div class="exemplar-box">${cleanupLegacyLatexStyles(q.exemplarHTML || '') || '<p><i>No exemplar answer uploaded for this question.</i></p>'}</div>
         </article>`;
     }).join('');
 
@@ -333,14 +355,15 @@
       ? `<div class="question-shell">${q.qHTML}</div>`
       : '<div class="question-shell"><p><i>No question text was parsed from the uploaded file.</i></p></div>';
 
-    els.msBody.innerHTML = (q.markScheme || []).map(row => `
+    els.msBody.innerHTML = (q.markScheme || []).map(row => row.isBanner ? `
+      <tr class="ms-banner-row"><td colspan="3">${cleanupLegacyLatexStyles(row.answer || '')}</td></tr>` : `
       <tr>
         <td>${escHTML(row.part || '')}</td>
-        <td>${row.answer}</td>
-        <td>${escHTML(row.marks || '')}</td>
+        <td>${cleanupLegacyLatexStyles(row.answer || '')}</td>
+        <td>${escHTML(normalizeLegacyMarks(row.marks || ''))}</td>
       </tr>`).join('') || '<tr><td colspan="3"><i>No mark scheme uploaded for this question.</i></td></tr>';
 
-    els.exemplarBody.innerHTML = q.exemplarHTML || '<p><i>No exemplar answer uploaded for this question.</i></p>';
+    els.exemplarBody.innerHTML = cleanupLegacyLatexStyles(q.exemplarHTML || '') || '<p><i>No exemplar answer uploaded for this question.</i></p>';
 
     const videoTab = Array.from(els.tabs).find(tab => tab.dataset.tab === 'video');
     if(videoTab){
@@ -368,6 +391,7 @@
         {left: '$$', right: '$$', display: true},
         {left: '$', right: '$', display: false}
       ],
+      macros: KATEX_MACROS,
       throwOnError: false
     });
   }
@@ -466,6 +490,35 @@
   /* ---------------------------------------------------------- utils */
   function escHTML(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function escAttr(s){ return escHTML(s).replace(/"/g, '&quot;'); }
+
+  // Older saved records may still contain raw LaTeX style wrappers
+  // (\textbf{...}, \textit{...}, \underline{...}) in mark-scheme/exemplar
+  // fields. Render-time cleanup keeps those records readable without
+  // forcing users to re-upload papers.
+  function cleanupLegacyLatexStyles(html){
+    let out = String(html || '');
+    let prev;
+    do {
+      prev = out;
+      out = out.replace(/\\textbf\{([^{}]*)\}/g, '<b>$1</b>');
+      out = out.replace(/\\textit\{([^{}]*)\}/g, '<i>$1</i>');
+      out = out.replace(/\\underline\{([^{}]*)\}/g, '<u>$1</u>');
+    } while(out !== prev);
+    return out;
+  }
+
+  function normalizeLegacyMarks(raw){
+    let s = String(raw || '');
+    let prev;
+    do {
+      prev = s;
+      s = s.replace(/\\textbf\{([^{}]*)\}/g, '$1');
+      s = s.replace(/\\textit\{([^{}]*)\}/g, '$1');
+      s = s.replace(/\\underline\{([^{}]*)\}/g, '$1');
+    } while(s !== prev);
+    s = s.replace(/\$/g, '').replace(/\\,/g, ' ').replace(/\s+/g, ' ').trim();
+    return s;
+  }
 
   document.addEventListener('DOMContentLoaded', boot);
 

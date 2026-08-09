@@ -55,19 +55,114 @@ const TexParse = (function(){
     return stemMatch ? images[stemMatch] : '';
   }
 
+  /* ===================================================================
+     Math-region protection.
+     Real LaTeX math ($...$, \(...\), \[...\], $$...$$) must reach KaTeX
+     byte-for-byte: legitimate math-mode syntax like "\\" (matrix/aligned
+     row breaks), "~" (non-breaking space), "\," (thin space) and custom
+     macros (\dd, \pow{2}, \dg, ...) would otherwise collide with the
+     text-side conversions below (which turn "\\" into <br>, "~" into
+     &nbsp;, etc.) and corrupt the math source or break KaTeX rendering.
+     Every math span found in a piece of text is swapped for an inert
+     placeholder token BEFORE any of those text-side conversions run, and
+     swapped back verbatim once the whole (possibly recursively-nested)
+     conversion for that top-level call is done. A module-level depth
+     counter distinguishes the true outermost inlineToHTML() call for a
+     given fragment (which owns the restore) from calls it makes of
+     itself while converting nested content (e.g. \begin{ansbox} bodies),
+     which must leave the placeholders alone for the outer call to
+     resolve — otherwise raw math would be re-exposed to the outer call's
+     *remaining* text-side steps and get corrupted anyway.
+     =================================================================== */
+  const __mathStore = [];
+  let __mathDepth = 0;
+
+  // Split `text` into a sequence of literal spans on the four standard
+  // KaTeX auto-render delimiter pairs. An escaped "\$" is never treated
+  // as a delimiter. Unbalanced/unclosed delimiters are left as plain text
+  // rather than swallowing the rest of the document.
+  function splitMathSegments(text){
+    const segments = [];
+    let textStart = 0;
+    let i = 0;
+    const n = text.length;
+    while(i < n){
+      const ch = text[i];
+      if(ch === '\\' && text[i + 1] === '$'){ i += 2; continue; }
+      if(ch === '\\' && (text[i + 1] === '[' || text[i + 1] === '(')){
+        const closer = text[i + 1] === '[' ? '\\]' : '\\)';
+        const end = text.indexOf(closer, i + 2);
+        if(end !== -1){
+          if(textStart < i) segments.push({ type: 'text', content: text.slice(textStart, i) });
+          segments.push({ type: 'math', content: text.slice(i, end + closer.length) });
+          i = end + closer.length;
+          textStart = i;
+          continue;
+        }
+      }
+      if(ch === '$'){
+        const isDisplay = text[i + 1] === '$';
+        const marker = isDisplay ? '$$' : '$';
+        let j = i + marker.length, end = -1;
+        while(j < n){
+          if(text[j] === '\\' && text[j + 1] === '$'){ j += 2; continue; }
+          if(text.startsWith(marker, j)){ end = j; break; }
+          j++;
+        }
+        if(end !== -1){
+          if(textStart < i) segments.push({ type: 'text', content: text.slice(textStart, i) });
+          segments.push({ type: 'math', content: text.slice(i, end + marker.length) });
+          i = end + marker.length;
+          textStart = i;
+          continue;
+        }
+      }
+      i++;
+    }
+    if(textStart < n) segments.push({ type: 'text', content: text.slice(textStart) });
+    return segments;
+  }
+
+  // Replace every math span in `s` with an opaque placeholder token and
+  // stash the original (untouched) math source for later restoration.
+  // Text with no math delimiters at all is returned unchanged (cheap
+  // no-op) — this is what makes nested/recursive calls on
+  // already-protected text harmless.
+  function protectMath(s){
+    if(s.indexOf('$') === -1 && s.indexOf('\\[') === -1 && s.indexOf('\\(') === -1) return s;
+    const segments = splitMathSegments(s);
+    let changed = false;
+    const out = segments.map(seg => {
+      if(seg.type !== 'math') return seg.content;
+      changed = true;
+      const idx = __mathStore.length;
+      __mathStore.push(seg.content);
+      return '\u0000MATH' + idx + '\u0000';
+    }).join('');
+    return changed ? out : s;
+  }
+
+  function restoreMath(s){
+    if(s.indexOf('\u0000MATH') === -1) return s;
+    return s.replace(/\u0000MATH(\d+)\u0000/g, (m, i) => {
+      const v = __mathStore[parseInt(i, 10)];
+      return v == null ? m : v;
+    });
+  }
+
   function enumerateToHTML(body, images, labelKind){
     const items = [];
     let current = '';
     let listDepth = 0;
     let lastIndex = 0;
-    const tokenRe = /\\begin\{enumerate\}(?:\[([^\]]*)\])?|\\end\{enumerate\}|\\item\b/g;
+    const tokenRe = /\\begin\{(enumerate|parts|subparts|choices)\}(?:\[([^\]]*)\])?|\\end\{(?:enumerate|parts|subparts|choices)\}|\\item\b/g;
     let m;
 
     while((m = tokenRe.exec(body))){
       const token = m[0];
-      if(token.startsWith('\\begin{enumerate}')){
+      if(token.startsWith('\\begin{')){
         listDepth++;
-      } else if(token.startsWith('\\end{enumerate}')){
+      } else if(token.startsWith('\\end{')){
         listDepth = Math.max(0, listDepth - 1);
       } else if(token.startsWith('\\item') && listDepth === 0){
         const piece = body.slice(lastIndex, m.index).trim();
@@ -80,7 +175,13 @@ const TexParse = (function(){
     if(tail){ items.push(tail); }
     if(items.length === 0) return inlineToHTML(body, images);
 
-    const labels = labelKind === 'roman' ? ['i','ii','iii','iv','v','vi','vii','viii','ix','x'] : ['a','b','c','d','e','f','g','h','i','j'];
+    const labelSets = {
+      roman: ['i','ii','iii','iv','v','vi','vii','viii','ix','x'],
+      alpha: ['a','b','c','d','e','f','g','h','i','j'],
+      alphaUpper: ['A','B','C','D','E','F','G','H','I','J']
+    };
+    const labels = labelSets[labelKind] || labelSets.alpha;
+    const extraClass = labelKind === 'alphaUpper' ? ' qpart--choice' : '';
     return items.map((item, idx) => {
       // Respect an explicit \item[(i)]-style label if the author wrote one
       // (common in pasted CIE source), instead of always auto-lettering.
@@ -93,31 +194,37 @@ const TexParse = (function(){
       }
       const bodyHtml = inlineToHTML(content.replace(/^\\item\s*/,'').trim(), images);
       const labelText = explicitLabel !== null && explicitLabel !== '' ? explicitLabel : (labels[idx] || String(idx + 1));
-      const labelHtml = /^\(.*\)$/.test(labelText) ? escapeHTML(labelText) : `(${escapeHTML(labelText)})`;
-      return `<div class="qpart qpart--sub"><span class="pmark">${labelHtml}</span><div>${bodyHtml}</div></div>`;
+      const labelHtml = labelKind === 'alphaUpper'
+        ? escapeHTML(labelText)
+        : (/^\(.*\)$/.test(labelText) ? escapeHTML(labelText) : `(${escapeHTML(labelText)})`);
+      return `<div class="qpart qpart--sub${extraClass}"><span class="pmark">${labelHtml}</span><div>${bodyHtml}</div></div>`;
     }).join('');
   }
 
   function renderEnumerateBlocks(text, images){
     let out = '';
     let cursor = 0;
-    const openRe = /\\begin\{enumerate\}(?:\[([^\]]*)\])?/g;
+    const openRe = /\\begin\{(enumerate|parts|subparts|choices)\}(?:\[([^\]]*)\])?/g;
     let match;
 
     while((match = openRe.exec(text))){
       out += inlineToHTML(text.slice(cursor, match.index), images);
       const opening = match[0];
-      const labelKind = /\(roman\*\)/.test(match[1] || '') ? 'roman' : 'alpha';
+      const envName = match[1];
+      const labelKind = envName === 'subparts' ? 'roman'
+        : envName === 'choices' ? 'alphaUpper'
+        : envName === 'parts' ? 'alpha'
+        : (/\(roman\*\)/.test(match[2] || '') ? 'roman' : 'alpha');
       const contentStart = match.index + opening.length;
       const scanBody = text.slice(contentStart);
-      const closeRe = /\\begin\{enumerate\}(?:\[([^\]]*)\])?|\\end\{enumerate\}/g;
+      const closeRe = /\\begin\{(?:enumerate|parts|subparts|choices)\}(?:\[([^\]]*)\])?|\\end\{(?:enumerate|parts|subparts|choices)\}/g;
       let depth = 1;
       let closeMatch;
       let found = false;
 
       while((closeMatch = closeRe.exec(scanBody))){
         const token = closeMatch[0];
-        if(token.startsWith('\\begin{enumerate}')){
+        if(token.startsWith('\\begin{')){
           depth++;
         } else {
           depth--;
@@ -141,16 +248,171 @@ const TexParse = (function(){
     return out;
   }
 
+  // Render a bracketed/bare mark value as the standard inline mark badge,
+  // e.g. "[3]" or "3" -> <span class="markbadge">[3]</span>. Returns ''
+  // for an empty/blank value (nothing to show).
+  function renderMarkBadge(raw){
+    const cleaned = String(raw == null ? '' : raw).replace(/[\[\]]/g, '').trim();
+    return cleaned ? `<span class="markbadge">[${cleaned}]</span>` : '';
+  }
+
+  // Map plain-digit exponents to real Unicode superscript characters
+  // (safe as literal text both inside and outside math), falling back to
+  // an HTML <sup> for anything else \pow{} is ever handed.
+  const SUPERSCRIPT_MAP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻' };
+  function toSuperscript(raw){
+    const val = String(raw == null ? '' : raw).trim();
+    if(val && [...val].every(ch => SUPERSCRIPT_MAP[ch])) return [...val].map(ch => SUPERSCRIPT_MAP[ch]).join('');
+    return val ? `<sup>${escapeHTML(val)}</sup>` : '';
+  }
+
+  // \makecell{a\\b\\c} (a package for multi-line table-cell content) —
+  // inline its lines with <br>, respecting nested braces so a literal
+  // "\\" inside it is never mistaken for a table row break.
+  function convertMakecell(text){
+    let out = text;
+    let idx;
+    while((idx = out.indexOf('\\makecell')) !== -1){
+      let i = idx + '\\makecell'.length;
+      while(out[i] === ' ') i++;
+      if(out[i] === '['){
+        let d = 1; i++;
+        while(i < out.length && d > 0){ if(out[i] === '[') d++; else if(out[i] === ']') d--; i++; }
+      }
+      if(out[i] !== '{'){ break; }
+      let depth = 1, start = i + 1, j = i + 1;
+      while(j < out.length && depth > 0){
+        if(out[j] === '{') depth++;
+        else if(out[j] === '}'){ depth--; if(depth === 0) break; }
+        j++;
+      }
+      const inner = out.slice(start, j).replace(/\\\\/g, '<br>');
+      out = out.slice(0, idx) + inner + out.slice(j + 1);
+    }
+    return out;
+  }
+
+  // Split `str` on every top-level occurrence of `sep` (a single literal
+  // character, e.g. '&') — one that sits OUTSIDE any {...} brace group.
+  // Needed because table cells routinely contain \makecell{a\\b} whose
+  // internal braces must not be confused with cell/row boundaries.
+  function splitTopLevel(str, sep){
+    const parts = [];
+    let depth = 0, last = 0;
+    for(let i = 0; i < str.length; i++){
+      const ch = str[i];
+      if(ch === '{') depth++;
+      else if(ch === '}') depth = Math.max(0, depth - 1);
+      else if(depth === 0 && str.startsWith(sep, i)){
+        parts.push(str.slice(last, i));
+        i += sep.length - 1;
+        last = i + 1;
+      }
+    }
+    parts.push(str.slice(last));
+    return parts;
+  }
+
+  // Replace \command{...} using balanced-brace parsing (not a simple
+  // [^}] regex), so nested content like
+  // 	extbf{Accept \textit{either} form} is handled safely.
+  function replaceBalancedOneArgCommand(src, command, replacer){
+    const marker = '\\' + command;
+    let out = '';
+    let i = 0;
+    while(i < src.length){
+      const start = src.indexOf(marker, i);
+      if(start === -1){
+        out += src.slice(i);
+        break;
+      }
+      out += src.slice(i, start);
+      let j = start + marker.length;
+      while(j < src.length && /\s/.test(src[j])) j++;
+      if(src[j] !== '{'){
+        out += marker;
+        i = start + marker.length;
+        continue;
+      }
+      let depth = 1;
+      let k = j + 1;
+      while(k < src.length && depth > 0){
+        if(src[k] === '{') depth++;
+        else if(src[k] === '}') depth--;
+        k++;
+      }
+      if(depth !== 0){
+        out += src.slice(start);
+        break;
+      }
+      const inner = src.slice(j + 1, k - 1);
+      out += replacer(inner);
+      i = k;
+    }
+    return out;
+  }
+
+  function unwrapTextStyleCommands(src){
+    let out = String(src == null ? '' : src);
+    let prev;
+    do {
+      prev = out;
+      out = replaceBalancedOneArgCommand(out, 'textbf', inner => inner);
+      out = replaceBalancedOneArgCommand(out, 'textit', inner => inner);
+      out = replaceBalancedOneArgCommand(out, 'underline', inner => inner);
+    } while(out !== prev);
+    return out;
+  }
+
+  function normalizeMarksCell(raw){
+    let s = unwrapTextStyleCommands(String(raw == null ? '' : raw));
+    s = s.replace(/\$/g, '');
+    s = s.replace(/\\,/g, ' ');
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+
   /* Convert light inline markup + our custom commands into safe HTML,
      leaving TeX math delimiters intact for KaTeX auto-render. */
   function inlineToHTML(text, images){
+    const isOutermost = __mathDepth === 0;
+    __mathDepth++;
+    try {
+      return convertInline(text, images, isOutermost);
+    } finally {
+      __mathDepth--;
+    }
+  }
+
+  function convertInline(text, images, isOutermost){
     let s = text;
 
     s = stripComments(s);
     s = stripPreambleCommands(s);
     s = stripBareDeclarations(s);
     s = stripLabels(s);
+
+    // Protect real math ($...$, \(...\), \[...\], $$...$$) BEFORE any of
+    // the text-side conversions below run — those conversions (line
+    // breaks, ~ -> &nbsp;, dash collapsing, etc.) would otherwise mangle
+    // legitimate math-mode syntax (matrix/aligned "\\" row breaks, "~",
+    // "\," thin-space, custom macros like \dd / \pow{2} / \dg). Math is
+    // swapped back in verbatim just before the outermost call returns.
+    s = protectMath(s);
+
     s = convertCustomBookletMacros(s, images);
+
+    // --- Subject-agnostic symbol/spacing macros used across the common
+    // exam-paper template (Physics/Add Maths/Maths D alike). These only
+    // ever run against already-math-protected text, so they can never
+    // touch the same macro when it's legitimately used *inside* math
+    // (KaTeX is taught the same macros via its own `macros` config).
+    s = s.replace(/\\ohms\b/g, 'Ω');
+    s = s.replace(/\\degC\b/g, '°C');
+    s = s.replace(/\\dg\b(?:\{\})?/g, '°');
+    s = s.replace(/\\pow\{([^}]*)\}/g, (m, n) => toSuperscript(n));
+    s = s.replace(/\\textperiodcentered\s*\\?\s*/g, ' · ');
+    s = s.replace(/\\,/g, ' ');
 
     s = s.replace(/\\begin\{center\}/g, '').replace(/\\end\{center\}/g, '');
     s = s.replace(/\\begin\{flush(?:left|right)\}/g, '').replace(/\\end\{flush(?:left|right)\}/g, '');
@@ -181,8 +443,46 @@ const TexParse = (function(){
     // \hrule sequences are printed answer-writing lines — remove for digital view
     s = s.replace(/(?:\\hrule\b\s*)+/g, '');
 
+    // \total — the paper's own "[Total: N]" printer; the total is already
+    // surfaced through the question's `marks` metadata elsewhere in the
+    // UI, so this is stripped rather than duplicated as body text.
+    s = s.replace(/\\total\b/g, '');
+
+    // \markright{[N]} — a right-aligned per-part mark indicator -> badge.
+    s = s.replace(/\\markright\{\s*\[?(\d{1,3})\]?\s*\}/g, '<span class="markbadge">[$1]</span>');
+
+    // \Alines{n}{[marks]} — n blank dotted answer lines followed by a
+    // mark indicator. The blank lines are print-only; only the mark
+    // badge carries real content in a digital view.
+    s = s.replace(/\\Alines\{\d+\}\{([^}]*)\}/g, (m, marks) => renderMarkBadge(marks));
+
+    // \ansval{label}{unit}{marks} — "label ___ unit [marks]" answer line.
+    s = s.replace(/\\ansval\{([^}]*)\}\{([^}]*)\}\{([^}]*)\}/g, (m, label, unit, marks) => {
+      const l = label.trim(), u = unit.trim();
+      const blank = '<span class="ansblank"></span>';
+      return `${l ? l + ' ' : ''}${blank}${u ? ' ' + u : ''} ${renderMarkBadge(marks)}`.trim();
+    });
+
+    // \plainline / \labelline{label} — more print-only blank-line
+    // variants; keep the label text (if any), drop the blank line.
+    s = s.replace(/\\plainline\b/g, '');
+    s = s.replace(/\\labelline\{([^}]*)\}/g, (m, label) => label.trim());
+
     // Preserve literal paragraph breaks and keep list markup readable.
     s = s.replace(/\\par\s*/g, '\n\n');
+
+    // \qfig[width]{filename}{caption} — figure with optional caption
+    // (caption is very often left empty in these papers; suppress the
+    // <figcaption> entirely rather than render an empty one).
+    s = s.replace(/\\qfig(?:\[[^\]]*\])?\{([^}]*)\}\{([^}]*)\}/g, (m, file, cap) => {
+      const src = resolveImageSrc(file, images);
+      const missing = src ? '' : ' data-missing="1"';
+      const capTrim = cap.trim();
+      return `<figure class="qfig"${missing}><img src="${src || ''}" alt="${escapeAttr(capTrim || file.trim())}">` +
+             (src ? '' : `<div class="imgmissing">Image not uploaded: ${escapeHTML(file.trim())}</div>`) +
+             (capTrim ? `<figcaption>${escapeHTML(capTrim)}</figcaption>` : '') +
+             `</figure>`;
+    });
 
     // \image{filename}{caption}
     s = s.replace(/\\image\{([^}]*)\}\{([^}]*)\}/g, (m, file, cap) => {
@@ -202,20 +502,22 @@ const TexParse = (function(){
              `<figcaption>${escapeHTML(file.trim())}</figcaption></figure>`;
     });
 
-    // \textbf{...} \textit{...} \underline{...}
-    s = s.replace(/\\textbf\{([^}]*)\}/g, '<b>$1</b>');
-    s = s.replace(/\\textit\{([^}]*)\}/g, '<i>$1</i>');
-    s = s.replace(/\\underline\{([^}]*)\}/g, '<u>$1</u>');
+    // 	extbf{...} \textit{...} \underline{...}
+    // Use balanced-brace parsing so nested style macros are handled.
+    s = replaceBalancedOneArgCommand(s, 'textbf', inner => `<b>${inner}</b>`);
+    s = replaceBalancedOneArgCommand(s, 'textit', inner => `<i>${inner}</i>`);
+    s = replaceBalancedOneArgCommand(s, 'underline', inner => `<u>${inner}</u>`);
 
     // \begin{tabular}{...} ... \end{tabular}  ->  <table class="datatable">
-    // Rows split on \\, cells split on &, \hline treated as a row border
-    // (dropped — the CSS already draws borders between <tr>s).
-    s = s.replace(/\\begin\{tabular\}\{[^}]*\}([\s\S]*?)\\end\{tabular\}/g, (m, body) => {
-      const rows = body.split('\\\\').map(r => r.trim()).filter(Boolean);
+    // Rows/cells are split only on TOP-LEVEL \\ / & (outside any {...}
+    // group) so a \makecell{a\\b} multi-line header cell can't be
+    // mistaken for extra table rows.
+    s = s.replace(/\\begin\{tabular\}(?:\[[^\]]*\])?\{[^}]*\}([\s\S]*?)\\end\{tabular\}/g, (m, body) => {
+      const rows = splitTopLevel(body, '\\\\').map(r => r.trim()).filter(Boolean);
       const trs = rows.map(r => {
-        const cleaned = r.replace(/\\hline/g, '').trim();
+        const cleaned = r.replace(/\\hline/g, '').replace(/\\cline\{[^}]*\}/g, '').trim();
         if(!cleaned) return '';
-        const cells = cleaned.split('&').map(c => c.trim());
+        const cells = splitTopLevel(cleaned, '&').map(c => convertMakecell(c.trim()));
         if(!cells.join('').trim()) return '';
         return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
       }).filter(Boolean).join('');
@@ -228,8 +530,9 @@ const TexParse = (function(){
       return `<ul class="subq-list subq-list--bullet">${items}</ul>`;
     });
 
-    if(s.includes('\\begin{enumerate}')){
-      return renderEnumerateBlocks(s, images);
+    if(/\\begin\{(?:enumerate|parts|subparts|choices)\}/.test(s)){
+      const rendered = renderEnumerateBlocks(s, images);
+      return isOutermost ? restoreMath(rendered) : rendered;
     }
 
     // TeX dashes / spacing conventions commonly used in exam LaTeX
@@ -242,12 +545,13 @@ const TexParse = (function(){
     s = s.replace(/\\\\\s*\[[^\]]*\]/g, '<br>');
     s = s.replace(/\\\\/g, '<br>');
     const paras = s.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-    return paras.map(p => {
+    const html = paras.map(p => {
       // Trailing " [N]" patterns that remain after \hfill stripping are CIE
       // mark indicators — wrap them in a badge so they're visually distinct.
       const withBadge = p.replace(/\s+\[(\d{1,2})\]\s*$/, ' <span class="markbadge">[$1]</span>');
       return /^<(figure|ul|ol|table|div)/.test(withBadge) ? withBadge : `<p>${withBadge}</p>`;
     }).join('\n');
+    return isOutermost ? restoreMath(html) : html;
   }
 
   function escapeHTML(s){
@@ -365,29 +669,52 @@ const TexParse = (function(){
   // \begin{mstab}{colorname} <rows> \end{mstab} — a custom mark-scheme
   // table where a cell spanning multiple physical rows is written with
   // \multirow{-N}{width}{label} on the LAST row of the group (negative N
-  // is the common "label flows upward" convention). Returns HTML with a
-  // real <table class="mstable"> AND (via parseMstabToRows) the same rows
-  // in our normal {part, answer, marks} shape for structured storage.
+  // is the common "label flows upward" convention). A row belonging to
+  // NO group instead carries its own part label directly as its first
+  // cell (e.g. "2(b)(i) & 19.6 or 20 N & B1"). \altrow{color}{label} is a
+  // full-width section banner (e.g. "Alternative method") that expands
+  // (per its \newcommand definition) to its own \multicolumn{4}{...}{...}
+  // row ending in its own \\ \hline — since that expansion isn't actually
+  // executed by a regex-based converter, it's normalized to an explicit
+  // \hline boundary here first so it lands in its own chunk below rather
+  // than swallowing the label text of the row that follows it. Returns
+  // the rows in our normal {part, answer, marks} shape (banner rows carry
+  // isBanner:true instead of a real part/marks pair) for structured
+  // storage.
   function parseMstabToRows(body, images){
-    const chunks = body
+    const normalized = body.replace(/\\altrow\{[^}]*\}\{([^}]*)\}/g, (m, label) => `\u0000ALTROW\u0000${label}\u0000\\hline`);
+    const chunks = normalized
       .split(/\\hline|\\cline\{[^}]*\}/)
       .map(c => c.replace(/\\\\\s*$/, '').trim())
       .filter(Boolean);
 
     const rows = [];
     chunks.forEach(chunk => {
+      const altMatch = chunk.match(/^\u0000ALTROW\u0000([\s\S]*)\u0000$/);
+      if(altMatch){
+        const label = inlineToHTML(altMatch[1].trim(), images || {}).replace(/^<p>|<\/p>$/g, '');
+        rows.push({ label: null, span: 1, answer: `<strong>${label}</strong>`, marks: '', isBanner: true });
+        return;
+      }
       const mrMatch = chunk.match(/^\\multirow\{(-?\d+)\}\{[^}]*\}\{([^}]*)\}\s*&([\s\S]*)$/);
-      let label = null, rest = chunk, span = 1;
+      let label = null, rest, span = 1;
       if(mrMatch){
         span = Math.abs(parseInt(mrMatch[1], 10)) || 1;
         label = mrMatch[2].trim();
         rest = mrMatch[3];
-      } else {
+      } else if(/^&/.test(chunk)){
+        // Blank-label continuation row of a multirow group (the label
+        // sits on a different physical row via \multirow above/below).
         rest = chunk.replace(/^&/, '');
+      } else {
+        // Ungrouped single row: its own leading cell IS the part label.
+        const cellsHere = splitTopLevel(chunk, '&');
+        label = (cellsHere.shift() || '').trim();
+        rest = cellsHere.join('&');
       }
-      const cells = rest.split('&');
+      const cells = splitTopLevel(rest, '&');
       const rawAnswer = (cells[0] || '').trim();
-      const marks = (cells[1] || '').trim();
+      const marks = normalizeMarksCell(cells[1] || '');
       // Render-ready HTML for the answer cell (handles \newline, \textbf,
       // etc. that show up in real mark-scheme prose), without the
       // paragraph wrapper a table cell doesn't need.
@@ -397,7 +724,7 @@ const TexParse = (function(){
 
     const out = [];
     rows.forEach(r => {
-      out.push({ part: '', answer: r.answer, marks: r.marks });
+      out.push({ part: '', answer: r.answer, marks: r.marks, isBanner: !!r.isBanner });
       if(r.label !== null){
         const groupStart = out.length - r.span;
         if(groupStart >= 0) out[groupStart].part = r.label;
@@ -569,6 +896,70 @@ const TexParse = (function(){
     while((m = qRe.exec(src))){
       blocks.push({ id: parseInt(m[1], 10), body: m[2], source: 'custom' });
     }
+    return blocks;
+  }
+
+  // Clean a raw LaTeX fragment down to plain display text — used for
+  // metadata values (topics, paper refs) that are never expected to
+  // contain real math or structural markup, just the odd escaped
+  // character (e.g. "Logarithmic \& Exponential Functions").
+  function cleanPlainText(raw){
+    return String(raw == null ? '' : raw)
+      .replace(/\\&/g, '&')
+      .replace(/\\%/g, '%')
+      .replace(/\\_/g, '_')
+      .replace(/\\textperiodcentered\b/g, '·')
+      .replace(/\\,/g, ' ')
+      .replace(/[{}]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Split a \examq{...}{...}{TOPICS}{...} 3rd-argument value into its
+  // individual topic strings. Multiple topics are joined in the source
+  // with "\textperiodcentered\ " (a centred-dot separator), e.g.
+  // "Motion or Kinematics \textperiodcentered\ Forces or Dynamics".
+  function splitTopics(raw){
+    return String(raw == null ? '' : raw)
+      .split(/\\textperiodcentered\s*\\?\s*/)
+      .map(t => cleanPlainText(t))
+      .filter(Boolean);
+  }
+
+  // The common per-question template header used across every subject
+  // sample analysed (Physics/Additional Maths/Maths D, both MCQ and
+  // structured papers, question AND answer files alike):
+  //   \examq{paper-id}{number}{topic \textperiodcentered\ topic ...}{marks}
+  // This single, unambiguous marker is now the PRIMARY question-boundary
+  // dialect: every block runs from one \examq{...} call to the next (or
+  // end of document), and its four arguments give reliable, structured
+  // paper-ref/id/topic/marks metadata directly — no guessing needed, and
+  // the exact same call appears in both the question paper and the
+  // answers file, so both sides key together perfectly by design.
+  function extractExamqBlocks(src){
+    const blocks = [];
+    const re = /\\examq\{([^}]*)\}\{(\d+)\}\{([^}]*)\}\{([^}]*)\}/g;
+    const marks = [];
+    let m;
+    while((m = re.exec(src))){
+      marks.push({
+        ref: cleanPlainText(m[1]),
+        id: parseInt(m[2], 10),
+        topicRaw: m[3],
+        marksVal: cleanPlainText(m[4]),
+        start: m.index,
+        contentStart: m.index + m[0].length
+      });
+    }
+    if(marks.length === 0) return blocks;
+    marks.forEach((mk, i) => {
+      const end = (i + 1 < marks.length) ? marks[i + 1].start : src.length;
+      const body = src.slice(mk.contentStart, end);
+      blocks.push({
+        id: mk.id, body, source: 'examq',
+        ref: mk.ref, topics: splitTopics(mk.topicRaw), marks: mk.marksVal
+      });
+    });
     return blocks;
   }
 
@@ -781,15 +1172,62 @@ const TexParse = (function(){
     }
 
     const enumerateBlocks = extractEnumerateQuestions(src);
+    const examqBlocks = extractExamqBlocks(src);
     const qsectionBlocks = extractQsectionBlocks(src);
     const numberedBlocks = extractNumberedQuestions(src);
+    // \examq{...}{...}{...}{...} is the common template's unambiguous
+    // per-question marker — tried first (before the older custom-tag,
+    // enumerate, qsection and raw-numbered dialects) since a real file
+    // using it will never also match those, and it carries the most
+    // reliable structured metadata (ref/topics/marks straight from its
+    // own arguments, no guessing required).
     const blocks = customBlocks.length ? customBlocks
+      : (examqBlocks.length ? examqBlocks
       : (enumerateBlocks.length ? enumerateBlocks
-      : (qsectionBlocks.length ? qsectionBlocks : numberedBlocks));
+      : (qsectionBlocks.length ? qsectionBlocks : numberedBlocks)));
 
     blocks.forEach(item => {
       const id = item.id;
       const block = item.body;
+
+      if(item.source === 'examq'){
+        // The common template: block runs from this \examq{...} call to
+        // the next. Question-paper bodies are plain content (prose,
+        // \begin{parts}/\begin{subparts}/\begin{choices}, \qfig, marks
+        // indicators) — all handled generically by inlineToHTML/
+        // partsToHTML. Answer-file bodies instead hold a
+        // \begin{mstab}...\end{mstab} mark scheme and/or a
+        // \begin{ansbox}...\end{ansbox} exemplar; both are extracted the
+        // same way as the qsection dialect, but metadata (topic/marks/
+        // ref) here comes straight from \examq's own arguments rather
+        // than being guessed.
+        const markRows = extractMstabRows(block, images);
+        const exemplarHTML = extractAnsboxHTML(block, images);
+        const leftover = block
+          .replace(/\\begin\{mstab\}(?:\[[^\]]*\])?\{[^}]*\}[\s\S]*?\\end\{mstab\}/g, '')
+          .replace(/\\begin\{ansbox\}\{[^}]*\}[\s\S]*?\\end\{ansbox\}/g, '')
+          .trim();
+        const qHTML = leftover ? partsToHTML(leftover, images) : '';
+
+        if(opts.expectMarkscheme && !markRows.length) warnings.push(`Question ${id}: no \\begin{mstab}...\\end{mstab} mark scheme found in the ${opts.label}.`);
+        if(opts.expectExemplar && !exemplarHTML) warnings.push(`Question ${id}: no \\begin{ansbox}...\\end{ansbox} exemplar found in the ${opts.label}.`);
+        if(opts.expectQtext && !qHTML) warnings.push(`Question ${id}: no readable question text found in the ${opts.label} — only a mark scheme/exemplar was found. This is expected for an answers-only booklet.`);
+
+        questions.push({
+          id,
+          topic: item.topics.join(' · '),
+          topics: item.topics,
+          marks: item.marks || totalMarksFromRows(markRows) || '',
+          ref: item.ref ? `${item.ref} — Q${id}` : '',
+          qText: leftover.replace(/\s+/g, ' ').trim().slice(0, 4000),
+          qHTML,
+          hasQtext: !!qHTML,
+          markScheme: markRows,
+          exemplarHTML,
+          videoId: ''
+        });
+        return;
+      }
 
       if(item.source === 'custom'){
         const topic = (grab(block, 'topic') || '').trim();
@@ -954,6 +1392,7 @@ const TexParse = (function(){
       merged.push({
         id: q.id,
         topic: q.topic || (a && a.topic) || 'Uncategorised',
+        topics: (q.topics && q.topics.length) ? q.topics : ((a && a.topics && a.topics.length) ? a.topics : []),
         marks: q.marks || (a && a.marks) || '',
         ref: q.ref || (a && a.ref) || '',
         qText: q.qText,

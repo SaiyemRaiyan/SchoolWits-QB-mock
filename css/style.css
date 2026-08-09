@@ -1020,6 +1020,19 @@ table.datatable .blankrow {
   background: #F5F0E4;
 }
 
+/* Full-width "Alternative method" section banner within a mark-scheme
+   table (from \altrow{color}{label}) — distinct from a normal data row. */
+.mstable tr.ms-banner-row td {
+  background: var(--marker-soft);
+  color: var(--marker-dark);
+  font-weight: 700;
+  text-align: left;
+  font-family: inherit;
+  padding: 9px 15px;
+  border-top: 1px solid var(--marker-border);
+  border-bottom: 1px solid var(--marker-border);
+}
+
 /* ---- Exemplar panel ---- */
 .band {
   display: inline-block;
@@ -2651,6 +2664,21 @@ button:focus-visible,
   border-bottom: 1.5px solid var(--line-strong);
   margin: 0 4px;
   vertical-align: middle;
+}
+
+/* Short inline blank for \ansval{label}{unit}{marks} answer lines — a
+   compact underline rather than a long print-style blank, since these
+   sit inline with a unit/label right after them. */
+.ansblank {
+  display: inline-block;
+  min-width: 46px;
+  border-bottom: 1.5px solid var(--line-strong);
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
+.qpart--choice {
+  display: block;
 }
 
 .workinglines {

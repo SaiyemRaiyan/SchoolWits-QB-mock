@@ -18,6 +18,16 @@ describe('inlineToHtml — math is never touched', () => {
   it('handles $$ display math', () => {
     expect(inlineToHtml('a $$x+1$$ b')).toBe('a $$x+1$$ b');
   });
+
+  it('does not mistake the [4pt] of a \\\\ line break for display math', () => {
+    // `\\[4pt]` is backslash-backslash then `[`. Reading the second
+    // backslash as `\[` opens display math that swallows the rest of the
+    // paragraph up to the next `\]`.
+    const out = inlineToHtml('Heading $OCD$\\\\[4pt] \\textbf{Step 1} then \\[ x=1 \\] end');
+    expect(out).toContain('<br>');
+    expect(out).toContain('<strong>Step 1</strong>');
+    expect(out).toContain('\\[ x=1 \\]');
+  });
 });
 
 describe('inlineToHtml — prose', () => {

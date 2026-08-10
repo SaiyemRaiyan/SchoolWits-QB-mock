@@ -28,6 +28,16 @@ function protectMath(src: string): { text: string; slots: MathSlot[] } {
     const ch = src[i];
     const next = src[i + 1];
 
+    // A `\\` line break must be consumed as a unit BEFORE the \[ check.
+    // Otherwise `\\[4pt]` reads as backslash + `\[`, opening display math
+    // that then swallows everything up to the next `\]` — silently eating
+    // whole paragraphs of a worked solution.
+    if (ch === '\\' && next === '\\') {
+      out += '\\\\';
+      i += 2;
+      continue;
+    }
+
     // \( ... \)  and  \[ ... \]
     if (ch === '\\' && (next === '(' || next === '[')) {
       const closer = next === '[' ? '\\]' : '\\)';

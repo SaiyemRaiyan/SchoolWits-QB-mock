@@ -9,13 +9,15 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:types": "supabase gen types typescript --project-id zzztbpbvxfpyzuxxlkdh > src/types/database.ts"
+    "gen:types": "supabase gen types typescript --project-id zzztbpbvxfpyzuxxlkdh > src/types/database.ts",
+    "parse": "tsx scripts/parse-paper.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.5.0",
     "vitest": "^4.1.10"
   }

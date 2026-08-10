@@ -4,43 +4,94 @@ const fs = require('fs');
 const path = require('path');
 
 const TexParse = require(path.join(__dirname, '..', 'js', 'latex.js'));
-const questionsPath = path.join(__dirname, '..', 'Physics-questions.tex');
-const answersPath = path.join(__dirname, '..', 'Physics-answers.tex');
+// Real, user-authored Cambridge past-paper source using the common
+// \examq{...}{...}{...}{...} template (see "Updated Latex FIles For Web").
+const mcqDir = path.join(__dirname, '..', 'Updated Latex FIles For Web', 'Physics MJ25 11');
+const structuredDir = path.join(__dirname, '..', 'Updated Latex FIles For Web', 'Physics MJ25 21');
+const questionsPath = path.join(mcqDir, 'Physics S25QP11.tex');
+const answersPath = path.join(mcqDir, 'Physics S25QA11.tex');
 
-test('parses the sample physics questions file with document wrappers and enumerate blocks', () => {
+test('parses a real \\examq-template MCQ question paper (Physics 5054/11) into 40 clean questions', () => {
   const questionsTex = fs.readFileSync(questionsPath, 'utf8');
   const parsed = TexParse.parse(questionsTex, {}, {
     expectQtext: true, expectMarkscheme: false, expectExemplar: false, label: 'questions file'
   });
-  assert.ok(parsed.questions.length >= 9, `expected at least 9 parsed questions, got ${parsed.questions.length}`);
+  assert.equal(parsed.questions.length, 40);
   assert.equal(parsed.questions[0].hasQtext, true);
+  assert.equal(parsed.questions[0].topic, 'Physical Quantities and Measurements');
 });
 
-test('parses the sample physics answers file with custom question blocks', () => {
+test('parses the matching real \\examq-template MCQ answers file (ansbox-only)', () => {
   const answersTex = fs.readFileSync(answersPath, 'utf8');
   const parsed = TexParse.parse(answersTex, {}, {
-    expectQtext: false, expectMarkscheme: true, expectExemplar: true, label: 'answers file'
+    expectQtext: false, expectMarkscheme: false, expectExemplar: true, label: 'answers file'
   });
-  assert.ok(parsed.questions.length >= 9, `expected at least 9 parsed questions, got ${parsed.questions.length}`);
-  assert.ok(parsed.questions[0].markScheme.length > 0);
+  assert.equal(parsed.questions.length, 40);
+  assert.ok(parsed.questions[0].exemplarHTML.length > 0);
 });
 
-test('a document-wrapped TEMPLATE-style answers file parses with zero warnings', () => {
-  const tpl = fs.readFileSync(path.join(__dirname, '..', 'samples', 'TEMPLATE-answers.tex'), 'utf8');
-  const parsed = TexParse.parse(tpl, {}, {
-    expectQtext: false, expectMarkscheme: true, expectExemplar: true, label: 'answers file'
-  });
-  assert.ok(parsed.questions.length >= 3, `expected at least 3 questions, got ${parsed.questions.length}`);
-  assert.deepEqual(parsed.warnings, []);
-});
-
-test('a document-wrapped TEMPLATE-style questions file parses with zero warnings', () => {
-  const tpl = fs.readFileSync(path.join(__dirname, '..', 'samples', 'TEMPLATE-questions.tex'), 'utf8');
-  const parsed = TexParse.parse(tpl, {}, {
+test('a real structured \\examq paper (Physics 5054/21) renders \\begin{parts}/\\begin{subparts}, \\ansval, \\markright and multi-topic \\examq cleanly', () => {
+  const qTex = fs.readFileSync(path.join(structuredDir, 'Physics S25QP21.tex'), 'utf8');
+  const parsed = TexParse.parse(qTex, {}, {
     expectQtext: true, expectMarkscheme: false, expectExemplar: false, label: 'questions file'
   });
-  assert.ok(parsed.questions.length >= 3, `expected at least 3 questions, got ${parsed.questions.length}`);
-  assert.deepEqual(parsed.warnings, []);
+  assert.equal(parsed.questions.length, 9);
+
+  const q1 = parsed.questions[0];
+  // \examq's 3rd arg joined two topics with \textperiodcentered.
+  assert.deepEqual(q1.topics, ['Motion or Kinematics', 'Forces or Dynamics']);
+  assert.equal(q1.topic, 'Motion or Kinematics · Forces or Dynamics');
+  assert.equal(q1.marks, '9');
+
+  // \begin{parts} -> 4 alpha-lettered top-level parts, one containing a
+  // nested \begin{subparts} with 2 roman-numeral items.
+  const topParts = (q1.qHTML.match(/class="qpart qpart--sub"/g) || []).length;
+  assert.equal(topParts, 6); // 4 \part items + 2 nested \subpart items, all rendered with the same wrapper class
+  assert.ok(q1.qHTML.includes('<span class="pmark">(a)</span>'));
+  assert.ok(q1.qHTML.includes('<span class="pmark">(d)</span>'));
+  assert.ok(q1.qHTML.includes('<span class="pmark">(i)</span>'));
+  assert.ok(q1.qHTML.includes('<span class="pmark">(ii)</span>'));
+
+  // \markright{[2]} / \markright{[3]} -> mark badges, \total stripped.
+  assert.ok(q1.qHTML.includes('<span class="markbadge">[2]</span>'));
+  assert.ok(q1.qHTML.includes('<span class="markbadge">[3]</span>'));
+  assert.doesNotMatch(q1.qHTML, /\\total|\\markright|\\examq|\\begin\{parts\}|\\begin\{subparts\}/);
+
+  // \ansval{label}{unit}{marks} -> label + short inline blank + unit.
+  assert.ok(q1.qHTML.includes('class="ansblank"'));
+  assert.ok(q1.qHTML.includes('magnitude of resultant ='));
+  // \dg{} (bare degree symbol macro) inside an \ansval unit arg.
+  assert.ok(q1.qHTML.includes('° to vertical'));
+});
+
+test('the matching real structured mark scheme (Physics 5054/21 QA) fixes ungrouped single mstab rows and renders \\altrow banners', () => {
+  const aTex = fs.readFileSync(path.join(structuredDir, 'Physics S25QA21.tex'), 'utf8');
+  const rows = TexParse.extractMstabRows(aTex, {});
+
+  // "1(b) & gradient / slope decreases ... & B1" is an ungrouped single
+  // row (no \multirow, no leading blank "&") — its own label must be
+  // captured as the part, not swallowed into the answer/marks columns.
+  const row1b = rows.find(r => r.part === '1(b)');
+  assert.ok(row1b, `expected a row with part "1(b)", got parts: ${JSON.stringify(rows.map(r => r.part))}`);
+  assert.match(row1b.answer, /gradient \/ slope decreases/);
+  assert.equal(row1b.marks, 'B1');
+
+  // Multirow-grouped rows (e.g. 1(a) spanning 2 rows) still work.
+  const row1a = rows.find(r => r.part === '1(a)');
+  assert.ok(row1a);
+});
+
+test('\\altrow{color}{label} (Add Maths mark scheme "Alternative method" banner) renders as a distinct banner row, not a corrupted part label', () => {
+  const altDir = path.join(__dirname, '..', 'Updated Latex FIles For Web', 'Add Maths MJ25 11');
+  const aTex = fs.readFileSync(path.join(altDir, 'Add Maths S25QA11 .tex'), 'utf8');
+  const rows = TexParse.extractMstabRows(aTex, {});
+  const banner = rows.find(r => r.isBanner);
+  assert.ok(banner, 'expected at least one \\altrow banner row to be found');
+  assert.match(banner.answer, /Alternative/);
+  assert.equal(banner.part, '');
+  assert.equal(banner.marks, '');
+  // The raw macro call must never leak as visible text.
+  assert.ok(!rows.some(r => /\\altrow/.test(r.part) || /\\altrow/.test(r.answer)));
 });
 
 test('missing \\end{question} produces a specific, actionable warning instead of a silent zero', () => {

@@ -165,7 +165,7 @@ const DB = (function(){
       variants: uniq(papers.map(p => p.variant)),
       sessions: uniq(papers.map(p => p.session)),
       years: uniq(papers.map(p => p.year)).sort((a,b) => b - a),
-      topics: uniq(qs.map(q => q.topic)),
+      topics: uniq(qs.flatMap(q => (q.topics && q.topics.length ? q.topics : [q.topic]))),
       paperCount: papers.length,
       questionCount: qs.length
     };
@@ -178,7 +178,7 @@ const DB = (function(){
     if(variant) qs = qs.filter(q => String(q.variant) === String(variant));
     if(session) qs = qs.filter(q => q.session === session);
     if(year)    qs = qs.filter(q => String(q.year) === String(year));
-    if(topic)   qs = qs.filter(q => q.topic === topic);
+    if(topic)   qs = qs.filter(q => (q.topics && q.topics.length ? q.topics.includes(topic) : q.topic === topic));
     if(text){
       const needle = text.trim().toLowerCase();
       if(needle){

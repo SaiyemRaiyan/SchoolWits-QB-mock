@@ -1,0 +1,832 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage[most]{tcolorbox}
+
+\geometry{margin=2.5cm}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+\setlength{\cftbeforesecskip}{6pt}
+
+% Pastel colours, one per question number (q1..q24)
+\definecolor{q1color}{HTML}{D6EAF8} % pastel blue
+\definecolor{q2color}{HTML}{D5F5E3} % pastel green
+\definecolor{q3color}{HTML}{FDEBD0} % pastel orange
+\definecolor{q4color}{HTML}{F9E79F} % pastel yellow
+\definecolor{q5color}{HTML}{E8DAEF} % pastel purple
+\definecolor{q6color}{HTML}{FADBD8} % pastel red/pink
+\definecolor{q7color}{HTML}{D1F2EB} % pastel teal
+\definecolor{q8color}{HTML}{FCF3CF} % pastel cream
+\definecolor{q9color}{HTML}{EBDEF0} % pastel lavender
+\definecolor{q10color}{HTML}{F5EEF8} % pastel light purple
+\definecolor{q11color}{HTML}{EBF5FB} % pastel light blue
+\definecolor{q12color}{HTML}{FEF9E7} % pastel light cream
+\definecolor{q13color}{HTML}{D6EAF8} % pastel blue
+\definecolor{q14color}{HTML}{D5F5E3} % pastel green
+\definecolor{q15color}{HTML}{FDEBD0} % pastel orange
+\definecolor{q16color}{HTML}{F9E79F} % pastel yellow
+\definecolor{q17color}{HTML}{E8DAEF} % pastel purple
+\definecolor{q18color}{HTML}{FADBD8} % pastel red/pink
+\definecolor{q19color}{HTML}{D1F2EB} % pastel teal
+\definecolor{q20color}{HTML}{FCF3CF} % pastel cream
+\definecolor{q21color}{HTML}{EBDEF0} % pastel lavender
+\definecolor{q22color}{HTML}{F5EEF8} % pastel light purple
+\definecolor{q23color}{HTML}{EBF5FB} % pastel light blue
+\definecolor{q24color}{HTML}{FEF9E7} % pastel light cream
+
+% Mark-scheme table (FOUR columns: Question | Answer | Marks | Partial Marks)
+\newenvironment{mstab}[1]{%
+  {\color{#1!75!black}\nobreak Mark Scheme}\par\nopagebreak\smallskip
+  \arrayrulecolor{#1!70!black}%
+  \renewcommand{\arraystretch}{1.3}%
+  \tabularx{\textwidth}{%
+    |>{\columncolor{#1!12}\raggedright\arraybackslash}p{1.7cm}|%
+     >{\columncolor{#1!12}\raggedright\arraybackslash}p{3.6cm}|%
+     >{\columncolor{#1!12}\centering\arraybackslash}p{1.0cm}|%
+     >{\columncolor{#1!12}}X|}%
+  \hline
+  \rowcolor{#1!45} Question & Answer & Marks & Partial Marks \\ \hline
+}{%
+  \endtabularx
+  \arrayrulecolor{black}%
+  \par\medskip
+}
+
+% Exemplar-answer box
+\newtcolorbox{ansbox}[1]{
+  colback=#1!8,
+  colbacktitle=#1!30,
+  colframe=#1!70!black,
+  coltitle=black,
+  fonttitle=\normalfont,
+  title=Worked Solution,
+  boxrule=0.6pt,
+  arc=2mm,
+  left=4pt, right=4pt, top=4pt, bottom=4pt,
+  breakable
+}
+
+\newcommand{\topiclabel}[1]{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}
+
+% ===== Per-question head: \examq{paper-id}{number}{topics}{marks} =====
+% Same call as the question paper, so the two join on paper-id + number.
+% The marks argument is carried for parsing/consistency; it is not printed here.
+\newcommand{\examq}[4]{\section[#1 - Q#2]{#1 - Q#2 - #3 - #4}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Cambridge O Level Mathematics D 4024/22}}\\[6pt]
+  {\large May/June 2025 - Paper 2 (Calculator): Mark Scheme \& Worked Solutions}
+\end{center}
+
+\bigskip
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{1}{Geometric Fundamentals}{1}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q1color}
+1 & Diagram completed correctly. & 1 & \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+Completing the pattern\\[4pt]
+The pattern has rotational symmetry of order 4 about the centre of the grid (the point where the drawn lines meet).
+
+Take each existing feature and rotate it through $90^\circ$, $180^\circ$ and $270^\circ$ about that centre:
+\begin{itemize}[nosep,leftmargin=*]
+\item There are already three shaded squares (top-left area, right, bottom). Add the one shaded square needed to complete the set of four images of the same square under the four rotations, on the left of the grid.
+\item There are already three ruled lines from the centre. Add the fourth line from the centre so that the four line segments are the images of one another under rotations of $90^\circ$.
+\end{itemize}
+The completed diagram then maps onto itself four times in a full turn, so it has rotational symmetry of order 4 as required.
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{2}{Number Fundamentals}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q2color}
+2(a) & 18\,012 cao & 1 & \\ \hline
+2(b) & 23 or 29 & 1 & \\ \hline
+2(c) & 9 & 1 & \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+(a) Eighteen thousand and twelve in figures\\[4pt]
+Eighteen thousand is $18\,000$ and twelve more gives
+\[
+\boxed{18\,012}
+\]
+(b) A prime number between 20 and 30\\[4pt]
+The numbers from 21 to 29 are tested: 21, 22, 24, 25, 26, 27, 28 all have a factor other than 1 and themselves. The primes in this interval are 23 and 29, so a correct answer is
+\[
+\boxed{23} \quad \text{(or 29)}
+\]
+(c) Reciprocal of $\dfrac{1}{9}$\\[4pt]
+The reciprocal of a number is 1 divided by that number:
+\[
+1 \div \frac{1}{9} = 1 \times \frac{9}{1} = \boxed{9}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{3}{Ratio \& Proportion}{4}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q3color}
+3(a) & 7 : 100 cao & 2 & \textbf{M1} for 175 : 2500 or better or 0.175 : 2.5 or better \\ \hline
+3(b) & 225 & 2 & \textbf{M1} for $540 \div (5+4+3) \times k$ where $k$ is 1, 3, 4 or 5 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+(a) The ratio $175\,$ml $:\ 2.5\,$litres in its simplest form\\[4pt]
+Convert to a common unit: $2.5$ litres $= 2.5 \times 1000 = 2500\,$ml.
+\[
+175 : 2500
+\]
+Divide both parts by their highest common factor, 25:
+\[
+\boxed{7 : 100}
+\]
+(b) Erika's share of \$540 in the ratio $4 : 5 : 3$\\[4pt]
+Total number of parts $= 4 + 5 + 3 = 12$, so one part is
+\[
+540 \div 12 = 45
+\]
+Erika receives 5 parts:
+\[
+5 \times 45 = \boxed{\$225}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{4}{Angles in Polygons \& Parallel Lines}{2}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q4color}
+4 & $[x =]\ 52$ \newline $[y =]\ 128$ & 2 & \textbf{B1} for each \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+Finding $x$ and $y$\\[4pt]
+The three horizontal lines are parallel and the two sloping lines are parallel.
+
+Value of $x$: the $128^\circ$ angle and the angle $x^\circ$ lie on the same side of the transversal between two parallel horizontal lines, so they are co-interior (allied) angles and add to $180^\circ$:
+\[
+x = 180 - 128 = \boxed{52}
+\]
+Value of $y$: the $128^\circ$ angle and the angle $y^\circ$ are corresponding angles formed by the parallel sloping lines cutting the parallel horizontal lines, so they are equal:
+\[
+y = \boxed{128}
+\]
+(As a check, $x + y = 52 + 128 = 180$, consistent with angles on a straight line at the intersections.)
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{5}{Geometric Fundamentals}{1}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q5color}
+5 & 61\,000 & 1 & \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q5color}
+Converting $6.1\,\text{m}^2$ to $\text{cm}^2$\\[4pt]
+Since $1\,\text{m} = 100\,\text{cm}$, we have $1\,\text{m}^2 = 100^2 = 10\,000\,\text{cm}^2$. Therefore
+\[
+6.1 \times 10\,000 = \boxed{61\,000\ \text{cm}^2}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{6}{Probability Fundamentals}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q6color}
+6(a) & 0.25 or $\dfrac{1}{4}$ or 25\% & 2 & \textbf{M1} for $1 - (0.1 + 0.3 + 0.35)$ oe \\ \hline
+6(b) & 175 & 1 & \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+(a) Relative frequency of Thriller\\[4pt]
+The four relative frequencies must sum to 1:
+\[
+\text{Thriller} = 1 - (0.1 + 0.35 + 0.3) = 1 - 0.75 = \boxed{0.25}
+\]
+(b) Number of students choosing Science Fiction\\[4pt]
+Number $=$ relative frequency $\times$ total number of students:
+\[
+0.35 \times 500 = \boxed{175}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{7}{Time, Currency \& Conversions}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q7color}
+7 & [euro]\,320 \newline [\$]\,2.17 & 3 & \textbf{B2} for answer 320 or answer 2.17 \newline OR \newline \textbf{M2} for $\dfrac{350\times0.92 - 320}{0.92}$ oe \newline or \textbf{M1} for $350 \times 0.92$ oe \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q7color}
+Euros received and change from \$350\\[4pt]
+Full value of \$350 in euros, using the rate $\$1 = \text{euro}\,0.92$:
+\[
+350 \times 0.92 = 322
+\]
+The bank only gives euros in multiples of 5, so the largest possible amount is
+\[
+\boxed{\text{euro}\,320}
+\]
+The euros not given are $322 - 320 = 2$ euros. Converting this back to dollars (dividing by the rate):
+\[
+\frac{350 \times 0.92 - 320}{0.92} = \frac{2}{0.92} = 2.1739\ldots
+\]
+so the change is
+\[
+\boxed{\$2.17}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{8}{Angles in Polygons \& Parallel Lines}{2}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q8color}
+8 & 135 & 2 & \textbf{M1} for $[180 -]\ \dfrac{360}{8}$ or $(8-2)\times180\,[\div 8]$ oe \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+Interior angle of a regular octagon\\[4pt]
+Method 1 (via the exterior angle). The exterior angles of any polygon sum to $360^\circ$, so each exterior angle of a regular octagon is
+\[
+\frac{360}{8} = 45^\circ
+\]
+Interior and exterior angles are supplementary:
+\[
+180 - 45 = \boxed{135^\circ}
+\]
+Method 2 (via the angle sum). The interior angles sum to $(8-2)\times 180 = 1080^\circ$, so each one is $1080 \div 8 = 135^\circ$.
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{9}{Set Notation \& Venn Diagrams}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q9color}
+9(a) & Correct region shaded on the Venn diagram. & 1 & \\ \hline
+9(b) & 5 & 2 & \textbf{M1} for 5 correctly placed on Venn diagram \newline or $12 + 9 - (22 - 6)$ oe \newline or for $12 - x + x + 9 - x + 6 = 22$ or better \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+(a) Shading $(A \cap B)'$\\[4pt]
+$A \cap B$ is the overlap of the two circles. Its complement is everything in the universal set that is \emph{not} in that overlap.
+
+Shade the whole rectangle except the lens-shaped overlap: that is, the part of $A$ outside $B$, the part of $B$ outside $A$, and the region outside both circles. Leave only the intersection unshaded.
+
+(b) Students who play both piano and guitar\\[4pt]
+Let $x$ be the number who play both. Of the 22 students, $6$ play neither, so
+\[
+22 - 6 = 16
+\]
+students play at least one instrument. Using the addition rule,
+\[
+12 + 9 - x = 16
+\]
+\[
+21 - x = 16 \;\Rightarrow\; x = \boxed{5}
+\]
+Check on a Venn diagram: piano only $= 12 - 5 = 7$, both $= 5$, guitar only $= 9 - 5 = 4$, neither $= 6$, and $7 + 5 + 4 + 6 = 22$.
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{10}{Algebraic Roots \& Indices}{2}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q10color}
+10 & $\dfrac{7y^3}{x}$ or $7y^3x^{-1}$ final answer & 2 & \textbf{B1} for two correct elements in correct position in final answer or for correct answer seen \newline e.g. $\dfrac{7x^2y^3}{x^3}$, $\dfrac{7y^5}{x^1y^2}$, $7y^3x^2$ \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q10color}
+Simplifying $\dfrac{7x^2y^5}{x^3y^2}$\\[4pt]
+Subtract indices for each letter, using $\dfrac{a^m}{a^n} = a^{m-n}$:
+\[
+\frac{7x^2y^5}{x^3y^2} = 7 \times x^{2-3} \times y^{5-2} = 7x^{-1}y^{3}
+\]
+Writing the negative index as a denominator:
+\[
+\boxed{\dfrac{7y^3}{x}}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{11}{Simple \& Compound Interest, Growth \& Decay}{6}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q11color}
+11(a) & 5220 & 3 & \textbf{B2} for answer 720 \newline or \textbf{M2} for $\dfrac{4500\times3.2\times5}{100} + 4500$ oe \newline or \textbf{M1} for $\dfrac{4500\times3.2\,[\times 5]}{100}$ oe \\ \hline
+11(b) & 176.91 & 3 & \textbf{B2} for answer 2930 or 2927 or 2926.9 or 2926.91[...] \newline or \textbf{M2} for $2750\times\left(1+\dfrac{2.1}{100}\right)^{3} - 2750$ oe \newline or \textbf{M1} for $2750\times\left(1+\dfrac{2.1}{100}\right)^{3}$ oe \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q11color}
+(a) Value of Zaya's investment after 5 years (simple interest)\\[4pt]
+Simple interest is calculated on the original amount each year:
+\[
+I = \frac{4500 \times 3.2 \times 5}{100} = \frac{72\,000}{100} = 720
+\]
+Value of the investment $=$ principal $+$ interest:
+\[
+4500 + 720 = \boxed{\$5220}
+\]
+(b) Total interest for Aisha after 3 years (compound interest)\\[4pt]
+The multiplier for one year is $1 + \dfrac{2.1}{100} = 1.021$, so after 3 years the amount is
+\[
+2750 \times (1.021)^3 = 2926.913\ldots
+\]
+The interest received is the amount minus the principal:
+\[
+2750 \times \left(1 + \frac{2.1}{100}\right)^3 - 2750 = 2926.9137\ldots - 2750 = \boxed{\$176.91}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{12}{Expanding \& Factorising Brackets}{2}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q12color}
+12 & $(7x-2y)(h-3f)$ \newline or $(2y - 7x)(3f - h)$ final answer & 2 & \textbf{M1} for $7x(h-3f) - 2y(h-3f)$ \newline or $h(7x-2y) - 3f(7x-2y)$ \newline or $2y(3f-h) - 7x(3f-h)$ \newline or $3f(2y-7x) - h(2y-7x)$ \newline or for correct answer seen then spoilt \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q12color}
+Factorising $7hx + 6fy - 21fx - 2hy$\\[4pt]
+Group the terms so that each pair has a common factor. Pair the $x$ terms and the $y$ terms:
+\[
+7hx - 21fx + 6fy - 2hy = 7x(h - 3f) - 2y(h - 3f)
+\]
+Both brackets are $(h - 3f)$, so factorise it out:
+\[
+\boxed{(7x - 2y)(h - 3f)}
+\]
+Check by expanding: $(7x-2y)(h-3f) = 7hx - 21fx - 2hy + 6fy$, which is the original expression.
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{13}{Probability Diagrams}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q13color}
+13(a) & Correct tree diagram \newline First counter $\dfrac{3}{12}$ oe \newline Second counter $\dfrac{3}{11},\dfrac{9}{11},\dfrac{2}{11}$ oe & 2 & \textbf{B1} for $\dfrac{3}{12}$ oe or $\dfrac{3}{11}$ oe positioned correctly \\ \hline
+13(b) & $\dfrac{6}{11}$ oe & 1 & \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q13color}
+(a) Completing the tree diagram\\[4pt]
+The bag holds 9 red and 3 green counters, 12 in total, and there is no replacement.
+
+First counter: $P(\text{red}) = \dfrac{9}{12}$ (given), so the lower branch is
+\[
+P(\text{green}) = \boxed{\dfrac{3}{12}}
+\]
+Second counter, given the first was red (8 red and 3 green left out of 11): the upper branch $\dfrac{8}{11}$ is given, so the branch to Green is
+\[
+\boxed{\dfrac{3}{11}}
+\]
+Second counter, given the first was green (9 red and 2 green left out of 11):
+\[
+P(\text{red}) = \boxed{\dfrac{9}{11}}, \qquad P(\text{green}) = \boxed{\dfrac{2}{11}}
+\]
+(b) Probability that both counters are red\\[4pt]
+Multiply along the red-red path:
+\[
+\frac{9}{12} \times \frac{8}{11} = \frac{72}{132} = \boxed{\dfrac{6}{11}}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{14}{Circle Theorems}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q14color}
+14(a) & 37 & 1 & \\ \hline
+14(b) & 122 & 2 & \textbf{B1} for $\angle QPS = 58$ \newline or \textbf{M1} for $[\angle QRS =]\ 180 - (\textit{their } \angle QPS)$ \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q14color}
+(a) Angle $PQS$\\[4pt]
+$APB$ is a tangent at $P$ and $PS$ is a chord. By the alternate segment theorem, the angle between the tangent and the chord equals the angle in the alternate segment:
+\[
+\angle PQS = \angle SPB = \boxed{37^\circ}
+\]
+(b) Angle $QRS$\\[4pt]
+In triangle $PQS$ the angles sum to $180^\circ$, with $\angle PSQ = 85^\circ$ and $\angle PQS = 37^\circ$:
+\[
+\angle QPS = 180 - 85 - 37 = 58^\circ
+\]
+$PQRS$ is a cyclic quadrilateral, so its opposite angles $\angle QPS$ and $\angle QRS$ add to $180^\circ$:
+\[
+\angle QRS = 180 - 58 = \boxed{122^\circ}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{15}{Sequences}{7}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q15color}
+15(a) & 13 \newline 28 & 1 & \\ \hline
+15(b)(i) & $2n + 3$ oe final answer & 2 & \textbf{B1} for answer $2n + p$ or $qn + 3$, $q \neq 0$ \newline or for $2n + 3$ oe seen \\ \hline
+15(b)(ii) & $\dfrac{1}{2}n^2 + \dfrac{5n}{2} + 3$ oe final answer & 2 & \textbf{B1} for quadratic expression in $n$ as answer or for at least two second differences of 1 seen and none incorrect \newline or for correct answer seen \\ \hline
+15(c) & 42 & 2 & \textbf{M1dep} for \textit{their} $(2p+3) = 88$ \newline \textbf{dep} on \textit{their} $2p + 3$ of form $ap + b$ $(a, b \neq 0)$ \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q15color}
+(a) Pattern 5\\[4pt]
+White beads go $5, 7, 9, 11, \ldots$ increasing by 2, so Pattern 5 has
+\[
+11 + 2 = \boxed{13}\ \text{white beads}
+\]
+Totals go $6, 10, 15, 21, \ldots$ with first differences $4, 5, 6$, so the next difference is 7:
+\[
+21 + 7 = \boxed{28}\ \text{beads in total}
+\]
+(b)(i) White beads in Pattern $n$\\[4pt]
+The sequence $5, 7, 9, 11, \ldots$ is linear with common difference 2, so it is of the form $2n + c$. Using $n = 1$: $2(1) + c = 5$, so $c = 3$.
+\[
+\boxed{2n + 3}
+\]
+(b)(ii) Total beads in Pattern $n$\\[4pt]
+The totals are $6, 10, 15, 21, 28$. First differences: $4, 5, 6, 7$. Second differences: $1, 1, 1$ (constant), so the sequence is quadratic with leading coefficient $\dfrac{1}{2} \times 1 = \dfrac{1}{2}$.
+
+Subtracting $\dfrac{1}{2}n^2$ (that is $0.5, 2, 4.5, 8, 12.5$) from the totals leaves
+\[
+5.5,\ 8,\ 10.5,\ 13,\ 15.5
+\]
+which is linear with common difference $2.5$, giving $\dfrac{5}{2}n + 3$. Hence
+\[
+\boxed{\dfrac{1}{2}n^2 + \dfrac{5n}{2} + 3}
+\]
+Check with $n = 4$: $\dfrac{16}{2} + 10 + 3 = 8 + 13 = 21$, as required.
+
+(c) Largest pattern with 88 white beads\\[4pt]
+The number of white beads in Pattern $p$ is $2p + 3$. Setting this equal to 88:
+\[
+2p + 3 = 88 \;\Rightarrow\; p = 42.5
+\]
+Since $p$ must be a whole number and cannot exceed $42.5$, the largest possible pattern is
+\[
+p = \boxed{42}
+\]
+(Pattern 42 uses $2(42) + 3 = 87$ white beads, leaving 1 spare; Pattern 43 would need 89.)
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{16}{Powers, Roots \& Standard Form}{2}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q16color}
+16 & 95 or 95.2 or 95.16 to 95.17 & 2 & \textbf{M1} for $\dfrac{5.71\times10^{7}}{6\times10^{5}}$ oe \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q16color}
+Population density of Kenya\\[4pt]
+Population density is population divided by area:
+\[
+\frac{5.71 \times 10^{7}}{6 \times 10^{5}} = \frac{5.71}{6} \times 10^{2} = 0.951\overline{6} \times 100 = 95.166\ldots
+\]
+To 3 significant figures:
+\[
+\boxed{95.2\ \text{people}\,/\,\text{km}^2}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{17}{Functions}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q17color}
+17(a) & 6 & 1 & \\ \hline
+17(b) & $\dfrac{x-3}{4}$ oe final answer & 2 & \textbf{M1} for $x = 4y + 3$ or better or $y - 3 = 4x$ or better or $\dfrac{y}{4} = \dfrac{3}{4} + x$ or better \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q17color}
+(a) Finding $\mathrm{f}(-8)$ where $\mathrm{f}(x) = \dfrac{10-x}{3}$\\[4pt]
+Substitute $x = -8$:
+\[
+\mathrm{f}(-8) = \frac{10 - (-8)}{3} = \frac{18}{3} = \boxed{6}
+\]
+(b) Finding $\mathrm{g}^{-1}(x)$ where $\mathrm{g}(x) = 4x + 3$\\[4pt]
+Write $y = 4x + 3$ and make $x$ the subject:
+\[
+y - 3 = 4x \;\Rightarrow\; x = \frac{y-3}{4}
+\]
+Swapping the letters back gives
+\[
+\mathrm{g}^{-1}(x) = \boxed{\dfrac{x-3}{4}}
+\]
+Check: $\mathrm{g}^{-1}(\mathrm{g}(x)) = \dfrac{(4x+3)-3}{4} = x$.
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{18}{Averages \& Range \,\textperiodcentered\, Histograms}{7}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q18color}
+18(a) & 52.4 or $52\dfrac{2}{5}$ & 4 & \textbf{M1} for correct midpoints soi \newline \textbf{M1} for $\Sigma fx$ where \textit{their} $x$ needs to be within interval or on boundary \newline \textbf{M1dep} (on 2nd M1) for \textit{their} $\Sigma fx \div 300$ \\ \hline
+18(b) & Correct histogram drawn & 3 & \textbf{B2} for 3 correct bars \newline or \textbf{B1} for 2 correct bars \newline If 0 scored, \textbf{SC1} for 3 correct frequency densities soi \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q18color}
+(a) Estimate of the mean score\\[4pt]
+Use the midpoint of each interval as the representative value:
+\[
+\begin{array}{lccccc}
+\text{Interval} & 0 < s \le 30 & 30 < s \le 40 & 40 < s \le 60 & 60 < s \le 70 & 70 < s \le 100\\
+\text{Midpoint } x & 15 & 35 & 50 & 65 & 85\\
+\text{Frequency } f & 24 & 70 & 88 & 76 & 42
+\end{array}
+\]
+Then
+\[
+\Sigma fx = 24(15) + 70(35) + 88(50) + 76(65) + 42(85)
+\]
+\[
+= 360 + 2450 + 4400 + 4940 + 3570 = 15\,720
+\]
+\[
+\text{Mean} = \frac{\Sigma fx}{\Sigma f} = \frac{15\,720}{300} = \boxed{52.4}
+\]
+(b) Completing the histogram\\[4pt]
+Frequency density $=$ frequency $\div$ class width:
+\[
+\begin{array}{lccccc}
+\text{Interval} & 0 \text{ to } 30 & 30 \text{ to } 40 & 40 \text{ to } 60 & 60 \text{ to } 70 & 70 \text{ to } 100\\
+\text{Width} & 30 & 10 & 20 & 10 & 30\\
+\text{Freq. density} & 0.8 & 7 & 4.4 & 7.6 & 1.4
+\end{array}
+\]
+The bar from 30 to 40 at height 7 is already drawn. Draw the remaining three bars, with no gaps:
+\begin{itemize}[nosep,leftmargin=*]
+\item from $s = 0$ to $s = 30$ at height $\boxed{0.8}$
+\item from $s = 40$ to $s = 60$ at height $\boxed{4.4}$
+\item from $s = 60$ to $s = 70$ at height $\boxed{7.6}$
+\item from $s = 70$ to $s = 100$ at height $\boxed{1.4}$
+\end{itemize}
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{19}{Curve Sketching \& Gradient Analysis}{8}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q19color}
+19(a) & $-8$ & 1 & \\ \hline
+19(b) & Correct smooth curve & 4 & \textbf{B3FT} for 6 points correctly plotted \newline or \textbf{B2FT} for 4 points correctly plotted \newline or \textbf{B1FT} for 2 points correctly plotted \\ \hline
+19(c) & Ruled line $y = 7$ & M1 & \\ \cline{2-4}
+\multirow{-2}{1.7cm}{} & $-1.95$ to $-1.7$ \newline $-0.8$ to $-0.5$ \newline 2.3 to 2.6 & A2 & \textbf{A1} for two correct \newline\newline If \textbf{M0} scored, \textbf{SC1} for three correct solutions or $x^3 - 5x + 4 = 7$ soi \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q19color}
+(a) Completing the table for $y = x^3 - 5x + 4$\\[4pt]
+At $x = -3$:
+\[
+y = (-3)^3 - 5(-3) + 4 = -27 + 15 + 4 = \boxed{-8}
+\]
+(b) Drawing the graph\\[4pt]
+Plot the seven points
+\[
+(-3,-8),\ (-2,6),\ (-1,8),\ (0,4),\ (1,0),\ (2,2),\ (3,16)
+\]
+and join them with a single smooth curve (no ruled segments, no feathering). The curve rises steeply from $(-3,-8)$ to a local maximum near $x = -1.3$ ($y \approx 8.2$), falls to a local minimum near $x = 1.3$ ($y \approx -0.2$), then rises steeply to $(3,16)$.
+
+(c) Solving $x^3 - 5x - 3 = 0$\\[4pt]
+Rearrange so that the left-hand side is the plotted curve:
+\[
+x^3 - 5x - 3 = 0 \;\Rightarrow\; x^3 - 5x + 4 = 7
+\]
+So draw the ruled straight line $\boxed{y = 7}$ across the grid and read off the $x$-coordinates of its three intersections with the curve:
+\[
+x = \boxed{-1.8}, \qquad x = \boxed{-0.65}, \qquad x = \boxed{2.5}
+\]
+(Accept $-1.95$ to $-1.7$, $-0.8$ to $-0.5$, and 2.3 to 2.6.)
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{20}{Quadratic Equations \,\textperiodcentered\, Forming \& Solving Equations \,\textperiodcentered\, Area \& Perimeter}{9}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q20color}
+20(a)(i) & $2x - 3 - (x-2)$ \newline leading to $x - 1$ & 1 & With no error seen \\ \hline
+ & $3(x-1) = \dfrac{1}{5}(2x-3)(x+3)$ oe & M1 & e.g. $5\times3(x-1) = (2x-3)(x+3)$ oe \\ \cline{2-4}
+ & $2x^2 - 3x + 6x - 9$ or better & B1 & \\ \cline{2-4}
+\multirow{-3}{1.7cm}{20(a)(ii)} & $15x - 15 = 2x^2 - 3x + 6x - 9$ oe \newline leading to \newline $x^2 - 6x + 3 = 0$ & A1 & With no errors or omissions at any stage in the working \\ \hline
+ & $\dfrac{[--]6 \pm \sqrt{(-6)^2 - 4\times1\times3}}{2\times1}$ oe & B2 & \textbf{B1} for $\sqrt{(-6)^2 - 4\times1\times3}$ or better \newline or for $\dfrac{[--]6 + \sqrt{k}}{2}$ oe or $\dfrac{[--]6 - \sqrt{k}}{2}$ oe \\ \cline{2-4}
+\multirow{-2}{1.7cm}{20(b)(i)} & 5.45 and 0.55 & B1 & \\ \hline
+20(b)(ii) & 53.4 or 53.38 to 53.41 & 2 & \textbf{M1} for substituting \textit{their} $x$ value into correct area formula, where $x > 2$ \newline e.g. $(2x-3)(x+3) - 3(x-1)$ oe \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q20color}
+(a)(i) Show that $CD = x - 1$\\[4pt]
+$DG$ is the full base of rectangle $EFGD$, so $DG = EF = 2x - 3$. Also $CG = x - 2$. Since $D$, $C$ and $G$ lie on a straight line,
+\[
+CD = DG - CG = (2x - 3) - (x - 2) = 2x - 3 - x + 2 = x - 1
+\]
+as required.
+
+(a)(ii) Forming the equation\\[4pt]
+$EFGD$ is a rectangle, so $DE = GF = x + 3$. The vertical side $EA = x$, hence
+\[
+AD = DE - EA = (x + 3) - x = 3
+\]
+Areas:
+\[
+\text{Area } ABCD = CD \times AD = 3(x-1), \qquad \text{Area } EFGD = (2x-3)(x+3)
+\]
+Since $ABCD$ is $\dfrac{1}{5}$ of $EFGD$:
+\[
+3(x-1) = \frac{1}{5}(2x-3)(x+3)
+\]
+Multiply both sides by 5 and expand:
+\[
+15x - 15 = 2x^2 - 3x + 6x - 9 = 2x^2 + 3x - 9
+\]
+\[
+0 = 2x^2 + 3x - 9 - 15x + 15 = 2x^2 - 12x + 6
+\]
+Dividing by 2:
+\[
+x^2 - 6x + 3 = 0
+\]
+as required.
+
+(b)(i) Solving $x^2 - 6x + 3 = 0$ by formula\\[4pt]
+Here $a = 1$, $b = -6$, $c = 3$:
+\[
+x = \frac{-(-6) \pm \sqrt{(-6)^2 - 4\times1\times3}}{2\times1} = \frac{6 \pm \sqrt{36 - 12}}{2} = \frac{6 \pm \sqrt{24}}{2}
+\]
+\[
+x = \frac{6 + 4.89897\ldots}{2} = 5.44948\ldots \qquad \text{or} \qquad x = \frac{6 - 4.89897\ldots}{2} = 0.55051\ldots
+\]
+To 2 decimal places:
+\[
+x = \boxed{5.45} \qquad \text{or} \qquad x = \boxed{0.55}
+\]
+(b)(ii) The shaded area\\[4pt]
+The shaded region is rectangle $EFGD$ with rectangle $ABCD$ removed. Lengths must be positive ($CG = x - 2 > 0$), so take $x = 5.4494897\ldots$
+\[
+\text{Shaded} = (2x-3)(x+3) - 3(x-1)
+\]
+\[
+= (7.89898)(8.44949) - 3(4.44949) = 66.7423 - 13.3485 = 53.3938\ldots
+\]
+\[
+\boxed{53.4\ \text{units}^2}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{21}{Volume \& Surface Area}{11}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q21color}
+21(a) & 1590 or 1591 or 1590.6 to 1590.9 & 3 & \textbf{M1} for $\dfrac{1}{2}\times\dfrac{4}{3}\times\pi\times7^3$ oe \newline \textbf{M1} for $\dfrac{1}{3}\times\pi\times7^2\times(24-7)$ oe \\ \hline
+ & $\dfrac{1}{2}\times4\times\pi\times7^2$ oe \newline $+$ \newline $7\times\pi\times\sqrt{17^2+7^2}$ oe & M4 & \textbf{M2} for $\pi\times7\times\sqrt{(24-7)^2 + 7^2}$ oe \newline\newline or \textbf{M1} for $(24-7)^2 + 7^2$ oe \newline\newline \textbf{M1} for $\dfrac{1}{2}\times4\times\pi\times7^2$ oe \\ \cline{2-4}
+\multirow{-2}{1.7cm}{21(b)} & 712.07 to 712.3 & A1 & \\ \hline
+21(c) & 14[.0] or 13.98 to 13.99... & 3 & \textbf{M2} for $\sqrt{\dfrac{242}{712}}\times24$ oe or $24 \div \sqrt{\dfrac{712}{242}}$ oe \newline\newline or \textbf{M1} for $[k\times]\sqrt{\dfrac{242}{712}}$ oe or $[k\div]\sqrt{\dfrac{712}{242}}$ oe \newline\newline or $\dfrac{24^2}{h^2} = \dfrac{712}{242}$ or better \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q21color}
+The radius of both the cone and the hemisphere is $r = 14 \div 2 = 7\,$cm. The hemisphere contributes a height of $7\,$cm, so the cone has height
+\[
+h = 24 - 7 = 17\ \text{cm}
+\]
+(a) Volume of the solid\\[4pt]
+Volume $=$ half a sphere $+$ cone:
+\[
+V = \frac{1}{2}\times\frac{4}{3}\pi\times 7^3 \;+\; \frac{1}{3}\times\pi\times 7^2 \times (24-7)
+\]
+\[
+= 718.3775\ldots + 872.2654\ldots = 1590.693\ldots
+\]
+\[
+\boxed{1590.7\ \text{cm}^3}\ \ (\text{to 3 s.f. } 1590\ \text{or } 1591)
+\]
+(b) Show the total surface area is $712\,$cm$^2$ to the nearest integer\\[4pt]
+The surface consists of the curved surface of the hemisphere and the curved surface of the cone (the join is internal, so no circle is counted).
+
+Slant height of the cone, by Pythagoras:
+\[
+l = \sqrt{17^2 + 7^2} = \sqrt{289 + 49} = \sqrt{338} = 18.3847\ldots
+\]
+Curved surface areas:
+\[
+\text{hemisphere} = \frac{1}{2}\times 4 \times \pi \times 7^2 = 98\pi = 307.876\ldots
+\]
+\[
+\text{cone} = \pi r l = 7 \times \pi \times \sqrt{17^2 + 7^2} = 404.302\ldots
+\]
+Total:
+\[
+307.876 + 404.302 = 712.178\ldots = \boxed{712\ \text{cm}^2}\ \text{(nearest integer)}
+\]
+as required.
+
+(c) Total height of the mathematically similar smaller solid\\[4pt]
+For similar solids, the area factor is the square of the length factor:
+\[
+\left(\frac{\text{small height}}{24}\right)^2 = \frac{242}{712}
+\]
+\[
+\text{small height} = 24 \times \sqrt{\frac{242}{712}} = 24 \times 0.582998\ldots = 13.9919\ldots
+\]
+\[
+\boxed{14.0\ \text{cm}}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{22}{Sine, Cosine Rule \& Area of Triangles}{9}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q22color}
+22(a) & 31 cao & 5 & \textbf{B4} for 30.9 or 30.85 to 30.86 \newline\newline OR \newline\newline \textbf{M2} for $[AC =]$ $\sqrt{150^2 + 187^2 - 2\times150\times187\times\cos112}$ oe \newline\newline or \textbf{M1} for $[AC^2 =]$ $150^2 + 187^2 - 2\times150\times187\times\cos112$ oe \newline After \textbf{M1} earned allow \textbf{A1} for 78\,484[. ...] \newline\newline \textbf{M1dep} for 617 to 617.2 or \textit{their} $AC$ $+$ 150 $+$ 187 \newline\newline \textbf{M1dep} for \textit{their} perimeter $\div$ 20 \\ \hline
+22(b) & 92.8 to 92.9... & 4 & \textbf{M3} for $\dfrac{150\times187\times\sin(112)}{\textit{their } AC}$ oe \newline\newline or \textbf{M2} for $\dfrac{1}{2}\times150\times187\times\sin112 = \dfrac{1}{2}\times\textit{their }AC \times h$ \newline or for $[\sin C =]\dfrac{150\sin112}{\textit{their } AC}$ oe \newline or for $[\sin A =]\dfrac{187\sin112}{\textit{their } AC}$ oe \newline\newline or \textbf{M1} for $\dfrac{150}{\sin C} = \dfrac{\textit{their } AC}{\sin112}$ oe \newline or for $\dfrac{187}{\sin A} = \dfrac{\textit{their } AC}{\sin112}$ oe \newline or for $\dfrac{1}{2}\times150\times187\times\sin112$ oe \newline\newline or for indicating $AC$ and shortest distance are perpendicular \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q22color}
+(a) Number of rolls of fencing\\[4pt]
+Angle $ABC = 112^\circ$ is the angle between the two known sides, so use the cosine rule for $AC$:
+\[
+AC = \sqrt{150^2 + 187^2 - 2\times150\times187\times\cos112^\circ}
+\]
+\[
+= \sqrt{22\,500 + 34\,969 + 21\,015.4\ldots} = \sqrt{78\,484.4\ldots} = 280.150\ldots\ \text{m}
+\]
+Perimeter of the field:
+\[
+150 + 187 + 280.15 = 617.15\ \text{m}
+\]
+Number of $20\,$m rolls needed:
+\[
+\frac{617.15}{20} = 30.857\ldots
+\]
+Rolls come whole, so round up:
+\[
+\boxed{31\ \text{rolls}}
+\]
+(b) Shortest distance from $B$ to $AC$\\[4pt]
+The shortest distance $h$ is the perpendicular from $B$ to $AC$, so it is the height of triangle $ABC$ when $AC$ is taken as the base.
+
+Find the area two ways. Using the two known sides and the included angle:
+\[
+\text{Area} = \frac{1}{2}\times150\times187\times\sin112^\circ = 13\,003.7\ldots\ \text{m}^2
+\]
+Using $AC$ as the base:
+\[
+\text{Area} = \frac{1}{2}\times AC \times h = \frac{1}{2}\times 280.150\ldots \times h
+\]
+Equating and solving:
+\[
+h = \frac{150\times187\times\sin112^\circ}{280.150\ldots} = \frac{26\,007.5\ldots}{280.150\ldots} = 92.833\ldots
+\]
+\[
+\boxed{92.8\ \text{m}}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{23}{Compound Measures \,\textperiodcentered\, Rounding, Estimation \& Bounds}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q23color}
+23 & $\left[\dfrac{497.5}{24.75}\ \text{oe} =\right]$ 20.1[0...] nfww & 3 & \textbf{M2} for $\dfrac{495 \text{ to } 500}{24.7 + 0.05}$ oe or $\dfrac{500 - 2.5}{24.7 \text{ to } 24.8}$ oe \newline\newline or \textbf{M1} for 497.5 or 502.5 or 24.65 or 24.75 oe seen \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q23color}
+Lower bound of Zara's average speed\\[4pt]
+Bounds of the distance (nearest $5\,$m, so half-interval $2.5\,$m):
+\[
+497.5 \le d < 502.5
+\]
+Bounds of the time (nearest $0.1\,$s, so half-interval $0.05\,$s):
+\[
+24.65 \le t < 24.75
+\]
+Average speed is $\dfrac{d}{t}$, which is smallest when the distance is smallest and the time is largest:
+\[
+\text{Lower bound} = \frac{497.5}{24.75} = 20.1010\ldots
+\]
+\[
+\boxed{20.1\ \text{m}\,/\,\text{s}}
+\]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+\examq{4024/22/M/J/25}{24}{Algebraic Fractions}{3}
+%%%%%%%%%%%%%%%%%%%
+\begin{mstab}{q24color}
+24 & $\dfrac{16x - 17}{(2x+1)(4x-3)}$ or $\dfrac{16x-17}{8x^2 - 2x - 3}$ final answer & 3 & \textbf{B1} for $5(4x-3) - 2(2x+1)$ oe isw \newline\newline \textbf{B1} for denominator $(2x+1)(4x-3)$ oe isw \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q24color}
+Expressing $\dfrac{5}{2x+1} - \dfrac{2}{4x-3}$ as a single fraction\\[4pt]
+The common denominator is $(2x+1)(4x-3)$:
+\[
+\frac{5}{2x+1} - \frac{2}{4x-3} = \frac{5(4x-3) - 2(2x+1)}{(2x+1)(4x-3)}
+\]
+Expand the numerator:
+\[
+5(4x-3) - 2(2x+1) = 20x - 15 - 4x - 2 = 16x - 17
+\]
+The numerator does not factorise to share a factor with the denominator, so the answer in its simplest form is
+\[
+\boxed{\dfrac{16x - 17}{(2x+1)(4x-3)}}
+\]
+which may also be written as $\dfrac{16x-17}{8x^2 - 2x - 3}$.
+\end{ansbox}
+
+\end{document}

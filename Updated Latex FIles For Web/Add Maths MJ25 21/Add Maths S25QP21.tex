@@ -1,0 +1,297 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,top=2.4cm,bottom=2.2cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\graphicspath{{./}}
+\usepackage{array}
+\usepackage{makecell}
+\renewcommand{\arraystretch}{1.25}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+
+\newcommand{\ohms}{\ensuremath{\Omega}}
+\newcommand{\degC}{\ensuremath{^{\circ}}C}
+\newcommand{\dg}{\ensuremath{^{\circ}}}
+\newcommand{\pow}[1]{\ensuremath{^{#1}}}
+
+\newcommand{\topiclabel}[1]{{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}}
+
+\newlength{\anslineskip}
+\setlength{\anslineskip}{8mm}
+
+\newcounter{ansln}
+\newcommand{\Alines}[2]{%
+  \par\vspace{1mm}%
+  \setcounter{ansln}{1}%
+  \loop\ifnum\value{ansln}<#1\relax
+    \noindent\mbox{}\dotfill\par\vspace{\anslineskip}%
+    \stepcounter{ansln}%
+  \repeat
+  \noindent\mbox{}\dotfill\hspace{0.6em}\mbox{#2}\par
+  \vspace{1mm}%
+}
+
+\newcommand{\plainline}{\par\noindent\mbox{}\dotfill\par\vspace{\anslineskip}}
+
+\newcommand{\labelline}[1]{\par\vspace{1mm}\noindent #1\hspace{0.5em}\dotfill\par\vspace{\anslineskip}}
+
+\newcommand{\ansval}[3]{%
+  \par\vspace{5mm}%
+  \noindent\hspace*{3.5cm}#1\hspace{0.5em}\dotfill\hspace{0.5em}#2\hspace{0.5em}\makebox[1.1cm][r]{#3}\par
+  \vspace{3mm}%
+}
+
+\renewcommand{\markright}[1]{\par\nopagebreak\noindent\hspace*{\fill}\mbox{#1}\par\vspace{1mm}}
+
+% Per-question head: \examq{paper-id}{number}{topics}{marks}
+% Renders: paper-id - Q<number> - topics - marks  (one line, same font).
+% Same command and same rendered line as the answer paper.
+\newcommand{\swmarks}{}
+\newcommand{\examq}[4]{%
+  \gdef\swmarks{#4}%
+  \par\addvspace{16pt}\noindent
+  {\large\bfseries #1 - Q#2 - #3 - #4}\par\vspace{5pt}%
+}
+% \total now takes NO argument: it prints the marks stored by \examq.
+\newcommand{\total}{\par\vspace{2mm}\noindent\hspace*{\fill}[Total:\ \swmarks]\par\vspace{2mm}}
+
+\newcommand{\qfig}[3][0.5\linewidth]{%
+  \par\vspace{2mm}
+  \begin{center}%
+    \IfFileExists{#2}%
+      {\includegraphics[width=#1]{#2}}%
+      {\fbox{\parbox[c][26mm][c]{#1}{\centering\ttfamily\footnotesize #2}}}\\[4pt]
+    \textbf{#3}%
+  \end{center}%
+  \vspace{2mm}\par
+}
+
+\newlist{parts}{enumerate}{1}
+\setlist[parts]{label=\textbf{(\alph*)},leftmargin=2.1em,labelsep=0.6em,itemsep=10pt,topsep=6pt,parsep=4pt}
+
+\newlist{subparts}{enumerate}{1}
+\setlist[subparts]{label=\textbf{(\roman*)},leftmargin=2.3em,labelsep=0.6em,itemsep=10pt,topsep=6pt,parsep=4pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize 4037/21/M/J/25}
+\fancyhead[C]{\footnotesize Cambridge O Level Additional Mathematics -- Paper 2}
+\fancyhead[R]{\footnotesize May/June 2025}
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+%==================== QUESTION 1 ====================
+\examq{4037/21/M/J/25}{1}{Quadratic Functions}{5}
+A curve has equation $y=x^{2}+2x-3$.
+\begin{parts}
+  \item Use the method of completing the square to find the coordinates of the stationary point on the curve.
+  \markright{[3]}
+  \vspace{5cm}
+
+  \item On the axes, sketch the curve, stating the intercepts with the coordinate axes.
+  \markright{[2]}
+  \qfig[0.6\linewidth]{4037_21_M_J_25_fig1.png}{}
+\end{parts}
+\total
+
+%==================== QUESTION 2 ====================
+\examq{4037/21/M/J/25}{2}{Quadratic Functions}{5}
+In this question, $k$ is a constant.\\
+It is given that $2x^{2}+(3k-2)x+k=0$ has roots that are real and distinct.
+
+Find the set of possible values of $k$.
+\markright{[5]}
+\vspace{10cm}
+\total
+
+%==================== QUESTION 3 ====================
+\examq{4037/21/M/J/25}{3}{Permutations \& Combinations}{5}
+A sports club has the following members.
+\begin{center}
+5 runners, 4 swimmers, 3 gymnasts
+\end{center}
+\begin{parts}
+  \item These members stand in a straight line.
+
+  Find the number of ways that this can be done when all the runners stand together, all the swimmers stand together and all the gymnasts stand together.
+  \markright{[2]}
+  \vspace{4cm}
+
+  \item Four of these members are selected for an event.
+
+  Find the number of ways that this can be done when at least one runner, at least one swimmer and at least one gymnast must be selected.
+  \markright{[3]}
+  \vspace{5cm}
+\end{parts}
+\total
+
+%==================== QUESTION 4 ====================
+\examq{4037/21/M/J/25}{4}{Straight-Line Graphs}{7}
+The coordinates of points $A$, $B$, $C$ and $D$ are as follows.
+\begin{center}
+$A(-4,\,3)$\quad $B(6,\,-9)$\quad $C(15,\,10)$\quad $D(14,\,-1)$
+\end{center}
+The line $L$ has equation $y=11x-75$.\\
+The perpendicular bisector of the line $AB$ meets $L$ at the point $E$.
+
+Find the area of triangle $CDE$.
+\markright{[7]}
+\vspace{17cm}
+\total
+
+%==================== QUESTION 5 ====================
+\examq{4037/21/M/J/25}{5}{Differentiation}{4}
+Given that $y=x^{2}\tan\dfrac{x}{2}$, use calculus to find the approximate change in $y$ as $x$ increases from $\dfrac{\pi}{3}$ to $\dfrac{\pi}{3}+h$, where $h$ is small.
+\markright{[4]}
+\vspace{18cm}
+\total
+
+%==================== QUESTION 6 ====================
+\examq{4037/21/M/J/25}{6}{Binomial Theorem}{6}
+\begin{parts}
+  \item Using an appropriate quadratic factorisation, find the first three terms in the binomial expansion of $\left(9x^{2}+12x+4\right)^{5}$, in ascending powers of $x$.\\
+  You must simplify your coefficients.
+  \markright{[4]}
+  \vspace{9cm}
+
+  \item Find the term independent of $x$ in the expansion of $\left(\dfrac{6}{x^{2}}+\dfrac{x^{4}}{2}\right)^{12}$.
+  \markright{[2]}
+  \vspace{8cm}
+\end{parts}
+\total
+
+%==================== QUESTION 7 ====================
+\examq{4037/21/M/J/25}{7}{Functions \textperiodcentered\ Logarithmic \& Exponential Functions}{8}
+\begin{parts}
+  \item The function f is defined by $\mathrm{f}(x)=2\mathrm{e}^{-x}+3$ for $x\in\mathbb{R}$.
+
+  On the axes, sketch the graph of $y=\mathrm{f}(x)$ and hence, on the same axes, sketch the graph of $y=\mathrm{f}^{-1}(x)$ .\\
+  Show clearly
+  \begin{itemize}[leftmargin=2em,itemsep=2pt,topsep=2pt]
+    \item the positions of any points where your graphs meet the coordinate axes
+    \item the positions of any asymptotes.
+  \end{itemize}
+  \markright{[4]}
+  \qfig[0.6\linewidth]{4037_21_M_J_25_fig2.png}{}
+
+  \item The function g is defined by $\mathrm{g}(x)=2-\dfrac{3}{\mathrm{e}^{x}+2}$ for $x\geqslant 0$.
+
+  Given that $\mathrm{g}^{-1}$ exists, find an expression for $\mathrm{g}^{-1}(x)$ and state its domain.
+  \markright{[4]}
+  \vspace{17cm}
+\end{parts}
+\total
+
+%==================== QUESTION 8 ====================
+\examq{4037/21/M/J/25}{8}{Trigonometry}{9}
+\begin{parts}
+  \item Solve the equation $(2-3\cot x)\cos x=0$ for $0<x\leqslant\dfrac{\pi}{2}$.
+  \markright{[3]}
+  \vspace{18cm}
+
+  \item Solve the equation $2\operatorname{cosec}(2\theta+1)-12\sin(2\theta+1)=5$, where $\theta$ is in radians and $-1\leqslant\theta\leqslant 2$.
+  \markright{[6]}
+  \vspace{18cm}
+\end{parts}
+\total
+
+%==================== QUESTION 9 ====================
+\examq{4037/21/M/J/25}{9}{Circular Measure \textperiodcentered\ Differentiation}{12}
+In this question, all lengths are in centimetres and all angles are in radians.
+\qfig[0.85\linewidth]{4037_21_M_J_25_fig3.png}{}
+The diagram shows a sector $AOB$ of a circle, centre $O$, radius 15.
+
+Angle $AOB=\dfrac{6\pi}{5}$.
+
+The sector is made into a cone with points $A$ and $B$ touching, as shown.
+\begin{parts}
+  \item Find the curved surface area of the cone.
+  \markright{[2]}
+  \vspace{3cm}
+\end{parts}
+
+The top of the cone is a horizontal circle.
+
+\begin{parts}[resume]
+  \item Find the circumference of the circular top.
+  \markright{[2]}
+  \vspace{3cm}
+
+  \item Hence find the radius of the circular top and the perpendicular height of the cone.
+  \markright{[2]}
+  \vspace{5cm}
+
+  \item Water is poured into the cone.\\
+  When the depth of the water in the cone is $h$, the radius of the circular top of the water is $r$.
+  \begin{subparts}
+    \item Find an expression for $r$ in terms of $h$.
+    \markright{[1]}
+    \vspace{4cm}
+
+    \item The water is poured into the cone at a constant rate of $27\,\mathrm{cm}^{3}$ per second.
+
+    Find the rate at which the depth of the water is rising when the depth of the water is 4.
+    \markright{[5]}
+    \vspace{10cm}
+  \end{subparts}
+\end{parts}
+\total
+
+%==================== QUESTION 10 ====================
+\examq{4037/21/M/J/25}{10}{Calculus for Kinematics}{11}
+A particle $P$ moves in a straight line.\\
+$t$ seconds after passing a fixed point, $O$, the acceleration of $P$, $a\,\mathrm{ms}^{-2}$, is given by
+\[
+\begin{aligned}
+  a&=t^{2}-2 &&\text{for } 0\leqslant t\leqslant 4\\
+  a&=19-5\mathrm{e}^{8-2t} &&\text{for } 4\leqslant t\leqslant 10.
+\end{aligned}
+\]
+When $t=3$, the velocity of $P$ is $-\dfrac{1}{3}\,\mathrm{ms}^{-1}$ and its displacement from $O$ is $-\dfrac{1}{4}\,\mathrm{m}$.
+\begin{parts}
+  \item \begin{subparts}
+    \item Find the velocity of $P$ when $t=4$.
+    \markright{[3]}
+    \vspace{6cm}
+
+    \item Find the displacement of $P$ from $O$ when $t=4$.
+    \markright{[3]}
+    \vspace{9cm}
+  \end{subparts}
+
+  \item Find the displacement of $P$ from $O$ when $t=10$.
+  \markright{[5]}
+  \vspace{17cm}
+\end{parts}
+\total
+
+\begin{center}\textbf{Question 11 is printed on the next page.}\end{center}
+
+%==================== QUESTION 11 ====================
+\examq{4037/21/M/J/25}{11}{Arithmetic \& Geometric Progressions}{8}
+A geometric progression has first term $a$ and common ratio $r$, where $r>0$.\\
+The sum of the 2nd and 3rd terms of the progression is 168.\\
+The sum of the 4th and 5th terms of the progression is 94.5.
+\begin{parts}
+  \item Find the 6th term of the progression.
+  \markright{[7]}
+  \vspace{13cm}
+
+  \item Find the sum to infinity of the progression.
+  \markright{[1]}
+  \vspace{5cm}
+\end{parts}
+\total
+
+\end{document}

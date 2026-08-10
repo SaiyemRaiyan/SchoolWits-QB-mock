@@ -4,6 +4,25 @@
 
 (function(){
 
+  // Custom math-mode macros the exam papers define in their own LaTeX
+  // preambles — see js/app.js for the full explanation. Kept in sync
+  // across every file that calls renderMathInElement().
+  const KATEX_MACROS = {
+    '\\dd': '\\mathrm{d}',
+    '\\dydx': '\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}',
+    '\\ncr': '{}^{#1}\\mathrm{C}_{#2}',
+    '\\npr': '{}^{#1}\\mathrm{P}_{#2}',
+    '\\cosec': '\\operatorname{cosec}',
+    '\\pow': '^{#1}',
+    '\\dg': '^{\\circ}',
+    '\\degC': '^{\\circ}\\mathrm{C}',
+    '\\ohms': '\\Omega',
+    '\\textperiodcentered': '\\cdot',
+    '\\textbf': '\\mathbf{#1}',
+    '\\textit': '\\mathit{#1}',
+    '\\texttt': '\\mathtt{#1}'
+  };
+
   const els = {
     modeTabs: document.querySelectorAll('#modeTabs a'),
     viewStorefront: document.getElementById('viewStorefront'),
@@ -247,6 +266,7 @@
           {left: '$$', right: '$$', display: true},
           {left: '$', right: '$', display: false}
         ],
+        macros: KATEX_MACROS,
         throwOnError: false
       });
     }

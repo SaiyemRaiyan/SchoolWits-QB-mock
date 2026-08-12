@@ -1,4 +1,4 @@
-/* GENERATED — do not edit. Bundled from backend/src/latex/ by `npm run build:function`. Edit the source there and rebuild. */
+/* GENERATED - do not edit. Bundled from backend/src/latex/ by npm run build:function. */
 
 // src/latex/preprocess.ts
 function stripComments(src) {

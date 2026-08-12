@@ -1,8 +1,9 @@
 # Deleted functions — archived source
 
-These three Edge Functions were deployed around 2026-07-29 and **deleted on
-2026-08-12**. They were never in this repo; the only copy of their source
-was the deployment itself, so it is preserved here rather than lost.
+These three Edge Functions were deployed around 2026-07-29 and removed on
+2026-08-12 via `npm run delete:legacy-functions`. They were never in this
+repo; the only copy of their source was the deployment itself, so it is
+preserved here rather than lost.
 
 Do not redeploy them. They are kept for reference and for the record of what
 was live.

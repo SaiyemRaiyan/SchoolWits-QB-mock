@@ -14,7 +14,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -99,6 +99,47 @@ export type Database = {
         }
         Relationships: []
       }
+      paper_images: {
+        Row: {
+          byte_size: number
+          content_type: string
+          created_at: string
+          filename: string
+          id: number
+          paper_id: number
+          public_url: string
+          storage_path: string
+        }
+        Insert: {
+          byte_size?: number
+          content_type?: string
+          created_at?: string
+          filename: string
+          id?: never
+          paper_id: number
+          public_url: string
+          storage_path: string
+        }
+        Update: {
+          byte_size?: number
+          content_type?: string
+          created_at?: string
+          filename?: string
+          id?: never
+          paper_id?: number
+          public_url?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_images_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       papers: {
         Row: {
           created_at: string
@@ -138,88 +179,47 @@ export type Database = {
         }
         Relationships: []
       }
-      question_images: {
-        Row: {
-          caption: string
-          created_at: string
-          filename: string
-          id: number
-          question_id: number
-          sort_order: number
-          storage_path: string
-        }
-        Insert: {
-          caption?: string
-          created_at?: string
-          filename: string
-          id?: never
-          question_id: number
-          sort_order?: number
-          storage_path: string
-        }
-        Update: {
-          caption?: string
-          created_at?: string
-          filename?: string
-          id?: never
-          question_id?: number
-          sort_order?: number
-          storage_path?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "question_images_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "questions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       questions: {
         Row: {
+          content: Json
           created_at: string
-          exemplar_html: string
           id: number
-          mark_scheme: Json
-          marks: string
+          kind: string
+          marks: number
           paper_id: number
-          q_html: string
           q_text: string
           question_number: number
           ref: string
           search_vector: unknown
-          topic: string
+          topics: string[]
           video_id: string
         }
         Insert: {
+          content?: Json
           created_at?: string
-          exemplar_html?: string
           id?: never
-          mark_scheme?: Json
-          marks?: string
+          kind?: string
+          marks?: number
           paper_id: number
-          q_html?: string
           q_text?: string
           question_number: number
           ref?: string
           search_vector?: unknown
-          topic?: string
+          topics?: string[]
           video_id?: string
         }
         Update: {
+          content?: Json
           created_at?: string
-          exemplar_html?: string
           id?: never
-          mark_scheme?: Json
-          marks?: string
+          kind?: string
+          marks?: number
           paper_id?: number
-          q_html?: string
           q_text?: string
           question_number?: number
           ref?: string
           search_vector?: unknown
-          topic?: string
+          topics?: string[]
           video_id?: string
         }
         Relationships: [
@@ -238,6 +238,7 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      sw_topics_text: { Args: { topics: string[] }; Returns: string }
     }
     Enums: {
       [_ in never]: never

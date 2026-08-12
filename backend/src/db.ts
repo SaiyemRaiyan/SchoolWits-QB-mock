@@ -11,25 +11,24 @@ import type { Database, Json, Tables, TablesInsert } from "./types/database.js";
 
 export type Paper = Tables<"papers">;
 export type Question = Tables<"questions">;
-export type QuestionImage = Tables<"question_images">;
+export type PaperImage = Tables<"paper_images">;
 export type Module = Tables<"modules">;
 
-export type MarkSchemeRow = { part: string; answer: string; marks: string };
-
-// What upload.html has in hand right after parsing a Questions/Answers.tex
-// pair (TexParse.mergeQuestionsAndAnswers output) — same shape as the old
-// IndexedDB "merged question" object, minus the fields that are now
-// paper-level (subject/paper/variant/session/year) or generated (uid).
-export type ParsedQuestion = {
-  id: number; // question number within the paper — becomes question_number
-  topic: string;
-  marks: string;
+// The row shape written per question. `content` is the whole parsed
+// Question object from backend/src/latex/types.ts — see 0011 for why it is
+// one jsonb column rather than several. The scalar columns beside it exist
+// only because they are filtered or searched on, which jsonb cannot index
+// usefully here.
+export type QuestionRow = {
+  questionNumber: number;
+  kind: "structured" | "mcq";
+  topics: string[];
+  marks: number;
   ref: string;
+  /** Flattened plain text, feeds questions.search_vector. */
   qText: string;
-  qHTML: string;
-  markScheme: MarkSchemeRow[];
-  exemplarHTML: string;
-  videoId: string;
+  content: Json;
+  videoId?: string;
 };
 
 export type PaperMeta = {
@@ -50,6 +49,23 @@ function slug(s: string): string {
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+/**
+ * Make a string safe as a Supabase Storage object key.
+ *
+ * Storage accepts a limited character set — notably not "|", which
+ * papers.paper_key uses as its delimiter. Dots are kept when `keepDots` is
+ * set so filenames retain their extension (the bucket's MIME check and the
+ * parser's \qfig lookup both care about it).
+ */
+function storageSafe(value: string, keepDots = false): string {
+  const allowed = keepDots ? /[^a-zA-Z0-9._-]+/g : /[^a-zA-Z0-9_-]+/g;
+  return String(value || "")
+    .trim()
+    .replace(allowed, "-")
+    .replace(/-{2,}/g, "-")
     .replace(/(^-|-$)/g, "");
 }
 
@@ -95,7 +111,7 @@ export class SchoolWitsDB {
     return data;
   }
 
-  // Deletes the paper row (cascades to questions, question_images,
+  // Deletes the paper row (cascades to questions, paper_images,
   // module_questions via ON DELETE CASCADE) AND the paper's image files —
   // Storage objects are NOT covered by SQL cascade, so they're removed
   // explicitly here first, before the row (and its FK trail) disappears.
@@ -142,19 +158,21 @@ export class SchoolWitsDB {
   // was a mistake, it contradicted the app's documented behavior; fixed
   // here to match js/supabase/store.js's addQuestions, the browser-side
   // mirror of this same function actually used by upload.html.)
-  async addQuestions(meta: PaperMeta, questions: ParsedQuestion[]): Promise<Question[]> {
+  async addQuestions(meta: PaperMeta, questions: QuestionRow[]): Promise<Question[]> {
     const paper = await this.upsertPaper(meta);
     const rows: TablesInsert<"questions">[] = questions.map((q) => ({
       paper_id: paper.id,
-      question_number: q.id,
-      topic: q.topic || "Uncategorised",
+      question_number: q.questionNumber,
+      kind: q.kind,
+      // An empty array is meaningful (a question with no topic), so it is
+      // stored as-is rather than substituting "Uncategorised" the way the
+      // single-topic column used to.
+      topics: q.topics,
       marks: q.marks,
       ref: q.ref,
       q_text: q.qText,
-      q_html: q.qHTML,
-      mark_scheme: q.markScheme as unknown as Json,
-      exemplar_html: q.exemplarHTML,
-      video_id: q.videoId,
+      content: q.content,
+      video_id: q.videoId ?? "",
     }));
     const { data, error } = await this.client
       .from("questions")
@@ -221,7 +239,7 @@ export class SchoolWitsDB {
   }> {
     const [papersRes, topicsRes, paperCountRes, questionCountRes] = await Promise.all([
       this.client.from("papers").select("subject, paper, variant, session, year"),
-      this.client.from("questions").select("topic"),
+      this.client.from("questions").select("topics"),
       this.client.from("papers").select("id", { count: "exact", head: true }),
       this.client.from("questions").select("id", { count: "exact", head: true }),
     ]);
@@ -239,7 +257,9 @@ export class SchoolWitsDB {
       variants: uniq(papersRes.data.map((p) => p.variant)),
       sessions: uniq(papersRes.data.map((p) => p.session)),
       years: uniq(papersRes.data.map((p) => p.year)),
-      topics: uniq(topicsRes.data.map((q) => q.topic)),
+      // topics is an array per question now, so the facet list is the union
+      // across all of them rather than one value each.
+      topics: uniq(topicsRes.data.flatMap((q) => q.topics ?? [])),
       paperCount: paperCountRes.count ?? 0,
       questionCount: questionCountRes.count ?? 0,
     };
@@ -266,7 +286,9 @@ export class SchoolWitsDB {
     if (filters.variant) query = query.eq("papers.variant", filters.variant);
     if (filters.session) query = query.eq("papers.session", filters.session);
     if (filters.year) query = query.eq("papers.year", filters.year);
-    if (filters.topic) query = query.eq("topic", filters.topic);
+    // `contains` on the text[] uses the GIN index from 0011; a question
+    // matches if the chosen topic is one of its several topics.
+    if (filters.topic) query = query.contains("topics", [filters.topic]);
     if (filters.text) query = query.textSearch("search_vector", filters.text);
 
     const { data, error } = await query;
@@ -276,32 +298,51 @@ export class SchoolWitsDB {
 
   // ---- question images ---------------------------------------------------
 
-  // Uploads a figure to the bucket and records it, returning the public
-  // URL. Call this BEFORE TexParse.parse() and feed the returned URL into
-  // the `images: {filename: url}` map — js/latex.js's resolveImageSrc()
-  // already passes https:// URLs through unchanged, so the parser itself
-  // needs no changes to consume bucket URLs instead of base64 data URLs.
-  async uploadQuestionImage(
+  // Uploads a figure to the bucket and records it, returning the public URL.
+  //
+  // Call this BEFORE parsing, once per figure, and collect the results into
+  // the `{ filename: url }` ImageMap that parseQuestionPaper() takes. The
+  // parser resolves \qfig{fig1.png} against that map and writes the URL
+  // into the figure block's `src`, so the rendered content carries real
+  // bucket URLs rather than base64.
+  //
+  // Keyed by paper, not question: at upload time the questions do not exist
+  // yet (they are the output of the parse this feeds), and figures are
+  // referenced by bare filename within a paper. See 0012.
+  async uploadPaperImage(
     paperId: number,
-    questionId: number,
+    paperKey: string,
     filename: string,
     file: Blob | ArrayBuffer,
-    caption = ""
-  ): Promise<{ image: QuestionImage; publicUrl: string }> {
-    const path = `${paperId}/${questionId}/${filename}`;
+    contentType = ""
+  ): Promise<{ image: PaperImage; publicUrl: string }> {
+    // papers.paper_key is pipe-delimited ("physics|2|1|m-j|2025") because it
+    // is a natural key, not a path. Storage rejects "|" in object keys, so
+    // it is flattened here rather than at each call site.
+    const path = `${storageSafe(paperKey)}/${storageSafe(filename, true)}`;
     const { error: uploadError } = await this.client.storage
       .from("question-images")
-      .upload(path, file, { upsert: true });
+      .upload(path, file, { upsert: true, contentType: contentType || undefined });
     if (uploadError) throw uploadError;
 
     const {
       data: { publicUrl },
     } = this.client.storage.from("question-images").getPublicUrl(path);
 
+    const byteSize =
+      file instanceof ArrayBuffer ? file.byteLength : (file as Blob).size ?? 0;
+
     const { data, error } = await this.client
-      .from("question_images")
+      .from("paper_images")
       .upsert(
-        { question_id: questionId, storage_path: path, filename, caption },
+        {
+          paper_id: paperId,
+          filename,
+          storage_path: path,
+          public_url: publicUrl,
+          byte_size: byteSize,
+          content_type: contentType,
+        },
         { onConflict: "storage_path" }
       )
       .select()
@@ -311,14 +352,20 @@ export class SchoolWitsDB {
     return { image: data, publicUrl };
   }
 
-  async getImagesForQuestion(questionId: number): Promise<QuestionImage[]> {
+  async getImagesForPaper(paperId: number): Promise<PaperImage[]> {
     const { data, error } = await this.client
-      .from("question_images")
+      .from("paper_images")
       .select("*")
-      .eq("question_id", questionId)
-      .order("sort_order");
+      .eq("paper_id", paperId)
+      .order("filename");
     if (error) throw error;
     return data;
+  }
+
+  /** The `{ filename: url }` map the parser takes, for a paper already uploaded. */
+  async getImageMapForPaper(paperId: number): Promise<Record<string, string>> {
+    const images = await this.getImagesForPaper(paperId);
+    return Object.fromEntries(images.map((img) => [img.filename, img.public_url]));
   }
 
   // ---- modules -------------------------------------------------------------

@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "gen:types": "supabase gen types typescript --project-id zzztbpbvxfpyzuxxlkdh > src/types/database.ts",
     "parse": "tsx scripts/parse-paper.ts",
-    "preview": "tsx scripts/preview.ts"
+    "preview": "tsx scripts/preview.ts",
+    "import": "tsx scripts/import-paper.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"

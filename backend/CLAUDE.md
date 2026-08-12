@@ -95,10 +95,11 @@ is a public question figure.
   `localStorage`, unrelated to this backend. `isPurchased`/`markPurchased`
   from `js/store.js` are **not** ported into `src/db.ts` — see the comment
   at the bottom of that file.
-- **The browser upload page.** `js/upload.js` and `js/compose.js` were
-  deleted along with the parser they drove; `upload.html` currently shows
-  a standby notice pointing at `npm run import`. Rebuilding it against an
-  Edge Function is the next piece of work — see "Ingest" below.
+- **Quick Add.** `js/compose.js` let an admin paste one question's LaTeX
+  at a time. It was deleted with the browser parser and not rebuilt: the
+  new parser has no single-question entry point, and all six sample papers
+  use the two-file flow. Adding it back means adding that entry point to
+  `src/latex/`, not just a form.
 
 ## Project layout
 
@@ -161,13 +162,16 @@ figures -> question-images bucket -> { filename: url }
 Needs `SUPABASE_SERVICE_ROLE_KEY` (it bypasses RLS, which is why this is
 terminal-only and the key must never reach a browser).
 
-**Next: an Edge Function** so non-technical admins get the drag-and-drop
-page back. Same `src/latex/` files deployed to Deno — the browser uploads
-figures to the bucket, POSTs the `.tex`, gets JSON + warnings back for a
-preview rendered with `js/render/`, and only writes on confirm. The
-function must check `is_admin()` itself; RLS does not cover a function
-running with elevated rights. Measured headroom for that: the largest
-paper parses in **9.6ms** against the 2s per-request CPU limit.
+Or from the browser, which is what non-technical admins use: `upload.html`
+signs in, uploads the figures to the bucket, POSTs the `.tex` to
+`parse-paper`, renders the returned JSON with `js/render/`, and only writes
+when the admin confirms. See `supabase/functions/parse-paper/README.md`.
+
+Both paths run the same parser. The browser one never parses anything
+itself — that is the whole reason the Edge Function exists.
+
+Headroom: the largest paper parses in **9.6ms** against a 2s per-request
+CPU limit, and an upload costs 2-3 invocations against 500,000/month.
 
 ## Working on this
 

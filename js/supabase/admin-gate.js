@@ -22,7 +22,14 @@
     const passwordInput = document.getElementById('adminGatePassword');
     const errorEl = document.getElementById('adminGateError');
 
-    function reveal(){ gate.hidden = true; content.hidden = false; }
+    // Pages whose scripts must not run until an admin is present listen for
+    // this instead of DOMContentLoaded — upload.js, for one, would otherwise
+    // query papers anonymously and wire up elements that are still hidden.
+    function reveal(){
+      gate.hidden = true;
+      content.hidden = false;
+      document.dispatchEvent(new CustomEvent('sw:admin-ready'));
+    }
     function lock(){ gate.hidden = false; content.hidden = true; }
 
     if(await DB.isAdmin()){ reveal(); return; }

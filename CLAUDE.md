@@ -16,11 +16,11 @@ description (pages, data model, `.tex` upload format).
   `SWRender.QuestionRenderer`'s three methods (`toQuestionHtml`,
   `toMarkSchemeRows`, `toExemplarHtml`) and nothing else.
 - **The `.tex` parser is no longer in the browser.** `js/latex.js` has been
-  deleted along with `js/upload.js`, `js/compose.js`, `js/store.js` and
-  `js/seed-data.js`. Parsing now happens in `backend/src/latex/` (Node, and
-  Deno once the Edge Function lands) and produces structured JSON rather
-  than HTML blobs. `upload.html` shows a standby notice until that function
-  is deployed; papers are imported with `cd backend && npm run import`.
+  deleted, along with `js/compose.js`, `js/store.js` and `js/seed-data.js`.
+  Parsing happens in `backend/src/latex/` and runs in Node (the `npm run
+  import` CLI) and Deno (the `parse-paper` Edge Function). `js/upload.js`
+  was rewritten against that function: it uploads figures, POSTs the
+  `.tex`, and renders the reply — it never parses anything itself.
 - `templates/` — the canonical `.tex` templates every paper is written
   against, plus a spec of the format and an audit of where the real papers
   deviate from it. Read this before touching the parser.

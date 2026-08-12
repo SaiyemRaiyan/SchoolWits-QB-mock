@@ -371,6 +371,11 @@ const DB = (function(){
   }
 
   return {
+    // The raw supabase-js client. Exposed for the two things this adapter
+    // deliberately does not wrap: Storage uploads and reading the current
+    // session's access token (upload.js needs both). Everything else should
+    // go through the functions below rather than reaching past them.
+    client,
     open, slug, paperKeyOf, paperLabel,
     upsertPaper, getAllPapers, deletePaper,
     getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,

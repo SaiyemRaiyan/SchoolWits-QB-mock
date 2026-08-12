@@ -70,15 +70,6 @@
           </p>
         </div>
 
-        <div class="modetabs" id="modeTabs" role="tablist">
-          <button class="modetab active" data-mode="batch" role="tab">
-            Batch upload <small>two .tex files</small>
-          </button>
-          <button class="modetab" data-mode="quickadd" role="tab">
-            Quick add <small>paste one question at a time</small>
-          </button>
-        </div>
-
         <!-- ============================================================ BATCH UPLOAD (unchanged) ============================================================ -->
         <div id="viewBatch">
           <div class="upload-grid">
@@ -88,11 +79,11 @@
                 <div class="step-num">1</div>
                 <h2>Add the files</h2>
                 <p class="hint">
-                  Two separate <code>.tex</code> files — one with the question
-                  text, one with the mark scheme &amp; exemplar — plus any
-                  figure images referenced via
-                  <code>\image{filename}{caption}</code>. Everything is parsed
-                  right here in your browser; no file leaves this device.
+                  Two separate <code>.tex</code> files — a question paper and
+                  its mark scheme — plus any figures referenced via
+                  <code>\qfig{filename}{caption}</code>. Figures upload first
+                  so the parser can resolve them; nothing is saved until you
+                  confirm the preview.
                 </p>
 
                 <div class="twofile-grid">
@@ -101,7 +92,7 @@
                     <div class="dropzone dropzone--q" id="texQDrop">
                       <div class="dropzone-icon">&#10078;</div>
                       <h3>Drop the questions file</h3>
-                      <p>topic &middot; marks &middot; <code>\qtext</code></p>
+                      <p>\examq &middot; parts &middot; \qfig</p>
                       <input
                         type="file"
                         id="texQInput"
@@ -117,7 +108,7 @@
                       <div class="dropzone-icon">&#10003;</div>
                       <h3>Drop the answers file</h3>
                       <p>
-                        <code>\markscheme</code> &middot; <code>\exemplar</code>
+                        <code>mstab</code> &middot; <code>ansbox</code>
                       </p>
                       <input
                         type="file"
@@ -138,18 +129,24 @@
                   <h3>Drop figure images here</h3>
                   <p>
                     or click to choose &middot; matched to
-                    <code>\image{}</code> by filename &middot; used by either
-                    file
+                    <code>\qfig{}</code> by filename &middot; uploaded before
+                    parsing
                   </p>
                   <input type="file" id="imgInput" accept="image/*" multiple />
                 </div>
                 <div id="imgFileList" style="margin-top: 10px"></div>
 
                 <p class="hint" style="margin-top: 16px">
-                  New to the format? Download
-                  <a href="#" id="downloadTemplateQ">TEMPLATE-questions.tex</a>
-                  + <a href="#" id="downloadTemplateA">TEMPLATE-answers.tex</a>,
-                  or see the spec below.
+                  New to the format? Start from
+                  <a href="templates/question-paper.template.tex" download
+                    >question-paper.template.tex</a
+                  >
+                  +
+                  <a href="templates/answer-paper.template.tex" download
+                    >answer-paper.template.tex</a
+                  >, and read
+                  <a href="templates/README.md">templates/README.md</a> for the
+                  full spec.
                 </p>
               </div>
 
@@ -157,10 +154,11 @@
                 <div class="step-num">2</div>
                 <h2>Confirm the paper</h2>
                 <p class="hint">
-                  Read from <code>\subject</code>, <code>\paper</code>,
-                  <code>\variant</code>, <code>\session</code>,
-                  <code>\year</code> at the top of either file. Edit if
-                  anything's missing before saving.
+                  Everything below is read from the
+                  <code>\examq{5054/21/M/J/25}{...}</code> header in the file —
+                  it cannot be edited here, because the questions are filed
+                  under whatever that header says. The one exception is the
+                  subject name, which the header has no room for.
                 </p>
                 <div class="metaform" id="metaForm">
                   <label
@@ -169,20 +167,16 @@
                   /></label>
                   <label
                     >Subject code
-                    <input type="text" id="mSubjectCode" placeholder="5054"
+                    <input type="text" id="mSubjectCode" readonly
+                  /></label>
+                  <label>Paper <input type="text" id="mPaper" readonly /></label>
+                  <label
+                    >Variant <input type="text" id="mVariant" readonly
                   /></label>
                   <label
-                    >Paper <input type="text" id="mPaper" placeholder="1"
+                    >Session <input type="text" id="mSession" readonly
                   /></label>
-                  <label
-                    >Variant <input type="text" id="mVariant" placeholder="1"
-                  /></label>
-                  <label
-                    >Session <input type="text" id="mSession" placeholder="M/J"
-                  /></label>
-                  <label
-                    >Year <input type="text" id="mYear" placeholder="2025"
-                  /></label>
+                  <label>Year <input type="text" id="mYear" readonly /></label>
                 </div>
               </div>
 
@@ -205,16 +199,14 @@
               <div class="section-card">
                 <h2>Format spec</h2>
                 <p class="hint">
-                  The School Wits .tex dialect — plain LaTeX with a handful of
-                  custom commands the parser looks for, now split across a
-                  questions file and an answers file.
+                  Papers are written against a fixed template — the parser
+                  accepts that documented format, not arbitrary LaTeX. The
+                  templates define every macro it understands, and
+                  <a href="templates/README.md">templates/README.md</a>
+                  explains each one plus the conventions that are easy to get
+                  wrong (how mark-scheme labels carry across rows, and the two
+                  different <code>mstab</code> column counts).
                 </p>
-                <pre class="codeblock" id="specBlockQ"></pre>
-                <pre
-                  class="codeblock"
-                  id="specBlockA"
-                  style="margin-top: 12px"
-                ></pre>
               </div>
             </div>
 
@@ -267,176 +259,8 @@
           </div>
         </div>
 
-        <!-- ============================================================ QUICK ADD (new) ============================================================ -->
-        <div id="viewQuickAdd" hidden>
-          <div class="upload-grid">
-            <!-- ================= LEFT: paper context + composer ================= -->
-            <div>
-              <div class="section-card step-card step-q">
-                <div class="step-num">1</div>
-                <h2>Which paper is this for?</h2>
-                <p class="hint">
-                  Pick a paper you've already started, or fill in a new one —
-                  every question you add below is filed under this paper until
-                  you change it.
-                </p>
-                <div class="qa-paperpicker">
-                  <label
-                    >Existing paper
-                    <select id="qaPaperSelect">
-                      <option value="">— New paper —</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="metaform" id="qaMetaForm">
-                  <label
-                    >Subject
-                    <input type="text" id="qaSubject" placeholder="Physics"
-                  /></label>
-                  <label
-                    >Subject code
-                    <input type="text" id="qaSubjectCode" placeholder="5054"
-                  /></label>
-                  <label
-                    >Paper <input type="text" id="qaPaper" placeholder="1"
-                  /></label>
-                  <label
-                    >Variant <input type="text" id="qaVariant" placeholder="1"
-                  /></label>
-                  <label
-                    >Session
-                    <input type="text" id="qaSession" placeholder="M/J"
-                  /></label>
-                  <label
-                    >Year <input type="text" id="qaYear" placeholder="2025"
-                  /></label>
-                </div>
-              </div>
-
-              <div class="section-card step-card step-meta">
-                <div class="step-num">2</div>
-                <h2>Paste the question</h2>
-                <p class="hint">
-                  Straight from the source — no <code>\documentclass</code>, no
-                  <code>\begin{document}</code> needed, that's stripped
-                  automatically. Real math (<code>$...$</code>,
-                  <code>$$...$$</code>) renders as-is;
-                  <code>\includegraphics</code> maps to whatever you attach
-                  below, in the order it appears.
-                </p>
-
-                <div class="composer">
-                  <div class="composer-tabs" id="qaTabs">
-                    <button class="composer-tab active" data-field="question">
-                      Question
-                    </button>
-                    <button class="composer-tab" data-field="sampleanswer">
-                      Exemplar / Sample answer
-                    </button>
-                  </div>
-                  <div class="composer-body">
-                    <div class="composer-field active" data-field="question">
-                      <textarea
-                        id="qaQuestionSrc"
-                        placeholder="Paste the question's raw LaTeX here…"
-                      ></textarea>
-                    </div>
-                    <div class="composer-field" data-field="sampleanswer">
-                      <label class="hint" style="margin: 0 0 6px"
-                        >Optional — a full worked answer.</label
-                      >
-                      <textarea
-                        id="qaSampleAnswerSrc"
-                        placeholder="Paste a worked sample answer here (optional)…"
-                      ></textarea>
-                    </div>
-                  </div>
-                  <div class="composer-tools">
-                    <label class="upload-btn">
-                      Attach images (in order)
-                      <input
-                        type="file"
-                        id="qaImageInput"
-                        accept="image/*"
-                        multiple
-                      />
-                    </label>
-                    <div class="img-chip-row" id="qaImgChips"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section-card">
-                <div class="metaform" style="margin-top: 0">
-                  <label
-                    >Topic
-                    <input
-                      type="text"
-                      id="qaTopic"
-                      placeholder="Forces & Motion"
-                  /></label>
-                  <label
-                    >Marks <input type="text" id="qaMarks" placeholder="9"
-                  /></label>
-                  <label
-                    >Question # <input type="text" id="qaQNum" placeholder="1"
-                  /></label>
-                </div>
-                <p class="hint" id="qaImgWarn" style="margin-top: 10px"></p>
-                <button
-                  class="btn btn--primary btn--glow"
-                  id="qaAddBtn"
-                  style="margin-top: 6px"
-                >
-                  Add to bank
-                </button>
-                <button
-                  class="btn btn--ghost"
-                  id="qaClearBtn"
-                  style="margin-top: 6px"
-                >
-                  Clear composer
-                </button>
-                <span id="qaSaveResult" style="margin-left: 12px"></span>
-              </div>
-            </div>
-
-            <!-- ================= RIGHT: live preview + this paper's questions ================= -->
-            <div>
-              <div class="section-card">
-                <div
-                  style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    flex-wrap: wrap;
-                    gap: 10px;
-                    margin-bottom: 4px;
-                  "
-                >
-                  <h2 style="margin: 0">Live preview</h2>
-                  <div class="preview-toggle">
-                    <button class="pv-mode active" data-pvmode="side">
-                      Side-by-side
-                    </button>
-                    <button class="pv-mode" data-pvmode="tab">Tabbed</button>
-                  </div>
-                </div>
-                <p class="hint">Re-renders shortly after you stop typing.</p>
-                <div id="qaPreviewRegion"></div>
-              </div>
-
-              <div class="section-card">
-                <h2>Already added to this paper</h2>
-                <div id="qaAddedList">
-                  <p class="hint">Nothing added yet this session.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
-      </main>
+      </div>
+</main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -445,12 +269,15 @@
     <script src="js/supabase/config.js"></script>
     <script src="js/supabase/store.js"></script>
     <script src="js/supabase/admin-gate.js"></script>
-    <!-- js/upload.js and js/compose.js are NOT loaded: both drove the old
-         in-browser parser, which has been removed. Parsing now runs in
-         Node/Deno so there is only ever one copy of it. Until the Edge
-         Function that replaces it is deployed, papers are imported from
-         the terminal with `npm run import` and this page explains that
-         rather than offering a form that cannot work. -->
-    <script src="js/upload-standby.js"></script>
+    <!-- The same renderer Browse uses, so the preview here is literally what
+         students will see rather than an approximation of it. -->
+    <script src="js/render/escape.js"></script>
+    <script src="js/render/block-renderer.js"></script>
+    <script src="js/render/part-renderer.js"></script>
+    <script src="js/render/options-renderer.js"></script>
+    <script src="js/render/mark-scheme-renderer.js"></script>
+    <script src="js/render/solution-renderer.js"></script>
+    <script src="js/render/question-renderer.js"></script>
+    <script src="js/upload.js"></script>
   </body>
 </html>

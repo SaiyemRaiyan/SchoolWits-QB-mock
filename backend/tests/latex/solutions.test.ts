@@ -52,6 +52,17 @@ describe('parseCorrectOption', () => {
     expect(parseCorrectOption('Answer B is correct')).toBe('B');
   });
 
+  it('digs the letter out of LaTeX wrapping', () => {
+    // How Physics 5054/11 actually writes it — every one of its 40 answers.
+    expect(parseCorrectOption('Answer: $\\boxed{\\text{B}}$ All the samples are wood.')).toBe('B');
+    expect(parseCorrectOption('\\textbf{Answer: \\textit{C}}')).toBe('C');
+    expect(parseCorrectOption('Answer $D$')).toBe('D');
+  });
+
+  it('does not grab a letter from the prose after an unanswered heading', () => {
+    expect(parseCorrectOption('Answer the following in full sentences.')).toBeNull();
+  });
+
   it('returns null when no letter is recorded', () => {
     expect(parseCorrectOption('The gradient decreases.')).toBeNull();
   });

@@ -72,7 +72,20 @@ export function parseAnsbox(body: string, questionNumber: number): SolutionSegme
  * 5), so it has to be read out of text like "\textbf{Answer: A}".
  */
 export function parseCorrectOption(body: string): string | null {
-  const m = /Answer\s*[:\-]?\s*\\?[a-zA-Z]*\{?\s*([A-D])\b/.exec(body);
+  const at = body.search(/\bAnswer\b/);
+  if (at === -1) return null;
+
+  // The letter is wrapped differently in every paper — `Answer: A`,
+  // `\textbf{Answer: B}`, `Answer: $\boxed{\text{C}}$`. Rather than trying
+  // to match each shape, strip the LaTeX scaffolding off the text that
+  // follows and take the first standalone letter.
+  const after = body
+    .slice(at + 'Answer'.length, at + 80)
+    .replace(/\\[a-zA-Z]+/g, ' ')
+    .replace(/[${}[\]:\-.,]/g, ' ')
+    .trim();
+
+  const m = /^([A-D])\b/.exec(after);
   return m ? m[1] : null;
 }
 

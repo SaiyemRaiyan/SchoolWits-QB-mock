@@ -31,7 +31,7 @@ window.SWRender = window.SWRender || {};
           : '';
       }
 
-      // Reuses .qpart--choice, the class js/latex.js gave lettered options.
+      // Reuses .qpart--choice, the class the previous parser gave options.
       const rows = items.map((item) =>
         '<div class="qpart qpart--sub qpart--choice">' +
         '<span class="pmark">' + ns.escapeHTML(item.label) + '</span>' +

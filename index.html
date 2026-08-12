@@ -239,6 +239,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase/config.js"></script>
     <script src="js/supabase/store.js"></script>
+    <!-- JSON -> HTML renderer. Load order matters: escape defines the
+         helpers the others use, and question-renderer composes them. -->
+    <script src="js/render/escape.js"></script>
+    <script src="js/render/block-renderer.js"></script>
+    <script src="js/render/part-renderer.js"></script>
+    <script src="js/render/options-renderer.js"></script>
+    <script src="js/render/mark-scheme-renderer.js"></script>
+    <script src="js/render/solution-renderer.js"></script>
+    <script src="js/render/question-renderer.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

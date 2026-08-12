@@ -27,6 +27,12 @@
     '\\texttt': '\\mathtt{#1}'
   };
 
+  // Turns a question's stored `content` (the parsed object — see
+  // backend/src/latex/types.ts) into the markup this page draws. Questions
+  // arrive from the DB as structure, not HTML, and are rendered here at
+  // display time rather than in the data layer.
+  const renderer = new SWRender.QuestionRenderer();
+
   const els = {
     fSubject: document.getElementById('fSubject'),
     fPaper: document.getElementById('fPaper'),
@@ -217,15 +223,15 @@
             ${q.topic ? `<span class="pd-qtopic">${escHTML(q.topic)}</span>` : ''}
             <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
           </div>
-          <div class="pd-qbody">${q.qHTML || '<p><i>No question text was parsed from the uploaded file.</i></p>'}</div>
+          <div class="pd-qbody">${renderer.toQuestionHtml(q.content)}</div>
         </article>`;
     }).join('');
 
     const msSections = questions.map((q, i) => {
       const accent = ACCENTS[i % ACCENTS.length];
-      const rows = (q.markScheme || []).map(row => row.isBanner
-        ? `<tr class="ms-banner-row"><td colspan="3">${cleanupLegacyLatexStyles(row.answer || '')}</td></tr>`
-        : `<tr><td>${escHTML(row.part || '')}</td><td>${cleanupLegacyLatexStyles(row.answer || '')}</td><td>${escHTML(normalizeLegacyMarks(row.marks || ''))}</td></tr>`).join('');
+      const rows = renderer.toMarkSchemeRows(q.content).map(row => row.isBanner
+        ? `<tr class="ms-banner-row"><td colspan="3">${row.answer}</td></tr>`
+        : `<tr><td>${escHTML(row.part)}</td><td>${row.answer}</td><td>${escHTML(row.marks)}</td></tr>`).join('');
       return `
         <article class="pd-qsection" style="--qaccent:${accent}">
           <div class="pd-qhead">
@@ -246,7 +252,7 @@
           <div class="pd-qhead">
             <span class="pd-qnum">Question ${q.id}</span>
           </div>
-          <div class="exemplar-box">${cleanupLegacyLatexStyles(q.exemplarHTML || '') || '<p><i>No exemplar answer uploaded for this question.</i></p>'}</div>
+          <div class="exemplar-box">${renderer.toExemplarHtml(q.content)}</div>
         </article>`;
     }).join('');
 
@@ -350,19 +356,17 @@
     els.qSub.textContent = `${q.ref || DB.paperLabel(q) + ' · Q' + q.id}${topicLabel ? ' · Topic: ' + topicLabel : ''}`;
     els.stampMarks.textContent = q.marks || '—';
 
-    els.qBody.innerHTML = q.qHTML
-      ? `<div class="question-shell">${q.qHTML}</div>`
-      : '<div class="question-shell"><p><i>No question text was parsed from the uploaded file.</i></p></div>';
+    els.qBody.innerHTML = `<div class="question-shell">${renderer.toQuestionHtml(q.content)}</div>`;
 
-    els.msBody.innerHTML = (q.markScheme || []).map(row => row.isBanner ? `
-      <tr class="ms-banner-row"><td colspan="3">${cleanupLegacyLatexStyles(row.answer || '')}</td></tr>` : `
+    els.msBody.innerHTML = renderer.toMarkSchemeRows(q.content).map(row => row.isBanner ? `
+      <tr class="ms-banner-row"><td colspan="3">${row.answer}</td></tr>` : `
       <tr>
-        <td>${escHTML(row.part || '')}</td>
-        <td>${cleanupLegacyLatexStyles(row.answer || '')}</td>
-        <td>${escHTML(normalizeLegacyMarks(row.marks || ''))}</td>
+        <td>${escHTML(row.part)}</td>
+        <td>${row.answer}</td>
+        <td>${escHTML(row.marks)}</td>
       </tr>`).join('') || '<tr><td colspan="3"><i>No mark scheme uploaded for this question.</i></td></tr>';
 
-    els.exemplarBody.innerHTML = cleanupLegacyLatexStyles(q.exemplarHTML || '') || '<p><i>No exemplar answer uploaded for this question.</i></p>';
+    els.exemplarBody.innerHTML = renderer.toExemplarHtml(q.content);
 
     const videoTab = Array.from(els.tabs).find(tab => tab.dataset.tab === 'video');
     if(videoTab){
@@ -490,34 +494,10 @@
   function escHTML(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function escAttr(s){ return escHTML(s).replace(/"/g, '&quot;'); }
 
-  // Older saved records may still contain raw LaTeX style wrappers
-  // (\textbf{...}, \textit{...}, \underline{...}) in mark-scheme/exemplar
-  // fields. Render-time cleanup keeps those records readable without
-  // forcing users to re-upload papers.
-  function cleanupLegacyLatexStyles(html){
-    let out = String(html || '');
-    let prev;
-    do {
-      prev = out;
-      out = out.replace(/\\textbf\{([^{}]*)\}/g, '<b>$1</b>');
-      out = out.replace(/\\textit\{([^{}]*)\}/g, '<i>$1</i>');
-      out = out.replace(/\\underline\{([^{}]*)\}/g, '<u>$1</u>');
-    } while(out !== prev);
-    return out;
-  }
-
-  function normalizeLegacyMarks(raw){
-    let s = String(raw || '');
-    let prev;
-    do {
-      prev = s;
-      s = s.replace(/\\textbf\{([^{}]*)\}/g, '$1');
-      s = s.replace(/\\textit\{([^{}]*)\}/g, '$1');
-      s = s.replace(/\\underline\{([^{}]*)\}/g, '$1');
-    } while(s !== prev);
-    s = s.replace(/\$/g, '').replace(/\\,/g, ' ').replace(/\s+/g, ' ').trim();
-    return s;
-  }
+  // (cleanupLegacyLatexStyles / normalizeLegacyMarks lived here. They
+  // patched raw \textbf{...} left behind by the old regex parser at render
+  // time. The current parser converts those to real markup before storage,
+  // so there is nothing left to clean up.)
 
   document.addEventListener('DOMContentLoaded', boot);
 

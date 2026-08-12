@@ -6,10 +6,21 @@
    CDN in each page's <script> tags) instead of IndexedDB.
 
    The one thing every function here has to get right: Postgres columns
-   are snake_case (paper_key, q_html, video_id, mark_scheme); every record
-   handed back to the old pages is remapped to the camelCase shape they've
-   always expected (paperKey, qHTML, videoId, markScheme). Get this wrong
-   and a page renders blank with no error.
+   are snake_case (paper_key, video_id, question_number); every record
+   handed back to the pages is remapped to the camelCase shape they expect
+   (paperKey, videoId, id). Get this wrong and a page renders blank with
+   no error.
+
+   READ-ONLY for question content. Questions are written by the importer
+   (backend/scripts/import-paper.ts) and later by the Edge Function, both
+   of which run the real parser — the browser no longer parses anything,
+   so there is no addQuestions here. Videos and modules are still written
+   from the browser, since those are user actions rather than ingest.
+
+   Records carry `content` (the parsed question object) rather than
+   pre-rendered HTML. Turning that into markup is js/render/'s job and
+   happens at display time — rendering all 119 questions on every query
+   would be wasted work when one is on screen.
    ===================================================================== */
 
 const DB = (function(){
@@ -70,13 +81,18 @@ const DB = (function(){
       session: p.session,
       year: p.year,
       id: row.question_number,   // old semantic: per-paper question number, NOT the Postgres pk
-      topic: row.topic,
+      kind: row.kind || 'structured',
+      topics: row.topics || [],
+      // Questions can carry several topics now. `topic` stays as the joined
+      // display string the filter UI and module builder already work with;
+      // `topics` is the real list, for anything that needs to match one.
+      topic: (row.topics || []).join(' · '),
       marks: row.marks,
       ref: row.ref,
       qText: row.q_text,
-      qHTML: row.q_html,
-      markScheme: row.mark_scheme || [],
-      exemplarHTML: row.exemplar_html,
+      // The parsed question object — see backend/src/latex/types.ts. Render
+      // it with SWRender.QuestionRenderer at display time.
+      content: row.content || null,
       videoId: row.video_id,
       createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
     };
@@ -130,32 +146,11 @@ const DB = (function(){
   }
 
   /* ---------------------------------------------------------- questions */
-  async function addQuestions(paperMeta, questions){
-    const paper = await upsertPaper(paperMeta);
-    const rows = questions.map(q => ({
-      paper_id: paper.pk,
-      question_number: q.id,
-      topic: q.topic || 'Uncategorised',
-      marks: q.marks != null ? String(q.marks) : '',
-      ref: q.ref || `${paperLabel(paperMeta)} — Q${q.id}`,
-      q_text: q.qText || '',
-      q_html: q.qHTML || '',
-      mark_scheme: q.markScheme || [],
-      exemplar_html: q.exemplarHTML || '',
-      video_id: q.videoId || ''
-    }));
-    // Upsert, not insert: re-uploading a questions/answers file for the
-    // same paper is documented app behavior ("click Save again and it
-    // updates the same paper" — README.md) and relies on the
-    // (paper_id, question_number) unique constraint acting as an update
-    // target rather than rejecting the second upload.
-    const { data, error } = await client
-      .from('questions')
-      .upsert(rows, { onConflict: 'paper_id,question_number' })
-      .select('*, papers(*)');
-    check(error);
-    return data.map(row => questionRowToRecord(row, row.papers));
-  }
+  // There is deliberately no addQuestions(). Question content comes from the
+  // .tex parser, which runs in Node/Deno and never in a browser — ingest is
+  // backend/scripts/import-paper.ts today and an Edge Function next. A
+  // browser-side writer would need a second copy of the parser, which is the
+  // duplication this split exists to avoid.
 
   async function getAllQuestions(){
     const { data, error } = await client.from('questions').select('*, papers(*)');
@@ -182,9 +177,11 @@ const DB = (function(){
     return all.filter(q => set.has(q.uid));
   }
 
+  // Only fields a user can legitimately change from the browser. Question
+  // content is parser output and is not editable here — allowing it would
+  // let the page write something the parser never produced.
   const PATCH_KEY_TO_COLUMN = {
-    topic: 'topic', marks: 'marks', ref: 'ref', qText: 'q_text', qHTML: 'q_html',
-    markScheme: 'mark_scheme', exemplarHTML: 'exemplar_html', videoId: 'video_id'
+    videoId: 'video_id'
   };
   function patchToRow(patch){
     const row = {};
@@ -216,11 +213,6 @@ const DB = (function(){
   }
 
   /* ---------------------------------------------------------- facets & search */
-  // Both ported verbatim from js/store.js's in-memory logic, just sourced
-  // from Postgres via getAllPapers()/getAllQuestions() instead of
-  // IndexedDB. Postgres's search_vector/GIN index (0002_questions.sql)
-  // exists for a future performance pass — not wired up here, so search
-  // behaves identically to today rather than changing ranking/matching.
   async function getFacets(){
     const [qs, papers] = [await getAllQuestions(), await getAllPapers()];
     const uniq = (arr) => Array.from(new Set(arr.filter(Boolean))).sort();
@@ -230,35 +222,44 @@ const DB = (function(){
       variants: uniq(papers.map(p => p.variant)),
       sessions: uniq(papers.map(p => p.session)),
       years: uniq(papers.map(p => p.year)).sort((a, b) => b - a),
-      topics: uniq(qs.map(q => q.topic)),
+      // A question has several topics, so the facet list is the union across
+      // all of them rather than one value each.
+      topics: uniq(qs.flatMap(q => q.topics)),
       paperCount: papers.length,
       questionCount: qs.length
     };
   }
 
-  function stripHTML(html){
-    if(!html) return '';
-    return html.replace(/<[^>]*>/g, ' ');
-  }
-
+  // Filtering now happens in Postgres rather than by pulling every question
+  // and scanning it in memory. That stopped being viable when the question
+  // body moved into `content`: matching text would mean walking a JSON tree
+  // per question, per keystroke. The generated search_vector (0011) already
+  // holds the flattened text, weighted topic > ref > body.
   async function search({ subject, paper, variant, session, year, topic, text } = {}){
-    let qs = await getAllQuestions();
-    if(subject) qs = qs.filter(q => q.subject === subject);
-    if(paper)   qs = qs.filter(q => String(q.paper) === String(paper));
-    if(variant) qs = qs.filter(q => String(q.variant) === String(variant));
-    if(session) qs = qs.filter(q => q.session === session);
-    if(year)    qs = qs.filter(q => String(q.year) === String(year));
-    if(topic)   qs = qs.filter(q => q.topic === topic);
-    if(text){
-      const needle = text.trim().toLowerCase();
-      if(needle){
-        qs = qs.filter(q => {
-          const hay = [q.topic, q.ref, q.qText, stripHTML(q.qHTML), stripHTML(q.exemplarHTML)]
-            .join(' ').toLowerCase();
-          return hay.includes(needle);
-        });
-      }
+    let query = client.from('questions').select('*, papers!inner(*)');
+
+    if(subject) query = query.eq('papers.subject', subject);
+    if(paper)   query = query.eq('papers.paper', String(paper));
+    if(variant) query = query.eq('papers.variant', String(variant));
+    if(session) query = query.eq('papers.session', session);
+    if(year)    query = query.eq('papers.year', String(year));
+    // `contains` hits the GIN index on topics[]; a question matches if the
+    // chosen topic is any one of its topics.
+    if(topic)   query = query.contains('topics', [topic]);
+
+    const needle = (text || '').trim();
+    if(needle){
+      // 'simple' must match the config the column was generated with, and
+      // websearch accepts what a user would naturally type (quoted phrases,
+      // OR, -exclusions) without throwing on stray punctuation the way
+      // to_tsquery does.
+      query = query.textSearch('search_vector', needle, { config: 'simple', type: 'websearch' });
     }
+
+    const { data, error } = await query;
+    check(error);
+
+    const qs = data.map(row => questionRowToRecord(row, row.papers));
     qs.sort((a, b) => (a.paperKey === b.paperKey) ? (a.id - b.id) : a.paperKey.localeCompare(b.paperKey));
     return qs;
   }
@@ -372,7 +373,7 @@ const DB = (function(){
   return {
     open, slug, paperKeyOf, paperLabel,
     upsertPaper, getAllPapers, deletePaper,
-    addQuestions, getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,
+    getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,
     getFacets, search,
     saveModule, getAllModules, getModule, deleteModule,
     isPurchased, markPurchased,

@@ -16,36 +16,52 @@ imports) run from a terminal, not a browser. **Keep both in sync by hand**
 when the schema changes — there's no shared code path between them, that's
 the accepted tradeoff for not introducing a bundler.
 
-## Why this exists / what changed and what didn't
+That sync burden is now much smaller than it was: `store.js` is **read-only
+for question content**. Questions are written by `scripts/import-paper.ts`
+(and later the Edge Function), never by the browser, so there is no
+`addQuestions` in `store.js` to keep aligned. What the browser still writes
+is videos and modules, which are user actions rather than ingest.
 
-The app's `.tex → HTML` parser (`js/latex.js`) is regex-based, not a real
-LaTeX engine, and is known to be fragile — see the git history / prior
-conversation for detail. It is **deliberately untouched** in this pass. The
-schema here stores exactly what that parser already produces (`qHTML`,
-`exemplarHTML`, `markScheme` as an array) rather than inventing a more
-"structured" representation, so this migration doesn't block or complicate
-a future parser rewrite — that rewrite can add columns later without
-needing to undo anything here.
+## The parser rewrite happened
 
-The one real structural change from the old IndexedDB shape: **images**.
-Today `\image{file}{caption}` gets resolved to a base64 `data:` URL baked
-directly into the saved HTML (see `js/latex.js`'s `resolveImageSrc`). That
-doesn't belong in a shared Postgres row, so images now live in a public
-Storage bucket (`question-images`) with a `question_images` table tracking
-them. The upload flow this implies (not yet built): upload each image file
-to the bucket *first*, then pass the resulting public URLs into the
-`images: {filename: url}` map `TexParse.parse()` already accepts —
-`resolveImageSrc` already passes `https://` URLs through unchanged, so
-`js/latex.js` needs zero code changes to consume bucket URLs instead of
-base64.
+The old `.tex → HTML` parser (`js/latex.js`) was regex-based, fragile, and
+ran in the browser. It is **gone**, replaced by `src/latex/` — a real
+structured parser that emits JSON, not HTML blobs.
+
+That changed which direction everything flows:
+
+```
+.tex  --[ src/latex, Node/Deno only ]-->  JSON
+JSON  --[ scripts/import-paper.ts    ]-->  Postgres (questions.content)
+JSON  --[ js/render/, browser only   ]-->  HTML on the page
+```
+
+**The parser never runs in a browser and the renderer never runs in Node.**
+That is what keeps them from being two copies of the same thing: `src/latex`
+knows LaTeX and emits only inline formatting tags; `js/render` knows CSS
+classes and emits only structure. They meet at the JSON contract in
+`src/latex/types.ts` and nowhere else.
+
+`src/latex/` has **zero dependencies and zero `node:` imports**, which is
+deliberate — it is what lets the same files run unmodified inside a Supabase
+Edge Function (Deno) once the browser upload path is rebuilt against it.
+Only `scripts/` and `tests/integration/` touch `node:fs`; keep it that way.
+
+Images work the way the old notes anticipated, just keyed differently:
+figures upload to the `question-images` bucket **first**, and the resulting
+`{ filename: url }` map is an *input* to the parse. The parser resolves
+`\qfig{fig1.png}` against it and writes the real URL into the figure block,
+so nothing rewrites image paths afterwards and no base64 is ever stored.
+Because that happens before any question row exists, the tracking table is
+`paper_images`, keyed by `(paper_id, filename)` — see `0012`.
 
 ## Schema overview
 
 | Table | Purpose | Notable choices |
 |---|---|---|
 | `papers` | one row per subject/paper/variant/session/year | `paper_key` is a Postgres **generated column** (the natural key, equivalent to the old IndexedDB `paperKey`); `label` stays app-computed (see `paperLabel()` in `src/db.ts`) since its format has a conditional that's easier to keep in one place |
-| `questions` | one row per question, FK to `papers` | denormalized subject/paper/variant/session/year columns from the old IndexedDB record are **dropped** — that existed only because IndexedDB has no joins; `topic` is kept since it's genuinely question-level. `mark_scheme` stays `jsonb` (not a child table) — nothing in the app queries mark-scheme rows independently today. A generated `search_vector` + GIN index replaces the old in-memory linear text search. |
-| `question_images` | figure metadata | `storage_path` is the bucket object key, `{paper_id}/{question_id}/{filename}` |
+| `questions` | one row per question, FK to `papers` | `content jsonb` holds the whole parsed question (stem, parts tree, options, mark scheme, worked solution). One column, not four, for the same reason `mark_scheme` was jsonb before: nothing queries the pieces independently. `topics text[]` (GIN) replaced the single `topic` string — `\examq` genuinely carries a list. `kind` and `marks` are columns because they're filtered/sorted on. See `0011`. |
+| `paper_images` | figure metadata | keyed `(paper_id, filename)`, because figures upload *before* the questions exist and `\qfig` refers to them by bare filename. `storage_path` is `{paper_key}/{filename}` with unsafe characters stripped — `paper_key` is pipe-delimited and Storage rejects `\|`. See `0012`. |
 | `modules` / `module_questions` | topic packs | `module_questions` replaces the old `questionUids` string array with a real join table; `sort_order` preserves pick order |
 | `admin_users` / `is_admin()` | write gating | a plain allow-list table, not custom JWT claims — simplest thing that works for a handful of trusted admin accounts; see `0006_admin_users.sql` |
 
@@ -79,11 +95,10 @@ is a public question figure.
   `localStorage`, unrelated to this backend. `isPurchased`/`markPurchased`
   from `js/store.js` are **not** ported into `src/db.ts` — see the comment
   at the bottom of that file.
-- **Rewriting `js/latex.js`.** Explicitly deferred; see above.
-- **Image bucket wiring.** The frontend is now wired to Postgres (see
-  above), but `qHTML`/`exemplarHTML` still carry base64 `data:` images
-  inline, exactly as before — the `question_images` table + bucket exist
-  but nothing writes to them yet. A later pass would extract these out.
+- **The browser upload page.** `js/upload.js` and `js/compose.js` were
+  deleted along with the parser they drove; `upload.html` currently shows
+  a standby notice pointing at `npm run import`. Rebuilding it against an
+  Edge Function is the next piece of work — see "Ingest" below.
 
 ## Project layout
 
@@ -91,9 +106,18 @@ is a public question figure.
 backend/
   supabase/migrations/   -- SQL, one file per concern, applied in numeric order
   src/
+    latex/                -- the .tex -> JSON parser. NO dependencies, NO node:
+                             imports, so it also runs in a Deno Edge Function.
+                             types.ts is the JSON contract js/render/ reads.
     types/database.ts    -- generated; run `npm run gen:types` after any schema change
     client.ts             -- createSupabaseClient() (anon) / createServiceRoleClient() (admin scripts only)
     db.ts                  -- SchoolWitsDB class — the DB.* API surface, typed (Node-only, see above)
+  scripts/
+    import-paper.ts       -- npm run import: figures -> bucket, parse, write rows
+    parse-paper.ts        -- npm run parse: report + JSON, writes nothing
+    preview.ts            -- npm run preview: self-contained HTML of a parsed paper
+  tests/                  -- vitest; latex/ unit specs, render/ drives js/render/,
+                             integration/ parses the six real papers in place
   .env.example
 
 js/supabase/               -- the browser's actual DB layer, NOT inside backend/:
@@ -101,7 +125,49 @@ js/supabase/               -- the browser's actual DB layer, NOT inside backend/
   store.js                 -- plain-JS DB.* adapter, loaded by index.html/upload.html/modules.html
   admin-gate.js            -- shared login-gate widget for upload.html (whole page) and
                                modules.html (Builder tab only — Storefront stays public)
+
+js/render/                 -- questions.content (JSON) -> HTML, browser only:
+  escape.js                  shared escaping
+  block-renderer.js          text / figure / table blocks
+  part-renderer.js           the parts+subparts tree
+  options-renderer.js        MCQ options (records which of the four .tex
+                               encodings the source used)
+  mark-scheme-renderer.js    rows -> the shape app.js/modules.js draw
+  solution-renderer.js       worked-solution segments -> exemplar markup
+  question-renderer.js       the facade the pages actually call
 ```
+
+## Ingest
+
+Today, from a terminal:
+
+```
+npm run import -- "Physics MJ25 21"      # one paper
+npm run import -- --all                  # every paper
+npm run import -- "physics 21" --dry-run # parse + report, write nothing
+```
+
+Order is not arbitrary — figures upload first because their URLs are an
+input to the parse:
+
+```
+figures -> question-images bucket -> { filename: url }
+                                        |
+                        .tex + that map -> src/latex -> JSON
+                                                         |
+                                          papers + questions + paper_images
+```
+
+Needs `SUPABASE_SERVICE_ROLE_KEY` (it bypasses RLS, which is why this is
+terminal-only and the key must never reach a browser).
+
+**Next: an Edge Function** so non-technical admins get the drag-and-drop
+page back. Same `src/latex/` files deployed to Deno — the browser uploads
+figures to the bucket, POSTs the `.tex`, gets JSON + warnings back for a
+preview rendered with `js/render/`, and only writes on confirm. The
+function must check `is_admin()` itself; RLS does not cover a function
+running with elevated rights. Measured headroom for that: the largest
+paper parses in **9.6ms** against the 2s per-request CPU limit.
 
 ## Working on this
 

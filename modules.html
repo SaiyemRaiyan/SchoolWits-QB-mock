@@ -124,6 +124,15 @@
 <script src="js/supabase/config.js"></script>
 <script src="js/supabase/store.js"></script>
 <script src="js/supabase/admin-gate.js"></script>
+<!-- JSON -> HTML renderer. Load order matters: escape defines the helpers
+     the others use, and question-renderer composes them. -->
+<script src="js/render/escape.js"></script>
+<script src="js/render/block-renderer.js"></script>
+<script src="js/render/part-renderer.js"></script>
+<script src="js/render/options-renderer.js"></script>
+<script src="js/render/mark-scheme-renderer.js"></script>
+<script src="js/render/solution-renderer.js"></script>
+<script src="js/render/question-renderer.js"></script>
 <script src="js/modules.js"></script>
 </body>
 </html>

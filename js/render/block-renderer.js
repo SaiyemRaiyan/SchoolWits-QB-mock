@@ -2,10 +2,11 @@
    School Wits — render/BlockRenderer
    Content blocks (text / figure / table) -> HTML.
 
-   The markup here deliberately matches what js/latex.js emitted, because
-   css/style.css already styles those exact classes (.qfig, .imgmissing,
-   .datatable). Changing the shape means changing the stylesheet too — the
-   whole point of this pass is that the UI does not move.
+   The markup here deliberately matches what the previous parser emitted,
+   because css/style.css already styles those exact classes (.qfig,
+   .imgmissing, .datatable). Changing the shape means changing the
+   stylesheet too — the whole point of this pass is that the UI does not
+   move.
    ===================================================================== */
 
 window.SWRender = window.SWRender || {};

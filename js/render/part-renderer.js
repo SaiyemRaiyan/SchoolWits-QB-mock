@@ -8,8 +8,8 @@
    structured shape: numbering was decided once, at parse time, where the
    mark scheme could be keyed to it.
 
-   Markup matches js/latex.js's: .qpart / .qpart--sub with a .pmark label,
-   because css/style.css styles those already.
+   Markup matches what the previous parser emitted — .qpart / .qpart--sub
+   with a .pmark label — because css/style.css styles those already.
    ===================================================================== */
 
 window.SWRender = window.SWRender || {};

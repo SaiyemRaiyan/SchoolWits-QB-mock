@@ -23,6 +23,10 @@
     '\\texttt': '\\mathtt{#1}'
   };
 
+  // Renders a question's stored `content` into markup — same renderer the
+  // Browse page uses, so a module preview and the real question look alike.
+  const renderer = new SWRender.QuestionRenderer();
+
   const els = {
     modeTabs: document.querySelectorAll('#modeTabs a'),
     viewStorefront: document.getElementById('viewStorefront'),
@@ -284,17 +288,19 @@
     return `
       <div class="preview-q">
         <h4>Q${q.id} <span class="topic-chip">${escHTML(q.topic)}</span> <span class="topic-chip">${escHTML(String(q.marks || '?'))} marks</span></h4>
-        ${q.qHTML || ''}
+        ${renderer.toQuestionHtml(q.content)}
         <details style="margin-top:10px;">
           <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Mark scheme</summary>
           <table class="mstable" style="margin-top:8px;">
             <thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>
-            <tbody>${(q.markScheme || []).map(r => `<tr><td>${escHTML(r.part || '')}</td><td>${r.answer}</td><td>${escHTML(r.marks || '')}</td></tr>`).join('') || '<tr><td colspan="3"><i>None uploaded.</i></td></tr>'}</tbody>
+            <tbody>${renderer.toMarkSchemeRows(q.content).map(r => r.isBanner
+              ? `<tr class="ms-banner-row"><td colspan="3">${r.answer}</td></tr>`
+              : `<tr><td>${escHTML(r.part)}</td><td>${r.answer}</td><td>${escHTML(r.marks)}</td></tr>`).join('') || '<tr><td colspan="3"><i>None uploaded.</i></td></tr>'}</tbody>
           </table>
         </details>
         <details style="margin-top:8px;">
           <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Exemplar</summary>
-          <div style="margin-top:8px;">${q.exemplarHTML || '<p><i>None uploaded.</i></p>'}</div>
+          <div style="margin-top:8px;">${renderer.toExemplarHtml(q.content)}</div>
         </details>
       </div>`;
   }

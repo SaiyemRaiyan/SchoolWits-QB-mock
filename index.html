@@ -87,11 +87,18 @@
               <option value="">Any</option>
             </select>
           </div>
-          <div class="field">
-            <label for="fTopic">Topic</label>
-            <select id="fTopic">
-              <option value="">Any</option>
-            </select>
+          <div class="field field--topic">
+            <label for="fTopicInput">Topic</label>
+            <div class="combo" id="topicCombo">
+              <input
+                type="text"
+                id="fTopicInput"
+                placeholder="Any"
+                autocomplete="off"
+              />
+              <input type="hidden" id="fTopic" value="" />
+              <div class="combo-menu" id="fTopicMenu" hidden></div>
+            </div>
           </div>
           <div class="field field--browse">
             <label for="fBrowse">Group by</label>
@@ -149,8 +156,11 @@
               <div class="qsub" id="qSub">&nbsp;</div>
             </div>
             <div class="card-head-right">
-              <div class="stamp" id="stamp">
-                <span id="stampMarks">—</span><small>marks</small>
+              <div class="marks-panel">
+                <div class="stamp" id="stamp">
+                  <span id="stampMarks">—</span><small>marks</small>
+                </div>
+                <div class="marks-dist" id="marksDist"></div>
               </div>
               <div class="qnav">
                 <button

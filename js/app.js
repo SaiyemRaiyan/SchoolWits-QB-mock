@@ -40,6 +40,9 @@
     fSession: document.getElementById('fSession'),
     fYear: document.getElementById('fYear'),
     fTopic: document.getElementById('fTopic'),
+    fTopicInput: document.getElementById('fTopicInput'),
+    fTopicMenu: document.getElementById('fTopicMenu'),
+    topicCombo: document.getElementById('topicCombo'),
     fBrowse: document.getElementById('fBrowse'),
     fText: document.getElementById('fText'),
 
@@ -58,6 +61,7 @@
     qTitle: document.getElementById('qTitle'),
     qSub: document.getElementById('qSub'),
     stampMarks: document.getElementById('stampMarks'),
+    marksDist: document.getElementById('marksDist'),
     qBody: document.getElementById('qBody'),
     msBody: document.getElementById('msBody'),
     exemplarBody: document.getElementById('exemplarBody'),
@@ -80,6 +84,7 @@
   let currentResults = [];   // questions matching the active filters/search
   let currentIndex = -1;     // index into currentResults
   let viewMode = 'single';   // 'single' (one question at a time) | 'full' (whole paper, continuous)
+  let topicList = [];        // full facet list backing the topic combobox's filter
   const ACCENTS = ['#2F6FB3', '#1D8A5C', '#B9762A', '#8B4FB0', '#C0392B', '#1A9E96', '#7A6A1E', '#4A5568'];
 
   /* ---------------------------------------------------------- boot */
@@ -104,16 +109,73 @@
     fillSelect(els.fVariant, facets.variants);
     fillSelect(els.fSession, facets.sessions);
     fillSelect(els.fYear, facets.years.map(String));
-    fillSelect(els.fTopic, facets.topics);
+    fillTopicCombo(facets.topics);
     els.statStrip.innerHTML = facets.paperCount
       ? `<span><b>${facets.paperCount}</b> paper${facets.paperCount === 1 ? '' : 's'} indexed</span><span class="dot">&middot;</span><span><b>${facets.questionCount}</b> questions searchable</span>`
       : `<span>No papers indexed yet &mdash; <a href="upload.html">upload a .tex file</a> to get started</span>`;
+  }
+
+  /* ---------------------------------------------------------- topic combobox */
+  // A plain <select> gets unwieldy once a subject has dozens of topics, so
+  // Topic is a type-to-filter combobox instead. #fTopic stays a hidden input
+  // holding the actual filter value — everything else in this file keeps
+  // reading/writing it exactly like the old <select>.
+  function fillTopicCombo(topics){
+    topicList = topics || [];
+    const keep = els.fTopic.value;
+    if(!topicList.includes(keep)){
+      els.fTopic.value = '';
+      els.fTopicInput.value = '';
+    }
+  }
+
+  function renderTopicMenu(filterText){
+    const q = (filterText || '').trim().toLowerCase();
+    const matches = q ? topicList.filter(t => t.toLowerCase().includes(q)) : topicList;
+    const rows = ['<div class="combo-option' + (els.fTopic.value ? '' : ' active') + '" data-value="">Any topic</div>']
+      .concat(matches.map(t => `<div class="combo-option${t === els.fTopic.value ? ' active' : ''}" data-value="${escAttr(t)}">${escHTML(t)}</div>`));
+    if(!matches.length) rows.push('<div class="combo-empty">No matching topics</div>');
+    els.fTopicMenu.innerHTML = rows.join('');
+    els.fTopicMenu.hidden = false;
+  }
+
+  function selectTopic(value){
+    els.fTopic.value = value;
+    els.fTopicInput.value = value;
+    els.fTopicMenu.hidden = true;
+    els.fTopic.dispatchEvent(new Event('change'));
+  }
+
+  function wireTopicCombo(){
+    els.fTopicInput.addEventListener('focus', () => renderTopicMenu(''));
+    els.fTopicInput.addEventListener('input', () => renderTopicMenu(els.fTopicInput.value));
+    els.fTopicInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        const options = els.fTopicMenu.querySelectorAll('.combo-option');
+        // Skip the always-present "Any topic" row once the user has typed
+        // something to filter by, so Enter picks the match, not "Any".
+        const pick = els.fTopicInput.value.trim() && options.length > 1 ? options[1] : options[0];
+        if(pick) selectTopic(pick.dataset.value);
+      } else if(e.key === 'Escape'){
+        els.fTopicMenu.hidden = true;
+        els.fTopicInput.blur();
+      }
+    });
+    els.fTopicMenu.addEventListener('mousedown', (e) => {
+      const opt = e.target.closest('.combo-option');
+      if(opt) selectTopic(opt.dataset.value);
+    });
+    document.addEventListener('click', (e) => {
+      if(!els.topicCombo.contains(e.target)) els.fTopicMenu.hidden = true;
+    });
   }
 
   /* ---------------------------------------------------------- events */
   function initEvents(){
     [els.fSubject, els.fPaper, els.fVariant, els.fSession, els.fYear, els.fTopic, els.fBrowse]
       .forEach(sel => sel.addEventListener('change', runSearch));
+    wireTopicCombo();
     let debounce;
     els.fText.addEventListener('input', () => {
       clearTimeout(debounce);
@@ -221,7 +283,10 @@
           <div class="pd-qhead">
             <span class="pd-qnum">Question ${q.id}</span>
             ${q.topic ? `<span class="pd-qtopic">${escHTML(q.topic)}</span>` : ''}
-            <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
+            <div class="pd-marks-panel">
+              <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
+              ${renderMarksDistribution(q)}
+            </div>
           </div>
           <div class="pd-qbody">${renderer.toQuestionHtml(q.content)}</div>
         </article>`;
@@ -236,7 +301,9 @@
         <article class="pd-qsection" style="--qaccent:${accent}">
           <div class="pd-qhead">
             <span class="pd-qnum">Question ${q.id}</span>
-            <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
+            <div class="pd-marks-panel">
+              <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
+            </div>
           </div>
           <table class="mstable">
             <thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>
@@ -355,6 +422,7 @@
     els.qTitle.textContent = `Question ${q.id}`;
     els.qSub.textContent = `${q.ref || DB.paperLabel(q) + ' · Q' + q.id}${topicLabel ? ' · Topic: ' + topicLabel : ''}`;
     els.stampMarks.textContent = q.marks || '—';
+    els.marksDist.innerHTML = renderMarksDistribution(q);
 
     els.qBody.innerHTML = `<div class="question-shell">${renderer.toQuestionHtml(q.content)}</div>`;
 
@@ -493,6 +561,35 @@
   /* ---------------------------------------------------------- utils */
   function escHTML(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function escAttr(s){ return escHTML(s).replace(/"/g, '&quot;'); }
+
+  // Walks a question's parts tree and pulls out the leaf marks — a part
+  // that only groups subparts has marks:null, so we recurse into it
+  // instead of reporting a blank entry.
+  function collectMarksBreakdown(parts){
+    const out = [];
+    (function walk(list){
+      (list || []).forEach(p => {
+        if(p.marks !== null && p.marks !== undefined){
+          out.push({ label: p.label, marks: p.marks });
+        } else if(Array.isArray(p.subparts) && p.subparts.length){
+          walk(p.subparts);
+        }
+      });
+    })(parts);
+    return out;
+  }
+
+  // Renders the small per-part chip row shown under a question's total
+  // marks badge. Empty string when there's nothing to break down (MCQs,
+  // single-part questions).
+  function renderMarksDistribution(question){
+    const parts = question && question.content ? question.content.parts : null;
+    const breakdown = collectMarksBreakdown(parts);
+    if(breakdown.length < 2) return '';
+    return '<div class="marks-dist">' + breakdown.map(part =>
+      `<span class="marks-chip"><b>(${escHTML(part.label)})</b>${escHTML(part.marks)}</span>`
+    ).join('') + '</div>';
+  }
 
   // (cleanupLegacyLatexStyles / normalizeLegacyMarks lived here. They
   // patched raw \textbf{...} left behind by the old regex parser at render

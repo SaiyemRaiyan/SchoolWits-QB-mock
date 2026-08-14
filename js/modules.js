@@ -8,7 +8,12 @@
 
   // Renders a question's stored `content` into markup — same renderer the
   // Browse page uses, so a module preview and the real question look alike.
-  const renderer = new SWRender.QuestionRenderer();
+  const renderer = new SWRender.QuestionRenderer({
+    // 4-column papers (Add Maths, Maths D) carry a "Partial Marks" column
+    // explaining how each mark is earned — "M1 for ... seen". It is part of
+    // the official mark scheme, so it is shown rather than dropped.
+    showGuidance: true
+  });
 
   const els = {
     modeTabs: document.querySelectorAll('#modeTabs a'),

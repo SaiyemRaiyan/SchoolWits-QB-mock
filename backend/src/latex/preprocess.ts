@@ -98,14 +98,40 @@ export function normalizeWhitespace(src: string): string {
 /**
  * How many columns the paper's `mstab` environment declares.
  *
- * Physics papers define `\newenvironment{mstab}[1]` -> 3 columns;
- * Add Maths / Maths D define `[2][Partial Marks]` -> 4. Both are invoked
- * identically as `\begin{mstab}{qNcolor}`, so the definition is the only
- * reliable signal short of counting cells. Defaults to 3 when the preamble
- * isn't available (e.g. a pasted fragment).
+ * Read from the environment's own HEADER ROW — the literal
+ * `Question & Answer & Marks` (3) or `Question & Answer & Marks & Partial
+ * Marks` (4) that every definition ends with. All papers invoke the
+ * environment identically as `\begin{mstab}{qNcolor}`, so the definition is
+ * the only place the arity is visible.
+ *
+ * This used to read `\newenvironment{mstab}[N]` and map N=2 -> 4 columns.
+ * That number is how many ARGUMENTS the environment takes, not how many
+ * columns it has, and the two are unrelated: Maths D declares `[1]` (one
+ * argument, the colour) but a genuine 4-column table, so its entire Partial
+ * Marks column — 64 rows carrying the M1/B1/B2 breakdown — was parsed as
+ * overflow and dropped. It only ever looked correct because Physics (1 arg,
+ * 3 cols) and Add Maths (2 args, 4 cols) happen to line up by coincidence.
+ *
+ * Defaults to 3 when the preamble isn't available (e.g. a pasted fragment).
  */
 export function detectMstabColumns(preamble: string): 3 | 4 {
-  const m = /\\newenvironment\{mstab\}\[(\d)\]/.exec(preamble);
-  if (!m) return 3;
-  return m[1] === '2' ? 4 : 3;
+  const header = /Question\s*&[^\\]*?\\\\/.exec(preamble);
+  if (header) {
+    // Cells = separators + 1. The match stops at the row-ending \\, so
+    // everything counted here belongs to the header row.
+    const cells = header[0].split('&').length;
+    if (cells >= 4) return 4;
+    if (cells === 3) return 3;
+  }
+
+  // No header row (a trimmed or hand-written preamble): fall back to the
+  // tabularx column spec, counting the `p{...}` / `X` entries the same way.
+  const spec = /\\begin\{tabularx\}|\\tabularx\{[^}]*\}\{([\s\S]*?)\}%?\s*\n\s*\\hline/.exec(preamble);
+  if (spec && spec[1]) {
+    const columns = (spec[1].match(/p\{[^}]*\}|(?<![a-zA-Z])X(?![a-zA-Z])/g) || []).length;
+    if (columns >= 4) return 4;
+    if (columns === 3) return 3;
+  }
+
+  return 3;
 }

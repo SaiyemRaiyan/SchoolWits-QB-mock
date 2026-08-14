@@ -1020,6 +1020,20 @@ table.datatable .blankrow {
   background: #F5F0E4;
 }
 
+/* The "Partial Marks" column of a 4-column paper (Add Maths, Maths D),
+   rendered under the answer rather than as a fourth column — the table is
+   already narrow on mobile, and this content is a note about how the marks
+   break down ("M1 for ... seen"), not a parallel value. Set apart from the
+   answer above it so the two do not read as one sentence. */
+.mstable .ms-guidance {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--line-strong, #C9D2DE);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted, #4E5D72);
+}
+
 /* Full-width "Alternative method" section banner within a mark-scheme
    table (from \altrow{color}{label}) — distinct from a normal data row. */
 .mstable tr.ms-banner-row td {

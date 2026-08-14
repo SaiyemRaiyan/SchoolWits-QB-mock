@@ -26,7 +26,12 @@
   const FUNCTION_URL = window.SUPABASE_URL + '/functions/v1/parse-paper';
   const BUCKET = 'question-images';
 
-  const renderer = new SWRender.QuestionRenderer();
+  const renderer = new SWRender.QuestionRenderer({
+    // 4-column papers (Add Maths, Maths D) carry a "Partial Marks" column
+    // explaining how each mark is earned — "M1 for ... seen". It is part of
+    // the official mark scheme, so it is shown rather than dropped.
+    showGuidance: true
+  });
 
   const state = {
     qpTex: null,

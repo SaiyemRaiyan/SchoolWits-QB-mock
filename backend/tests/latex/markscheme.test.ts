@@ -5,6 +5,7 @@ import {
   parseMstab,
   splitAlternatives,
 } from '../../src/latex/markscheme.js';
+import { detectMstabColumns } from '../../src/latex/preprocess.js';
 
 describe('parseLabelCell', () => {
   it('reads a plain label', () => {
@@ -162,5 +163,39 @@ describe('parseMstab — 4-column papers', () => {
   it('still reads the mark code through its \\textbf wrapper', () => {
     expect(rows[0].code).toBe('M1');
     expect(rows[0].marks).toBe(1);
+  });
+});
+
+describe('detectMstabColumns', () => {
+  // The three real preamble shapes. What varies between them is the
+  // ARGUMENT count in \newenvironment{mstab}[N] — which says nothing about
+  // how many columns the table has. Maths D is the case that proves it:
+  // one argument, four columns.
+  const preamble = (args: string, header: string) => `
+\\newenvironment{mstab}${args}{%
+  \\tabularx{\\textwidth}{|>{\\raggedright\\arraybackslash}p{1.9cm}|>{}X|>{\\centering\\arraybackslash}p{1.1cm}|}%
+  \\hline
+  \\rowcolor{#1!45} ${header} \\\\ \\hline
+}{%
+  \\endtabularx
+}
+`;
+
+  it('reads 4 columns from a Maths D preamble that takes ONE argument', () => {
+    // The regression: this used to return 3 because of the [1], silently
+    // discarding the Partial Marks column on every Maths D row.
+    expect(detectMstabColumns(preamble('[1]', 'Question & Answer & Marks & Partial Marks'))).toBe(4);
+  });
+
+  it('reads 3 columns from a Physics preamble that also takes one argument', () => {
+    expect(detectMstabColumns(preamble('[1]', 'Question & Answer & Marks'))).toBe(3);
+  });
+
+  it('reads 4 columns from an Add Maths preamble that takes two', () => {
+    expect(detectMstabColumns(preamble('[2][Partial Marks]', 'Question & Answer & Marks & Partial Marks'))).toBe(4);
+  });
+
+  it('defaults to 3 when there is no preamble to read', () => {
+    expect(detectMstabColumns('')).toBe(3);
   });
 });

@@ -69,8 +69,22 @@
       </div>
 
       <div class="section-card">
-        <h2>1 &middot; Filter the bank</h2>
-        <div class="pill-row" id="topicPills"></div>
+        <h2>1 &middot; Choose a subject</h2>
+        <p class="hint">A module covers one subject. Pick it first — everything below narrows to it.</p>
+        <div class="row2" style="margin-top:12px;">
+          <label style="flex:1;">Subject
+            <select id="bSubject"></select>
+          </label>
+          <label style="flex:1;">Paper <span class="hint" style="font-weight:400;">(optional — leave on Any to mix papers)</span>
+            <select id="bPaper"></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2>2 &middot; Narrow by topic</h2>
+        <p class="hint">Pick as many topics as you like — questions matching <em>any</em> of them are shown. Your ticked questions are kept when you change these.</p>
+        <div class="pill-row" id="topicPills" style="margin-top:12px;"></div>
         <div class="searchbar" style="margin-top:14px;max-width:420px;background:var(--paper-warm);border-color:var(--line-strong);">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4E5D72" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input type="text" id="builderSearch" placeholder="Search within results…" style="color:#121C2E;">
@@ -79,17 +93,19 @@
 
       <div class="builder-grid">
         <div class="section-card">
-          <h2>2 &middot; Select questions</h2>
+          <h2>3 &middot; Select questions</h2>
           <div class="selectedcount" id="selCount">0 selected</div>
+          <div id="selSummary" class="hint" style="margin-bottom:10px;"></div>
           <div id="pickList"></div>
         </div>
 
         <div class="section-card modform">
-          <h2>3 &middot; Package &amp; price</h2>
+          <h2>4 &middot; Package &amp; price</h2>
           <label>Module title</label>
           <input type="text" id="modTitle" placeholder="e.g. Forces &amp; Motion — Full Topic Pack">
-          <label>Topic label (shown on the storefront card)</label>
-          <input type="text" id="modTopic" placeholder="e.g. Forces & Motion">
+          <label>Topics covered <span class="hint" style="font-weight:400;">— filled in from what you picked; click to include or exclude</span></label>
+          <div class="pill-row" id="modTopicPills" style="margin:6px 0 4px;"></div>
+          <p class="hint" id="modTopicEmpty" hidden>Select some questions and their topics land here.</p>
           <label>Description</label>
           <textarea id="modDesc" placeholder="What's in this pack, and who it's for."></textarea>
           <div class="row2">
@@ -126,6 +142,7 @@
 <script src="js/supabase/admin-gate.js"></script>
 <!-- JSON -> HTML renderer. Load order matters: escape defines the helpers
      the others use, and question-renderer composes them. -->
+<script src="js/katex-config.js"></script>
 <script src="js/render/escape.js"></script>
 <script src="js/render/block-renderer.js"></script>
 <script src="js/render/part-renderer.js"></script>

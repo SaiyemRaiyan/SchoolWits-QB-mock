@@ -74,8 +74,9 @@ export type Database = {
           id: number
           premium: boolean
           price: number
+          subject: string
           title: string
-          topic: string
+          topics: string[]
         }
         Insert: {
           created_at?: string
@@ -84,8 +85,9 @@ export type Database = {
           id?: never
           premium?: boolean
           price?: number
+          subject?: string
           title: string
-          topic?: string
+          topics?: string[]
         }
         Update: {
           created_at?: string
@@ -94,8 +96,9 @@ export type Database = {
           id?: never
           premium?: boolean
           price?: number
+          subject?: string
           title?: string
-          topic?: string
+          topics?: string[]
         }
         Relationships: []
       }

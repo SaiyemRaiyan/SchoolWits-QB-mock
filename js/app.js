@@ -6,26 +6,8 @@
 
 (function(){
 
-  // Custom math-mode macros the exam papers define in their own LaTeX
-  // preambles (\newcommand{\dd}{...} etc.) — those preamble definitions
-  // are stripped as non-content, so KaTeX must be taught the same macros
-  // directly to render \dd, \dydx, \ncr{}{}, \npr{}{}, \cosec, \pow{},
-  // \dg, \degC and \ohms correctly wherever they appear inside math.
-  const KATEX_MACROS = {
-    '\\dd': '\\mathrm{d}',
-    '\\dydx': '\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}',
-    '\\ncr': '{}^{#1}\\mathrm{C}_{#2}',
-    '\\npr': '{}^{#1}\\mathrm{P}_{#2}',
-    '\\cosec': '\\operatorname{cosec}',
-    '\\pow': '^{#1}',
-    '\\dg': '^{\\circ}',
-    '\\degC': '^{\\circ}\\mathrm{C}',
-    '\\ohms': '\\Omega',
-    '\\textperiodcentered': '\\cdot',
-    '\\textbf': '\\mathbf{#1}',
-    '\\textit': '\\mathit{#1}',
-    '\\texttt': '\\mathtt{#1}'
-  };
+  // Math rendering (macros + delimiters) lives in js/katex-config.js, so
+  // every page renders stored LaTeX identically. See SWKatex.
 
   // Turns a question's stored `content` (the parsed object — see
   // backend/src/latex/types.ts) into the markup this page draws. Questions
@@ -306,7 +288,7 @@
             </div>
           </div>
           <table class="mstable">
-            <thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>
+            <thead><tr><th>Part</th><th>Expected answer</th><th>Mark</th></tr></thead>
             <tbody>${rows || '<tr><td colspan="3"><i>No mark scheme uploaded for this question.</i></td></tr>'}</tbody>
           </table>
         </article>`;
@@ -454,17 +436,7 @@
     renderMathIn(els.card);
   }
   function renderMathIn(el){
-    if(typeof renderMathInElement !== 'function') return;
-    renderMathInElement(el, {
-      delimiters: [
-        {left: '\\[', right: '\\]', display: true},
-        {left: '\\(', right: '\\)', display: false},
-        {left: '$$', right: '$$', display: true},
-        {left: '$', right: '$', display: false}
-      ],
-      macros: KATEX_MACROS,
-      throwOnError: false
-    });
+    SWKatex.renderMathIn(el);
   }
 
   /* ---------------------------------------------------------- video system */

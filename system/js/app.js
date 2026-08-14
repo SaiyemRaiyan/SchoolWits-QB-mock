@@ -17,10 +17,8 @@
     '\\dg': '^{\\circ}',
     '\\degC': '^{\\circ}\\mathrm{C}',
     '\\ohms': '\\Omega',
-    '\\textperiodcentered': '\\cdot',
-    '\\textbf': '\\mathbf{#1}',
-    '\\textit': '\\mathit{#1}',
-    '\\texttt': '\\mathtt{#1}'
+    '\\textperiodcentered': '\\cdot'
+    // No \textbf/\textit/\texttt overrides — see js/app.js for why.
   };
 
   const els = {

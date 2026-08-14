@@ -270,24 +270,16 @@
         : `<tr><td>${esc(r.part)}</td><td>${r.answer}</td><td>${esc(r.marks)}</td></tr>`
       ).join('') || '<tr><td colspan="3"><i>No mark scheme.</i></td></tr>';
       return section(q, `<table class="mstable">
-        <thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>
+        <thead><tr><th>Part</th><th>Expected answer</th><th>Mark</th></tr></thead>
         <tbody>${rows}</tbody></table>`);
     }).join('');
 
     els['previewArea-exemplar'].innerHTML = questions.map(q =>
       section(q, `<div class="exemplar-box">${renderer.toExemplarHtml(q)}</div>`)).join('');
 
-    if (window.renderMathInElement) {
-      renderMathInElement(els.previewDoc, {
-        delimiters: [
-          { left: '$$', right: '$$', display: true },
-          { left: '\\[', right: '\\]', display: true },
-          { left: '$', right: '$', display: false },
-          { left: '\\(', right: '\\)', display: false }
-        ],
-        throwOnError: false
-      });
-    }
+    // Same config as the live pages, so the preview is a faithful check of
+    // what Browse will show rather than an approximation of it.
+    SWKatex.renderMathIn(els.previewDoc);
   }
 
   /**

@@ -99,10 +99,16 @@ const DB = (function(){
   }
 
   function moduleRowToRecord(row, questionUids){
+    const topics = row.topics || [];
     return {
       id: row.id,
       title: row.title,
-      topic: row.topic || '',
+      subject: row.subject || '',
+      // The real list (see 0014). `topicLabel` is the display string every
+      // card and list row shows — derived here rather than stored, so the
+      // "Mixed topics" placeholder never ends up in the database.
+      topics,
+      topicLabel: topics.length ? topics.join(' · ') : 'Mixed topics',
       description: row.description || '',
       premium: row.premium,
       price: Number(row.price) || 0,
@@ -268,7 +274,11 @@ const DB = (function(){
   async function saveModule(mod){
     const row = {
       title: mod.title,
-      topic: mod.topic || '',
+      subject: mod.subject || '',
+      // Deduped and blank-stripped here rather than trusted from the caller,
+      // because the builder derives this list from the picked questions and
+      // the same topic reappears on question after question.
+      topics: Array.from(new Set((mod.topics || []).map(t => String(t).trim()).filter(Boolean))),
       description: mod.description || '',
       premium: !!mod.premium,
       price: mod.premium ? (Number(mod.price) || 0) : 0,

@@ -38,10 +38,26 @@ window.SWRender = window.SWRender || {};
       return rows.map((row) => ({
         part: row.banner ? '' : (row.ref || ''),
         answer: this._answerHtml(row),
-        // Kept a string: the old records sometimes held labels, not numbers.
-        marks: row.banner ? '' : String(row.marks == null ? '' : row.marks),
+        marks: row.banner ? '' : this._markLabel(row),
         isBanner: row.banner === true
       }));
+    }
+
+    /**
+     * The mark cell as the official mark scheme writes it: "B1", "M1",
+     * "A2" — the letter is the point, not decoration. It tells a candidate
+     * HOW the mark is earned (M = method, A = accuracy, B = independent),
+     * which is what O/A-Level students are taught to read a mark scheme
+     * for. `marks` is the digit parsed out of that same code and is what
+     * sums to a question total, so it stays the source for totals (see
+     * q.marks in app.js) and is only the fallback here — some rows carry a
+     * count with no letter.
+     *
+     * Stays a string: the old records sometimes held labels, not numbers.
+     */
+    _markLabel(row) {
+      if (row.code) return row.code;
+      return String(row.marks == null ? '' : row.marks);
     }
 
     /** Full <table> for views that draw the mark scheme themselves. */
@@ -59,7 +75,7 @@ window.SWRender = window.SWRender || {};
       ).join('');
 
       return '<table class="mstable">' +
-             '<thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>' +
+             '<thead><tr><th>Part</th><th>Expected answer</th><th>Mark</th></tr></thead>' +
              '<tbody>' + body + '</tbody></table>';
     }
 

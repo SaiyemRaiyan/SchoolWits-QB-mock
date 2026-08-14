@@ -373,7 +373,14 @@ export class SchoolWitsDB {
   async saveModule(mod: {
     id?: number;
     title: string;
-    topic?: string;
+    /** The one subject the module's questions come from — see 0014. */
+    subject?: string;
+    /**
+     * Every topic the pack covers. Replaced the single `topic` string in
+     * 0014: modules are assembled across papers, and the questions already
+     * carry a topic list each, so one label could not describe the result.
+     */
+    topics?: string[];
     description?: string;
     premium: boolean;
     price: number;
@@ -382,7 +389,11 @@ export class SchoolWitsDB {
   }): Promise<Module> {
     const row: TablesInsert<"modules"> = {
       title: mod.title,
-      topic: mod.topic ?? "",
+      subject: mod.subject ?? "",
+      // Deduped here as well as in js/supabase/store.js — the two are
+      // separate copies by design (see backend/CLAUDE.md), so each has to
+      // hold the invariant on its own.
+      topics: [...new Set((mod.topics ?? []).map((t) => t.trim()).filter(Boolean))],
       description: mod.description ?? "",
       premium: mod.premium,
       price: mod.premium ? mod.price : 0,

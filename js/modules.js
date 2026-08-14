@@ -4,24 +4,7 @@
 
 (function(){
 
-  // Custom math-mode macros the exam papers define in their own LaTeX
-  // preambles — see js/app.js for the full explanation. Kept in sync
-  // across every file that calls renderMathInElement().
-  const KATEX_MACROS = {
-    '\\dd': '\\mathrm{d}',
-    '\\dydx': '\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}',
-    '\\ncr': '{}^{#1}\\mathrm{C}_{#2}',
-    '\\npr': '{}^{#1}\\mathrm{P}_{#2}',
-    '\\cosec': '\\operatorname{cosec}',
-    '\\pow': '^{#1}',
-    '\\dg': '^{\\circ}',
-    '\\degC': '^{\\circ}\\mathrm{C}',
-    '\\ohms': '\\Omega',
-    '\\textperiodcentered': '\\cdot',
-    '\\textbf': '\\mathbf{#1}',
-    '\\textit': '\\mathit{#1}',
-    '\\texttt': '\\mathtt{#1}'
-  };
+  // Math rendering (macros + delimiters) lives in js/katex-config.js.
 
   // Renders a question's stored `content` into markup — same renderer the
   // Browse page uses, so a module preview and the real question look alike.
@@ -35,13 +18,17 @@
     moduleGrid: document.getElementById('moduleGrid'),
     moduleDetail: document.getElementById('moduleDetail'),
 
+    bSubject: document.getElementById('bSubject'),
+    bPaper: document.getElementById('bPaper'),
     topicPills: document.getElementById('topicPills'),
     builderSearch: document.getElementById('builderSearch'),
     pickList: document.getElementById('pickList'),
     selCount: document.getElementById('selCount'),
+    selSummary: document.getElementById('selSummary'),
 
     modTitle: document.getElementById('modTitle'),
-    modTopic: document.getElementById('modTopic'),
+    modTopicPills: document.getElementById('modTopicPills'),
+    modTopicEmpty: document.getElementById('modTopicEmpty'),
     modDesc: document.getElementById('modDesc'),
     modPremium: document.getElementById('modPremium'),
     modPrice: document.getElementById('modPrice'),
@@ -51,8 +38,22 @@
   };
 
   let allQuestions = [];
-  let activeTopic = '';
+  let allPapers = [];
+  // Filter state. `activeTopics` is a Set because topic filtering is now
+  // multi-select (match ANY), which is what makes "one pack, several topics"
+  // possible in the first place.
+  let activeSubject = '';
+  let activePaperKey = '';
+  let activeTopics = new Set();
+
+  // Picked questions, keyed by uid. Deliberately survives every filter
+  // change — the whole point is assembling one module from questions that no
+  // single filter shows together.
   let selected = new Set();
+  // Topics the user has explicitly UNticked in the form. Everything else is
+  // derived from the picked questions, so the derived list stays live as the
+  // selection grows instead of going stale the moment it is touched once.
+  let excludedTopics = new Set();
 
   /* ---------------------------------------------------------- boot */
   async function boot(){
@@ -76,21 +77,31 @@
   /* ================================================================ BUILDER */
   async function refreshBuilder(){
     allQuestions = await DB.getAllQuestions();
+    allPapers = await DB.getAllPapers();
     const facets = await DB.getFacets();
 
-    els.topicPills.innerHTML = ['<button class="pill active" data-topic="">All topics</button>']
-      .concat(facets.topics.map(t => {
-        const count = allQuestions.filter(q => q.topic === t).length;
-        return `<button class="pill" data-topic="${escAttr(t)}">${escHTML(t)}<span class="count">${count}</span></button>`;
-      })).join('');
+    // Subject is the outermost scope, so it is a plain select rather than
+    // pills: it is a single choice and changing it invalidates everything
+    // below. Defaults to the first subject so the page is never empty.
+    els.bSubject.innerHTML = facets.subjects
+      .map(s => `<option value="${escAttr(s)}">${escHTML(s)}</option>`).join('');
+    activeSubject = facets.subjects[0] || '';
+    els.bSubject.value = activeSubject;
 
-    els.topicPills.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
-      els.topicPills.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
-      p.classList.add('active');
-      activeTopic = p.dataset.topic;
-      if(activeTopic) els.modTopic.value = activeTopic;
+    els.bSubject.addEventListener('change', () => {
+      activeSubject = els.bSubject.value;
+      // Topics and papers are subject-specific, so a stale selection here
+      // would silently filter everything out.
+      activePaperKey = '';
+      activeTopics.clear();
+      renderPaperOptions();
+      renderTopicPills();
       renderPickList();
-    }));
+    });
+    els.bPaper.addEventListener('change', () => {
+      activePaperKey = els.bPaper.value;
+      renderPickList();
+    });
 
     els.builderSearch.addEventListener('input', renderPickList);
     els.saveModBtn.addEventListener('click', saveModule);
@@ -99,26 +110,78 @@
       if(els.modPremium.value === 'free') els.modPrice.value = 0;
     });
 
+    renderPaperOptions();
+    renderTopicPills();
     renderPickList();
     await refreshBuiltList();
   }
 
+  /** Questions in the chosen subject — the pool every other filter narrows. */
+  function subjectQuestions(){
+    return allQuestions.filter(q => q.subject === activeSubject);
+  }
+
+  function renderPaperOptions(){
+    const papers = allPapers
+      .filter(p => p.subject === activeSubject)
+      .sort((a, b) => b.year - a.year || String(a.paper).localeCompare(String(b.paper)));
+    els.bPaper.innerHTML = '<option value="">Any paper</option>' + papers.map(p => {
+      const n = allQuestions.filter(q => q.paperKey === p.paperKey).length;
+      return `<option value="${escAttr(p.paperKey)}">${escHTML(DB.paperLabel(p))} — ${n} question${n === 1 ? '' : 's'}</option>`;
+    }).join('');
+    els.bPaper.value = activePaperKey;
+  }
+
+  function renderTopicPills(){
+    const pool = subjectQuestions();
+    // Union of topics across the subject's questions, counted by how many
+    // questions carry each — a question with three topics counts for all
+    // three, which is why this is not a groupBy.
+    const counts = new Map();
+    pool.forEach(q => q.topics.forEach(t => counts.set(t, (counts.get(t) || 0) + 1)));
+    const topics = Array.from(counts.keys()).sort();
+
+    if(!topics.length){
+      els.topicPills.innerHTML = '<p class="hint">No topics tagged in this subject yet.</p>';
+      return;
+    }
+
+    els.topicPills.innerHTML =
+      `<button class="pill ${activeTopics.size === 0 ? 'active' : ''}" data-topic="">All topics<span class="count">${pool.length}</span></button>` +
+      topics.map(t => `<button class="pill ${activeTopics.has(t) ? 'active' : ''}" data-topic="${escAttr(t)}">${escHTML(t)}<span class="count">${counts.get(t)}</span></button>`).join('');
+
+    els.topicPills.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
+      const topic = p.dataset.topic;
+      if(!topic) activeTopics.clear();            // "All topics" resets
+      else if(activeTopics.has(topic)) activeTopics.delete(topic);
+      else activeTopics.add(topic);
+      renderTopicPills();
+      renderPickList();
+    }));
+  }
+
   function renderPickList(){
     const needle = els.builderSearch.value.trim().toLowerCase();
-    let list = allQuestions;
-    if(activeTopic) list = list.filter(q => q.topic === activeTopic);
+    let list = subjectQuestions();
+    if(activePaperKey) list = list.filter(q => q.paperKey === activePaperKey);
+    // Match ANY selected topic. Questions carry a topic LIST, so the old
+    // `q.topic === activeTopic` never matched a multi-topic question — its
+    // `topic` is the joined display string ("Vectors · Kinematics").
+    if(activeTopics.size) list = list.filter(q => q.topics.some(t => activeTopics.has(t)));
     if(needle) list = list.filter(q => (q.topic + ' ' + q.ref + ' ' + (q.qText || '')).toLowerCase().includes(needle));
 
+    list.sort((a, b) => a.paperKey === b.paperKey ? a.id - b.id : a.paperKey.localeCompare(b.paperKey));
+
     if(list.length === 0){
-      els.pickList.innerHTML = `<p class="hint">No questions match. Try a different topic, or <a href="upload.html">upload more papers</a>.</p>`;
+      els.pickList.innerHTML = `<p class="hint">No questions match. Widen the topic or paper filter, or <a href="upload.html">upload more papers</a>.</p>`;
     } else {
       els.pickList.innerHTML = list.map(q => `
         <div class="pickrow">
           <label style="display:flex;gap:10px;align-items:flex-start;flex:1;">
             <input type="checkbox" data-uid="${escAttr(q.uid)}" ${selected.has(q.uid) ? 'checked' : ''}>
             <span class="pickrow-body">
-              <span class="pickrow-title">Q${q.id} &middot; ${escHTML(q.topic)} &middot; ${escHTML(String(q.marks || '?'))} marks</span>
-              <span class="pickrow-meta">${escHTML(q.ref || DB.paperLabel(q))}</span>
+              <span class="pickrow-title">Q${q.id} &middot; ${escHTML(q.topic || 'Untagged')} &middot; ${escHTML(String(q.marks || '?'))} marks</span>
+              <span class="pickrow-meta">${escHTML(DB.paperLabel(q))}${q.ref ? ' &middot; ' + escHTML(q.ref) : ''}</span>
             </span>
           </label>
           <button class="btn btn--ghost btn--sm" type="button" data-video-uid="${escAttr(q.uid)}">${q.videoId ? 'Update video' : 'Add video'}</button>
@@ -147,29 +210,97 @@
     updateSelCount();
   }
 
+  /** The picked questions themselves, in the order they were ticked. */
+  function selectedQuestions(){
+    const byUid = new Map(allQuestions.map(q => [q.uid, q]));
+    return Array.from(selected).map(uid => byUid.get(uid)).filter(Boolean);
+  }
+
+  /**
+   * Every topic across the picked questions, minus any the user unticked.
+   * Derived rather than typed: the questions already carry the truth, and a
+   * free-text box let a "Vectors" pack quietly fill up with Kinematics.
+   */
+  function derivedTopics(){
+    const all = new Set();
+    selectedQuestions().forEach(q => q.topics.forEach(t => all.add(t)));
+    return Array.from(all).sort();
+  }
+  function chosenTopics(){
+    return derivedTopics().filter(t => !excludedTopics.has(t));
+  }
+
   function updateSelCount(){
-    els.selCount.textContent = `${selected.size} selected`;
+    const picked = selectedQuestions();
+    els.selCount.textContent = `${picked.length} selected`;
+
+    // Spelling out the spread is the point of the builder: it is the only
+    // place that shows a pack really does span several papers and topics.
+    if(!picked.length){
+      els.selSummary.textContent = 'Nothing picked yet.';
+    } else {
+      const marks = picked.reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
+      const papers = new Set(picked.map(q => q.paperKey)).size;
+      const topics = derivedTopics().length;
+      els.selSummary.innerHTML =
+        `${marks} marks &middot; ${papers} paper${papers === 1 ? '' : 's'} &middot; ${topics} topic${topics === 1 ? '' : 's'}`;
+    }
+    renderModTopicPills();
+  }
+
+  function renderModTopicPills(){
+    const topics = derivedTopics();
+    els.modTopicEmpty.hidden = topics.length > 0;
+    els.modTopicPills.innerHTML = topics.map(t =>
+      `<button type="button" class="pill ${excludedTopics.has(t) ? '' : 'active'}" data-modtopic="${escAttr(t)}">${escHTML(t)}</button>`
+    ).join('');
+    els.modTopicPills.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => {
+      const t = p.dataset.modtopic;
+      if(excludedTopics.has(t)) excludedTopics.delete(t); else excludedTopics.add(t);
+      renderModTopicPills();
+    }));
   }
 
   async function saveModule(){
     const title = els.modTitle.value.trim();
-    const topic = els.modTopic.value.trim() || activeTopic;
     const premium = els.modPremium.value === 'premium';
     const price = premium ? Math.max(0, Number(els.modPrice.value) || 0) : 0;
+    const picked = selectedQuestions();
 
     if(!title){ els.modSaveResult.innerHTML = '<span style="color:var(--marker-dark);">Give the module a title first.</span>'; return; }
-    if(selected.size === 0){ els.modSaveResult.innerHTML = '<span style="color:var(--marker-dark);">Select at least one question.</span>'; return; }
+    if(!picked.length){ els.modSaveResult.innerHTML = '<span style="color:var(--marker-dark);">Select at least one question.</span>'; return; }
 
-    await DB.saveModule({
-      title, topic,
-      description: els.modDesc.value.trim(),
-      premium, price,
-      currency: '৳',
-      questionUids: Array.from(selected)
-    });
+    // The subject is taken from the questions, not the filter dropdown — the
+    // dropdown is where picking STARTED, and a stale value there would
+    // mislabel the pack. They agree in normal use; this only matters if
+    // selections were carried across a subject change.
+    const subjects = Array.from(new Set(picked.map(q => q.subject)));
+    if(subjects.length > 1){
+      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">This pack mixes ${escHTML(subjects.join(' and '))}. A module covers one subject — untick the questions that don't belong.</span>`;
+      return;
+    }
+
+    els.saveModBtn.disabled = true;
+    try {
+      await DB.saveModule({
+        title,
+        subject: subjects[0] || activeSubject,
+        topics: chosenTopics(),
+        description: els.modDesc.value.trim(),
+        premium, price,
+        currency: '৳',
+        questionUids: Array.from(selected)
+      });
+    } catch (err) {
+      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">Could not save: ${escHTML(err.message || String(err))}</span>`;
+      return;
+    } finally {
+      els.saveModBtn.disabled = false;
+    }
 
     els.modSaveResult.innerHTML = `<span style="color:#2A6B42;font-weight:600;">Saved. Visible on the Storefront tab.</span>`;
     selected = new Set();
+    excludedTopics = new Set();
     els.modTitle.value = ''; els.modDesc.value = '';
     renderPickList();
     await refreshBuiltList();
@@ -186,7 +317,7 @@
       <div class="pickrow">
         <div class="pickrow-body">
           <div class="pickrow-title">${escHTML(m.title)} ${m.premium ? `<span class="module-badge" style="position:static;display:inline-block;color:var(--brass-dark);border-color:var(--brass);background:var(--brass-glow);">Premium</span>` : ''}</div>
-          <div class="pickrow-meta">${escHTML(m.topic || 'Mixed topics')} &middot; ${m.questionUids.length} question${m.questionUids.length === 1 ? '' : 's'} ${m.premium ? '&middot; ৳' + m.price : '&middot; Free'}</div>
+          <div class="pickrow-meta">${m.subject ? escHTML(m.subject) + ' &middot; ' : ''}${escHTML(m.topicLabel)} &middot; ${m.questionUids.length} question${m.questionUids.length === 1 ? '' : 's'} ${m.premium ? '&middot; ৳' + m.price : '&middot; Free'}</div>
         </div>
         <button class="btn btn--danger btn--sm" data-id="${m.id}">Delete</button>
       </div>`).join('');
@@ -217,7 +348,7 @@
       <div class="module-card">
         <div class="module-card-top">
           ${m.premium ? '<span class="module-badge">Premium</span>' : ''}
-          <div class="module-topic">${escHTML(m.topic || 'Mixed topics')}</div>
+          <div class="module-topic">${m.subject ? escHTML(m.subject) + ' &middot; ' : ''}${escHTML(m.topicLabel)}</div>
           <div class="module-title">${escHTML(m.title)}</div>
         </div>
         <div class="module-body">
@@ -262,18 +393,7 @@
         </div>
       </div>`;
 
-    if(typeof renderMathInElement === 'function'){
-      renderMathInElement(els.moduleDetail, {
-        delimiters: [
-          {left: '\\[', right: '\\]', display: true},
-          {left: '\\(', right: '\\)', display: false},
-          {left: '$$', right: '$$', display: true},
-          {left: '$', right: '$', display: false}
-        ],
-        macros: KATEX_MACROS,
-        throwOnError: false
-      });
-    }
+    SWKatex.renderMathIn(els.moduleDetail);
 
     const unlockBtn = document.getElementById('unlockBtn');
     if(unlockBtn) unlockBtn.addEventListener('click', () => showCheckout(mod, () => openModule(id)));
@@ -292,7 +412,7 @@
         <details style="margin-top:10px;">
           <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Mark scheme</summary>
           <table class="mstable" style="margin-top:8px;">
-            <thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>
+            <thead><tr><th>Part</th><th>Expected answer</th><th>Mark</th></tr></thead>
             <tbody>${renderer.toMarkSchemeRows(q.content).map(r => r.isBanner
               ? `<tr class="ms-banner-row"><td colspan="3">${r.answer}</td></tr>`
               : `<tr><td>${escHTML(r.part)}</td><td>${r.answer}</td><td>${escHTML(r.marks)}</td></tr>`).join('') || '<tr><td colspan="3"><i>None uploaded.</i></td></tr>'}</tbody>

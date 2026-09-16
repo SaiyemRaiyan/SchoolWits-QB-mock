@@ -80,9 +80,12 @@ describe('toQuestionHtml', () => {
   it('emits the part/subpart classes the stylesheet already targets', () => {
     const html = renderer().toQuestionHtml(q1());
     // css/style.css styles .qpart, .qpart--sub and .pmark — changing these
-    // would silently restyle the page.
-    expect(html).toContain('<div class="qpart">');
-    expect(html).toContain('<div class="qpart qpart--sub">');
+    // would silently restyle the page. Matched on the class attribute only:
+    // each part also carries an inline style="--paccent:#..." for its accent
+    // colour, and pinning the whole tag made this test fail on any change to
+    // that attribute rather than to the classes it is actually guarding.
+    expect(html).toMatch(/<div class="qpart"[ >]/);
+    expect(html).toMatch(/<div class="qpart qpart--sub"[ >]/);
     expect(html).toContain('<span class="pmark">(a)</span>');
     expect(html).toContain('<span class="pmark">(i)</span>');
   });
@@ -119,7 +122,7 @@ describe('toQuestionHtml', () => {
     // 1(c) carries the sum of (i)+(ii); showing it too would double-count.
     const html = renderer().toQuestionHtml(q1());
     const partC = html.slice(html.indexOf('(c)</span>'), html.indexOf('(d)</span>'));
-    const badges = partC.match(/class="markbadge"/g) || [];
+    const badges = partC.match(/class="marktag"/g) || [];
     expect(badges).toHaveLength(2); // one per subpart, none for (c) itself
   });
 

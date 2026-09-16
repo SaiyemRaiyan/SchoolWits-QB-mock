@@ -149,7 +149,7 @@ ${scripts}
       '<div class="pv-tabs" data-q="' + i + '">' +
         '<span class="pv-tab" aria-selected="true" data-panel="q">Question</span>' +
         '<span class="pv-tab" aria-selected="false" data-panel="ms">Mark scheme</span>' +
-        '<span class="pv-tab" aria-selected="false" data-panel="ex">Exemplar</span>' +
+        '<span class="pv-tab" aria-selected="false" data-panel="ex">Worked Solution</span>' +
       '</div>' +
       '<div class="pv-panel" data-q="' + i + '" data-panel="q">' +
         '<div class="question-shell">' + card.questionHtml + '</div></div>' +
@@ -157,7 +157,7 @@ ${scripts}
         '<table class="mstable"><thead><tr><th>Part</th><th>Expected answer</th><th>Marks</th></tr></thead>' +
         '<tbody>' + (msRows || '<tr><td colspan="3"><i>No mark scheme.</i></td></tr>') + '</tbody></table></div>' +
       '<div class="pv-panel" data-q="' + i + '" data-panel="ex" hidden>' +
-        '<div class="exemplar-box">' + card.exemplarHtml + '</div></div>' +
+        '<div class="worked-solution-box">' + card.workedSolutionHtml + '</div></div>' +
     '</article>';
   }).join('');
 

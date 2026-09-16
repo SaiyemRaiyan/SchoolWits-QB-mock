@@ -12,7 +12,7 @@ with any static file server). All three pages share the same data:
 - **`index.html` — Browse & Search.**
   Filter by subject, paper, variant, session, year and topic (all options
   are generated from whatever you've uploaded — nothing is hardcoded), or
-  free-text search across every question, mark scheme and exemplar.
+  free-text search across every question, mark scheme and worked solution.
   "Group by" switches between paper-by-paper (yearly), topic, or subject
   views. Comes pre-loaded with the sample paper you provided: Physics,
   Paper 1, Variant 1, M/J session, 2025 (all 9 questions).

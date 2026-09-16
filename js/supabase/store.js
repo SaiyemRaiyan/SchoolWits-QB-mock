@@ -120,6 +120,20 @@ const DB = (function(){
 
   function check(error){ if(error) throw error; }
 
+  /* ---------------------------------------------------------- reference-data cache
+     `papers` and `syllabuses` are small, read-mostly, and now wanted by
+     several independent things on one page load — the nav, the Browse
+     filters, the syllabus picker and getFacets each asked for them, which
+     meant the same rows crossed the wire three to five times per load.
+
+     Cached for the lifetime of the page only (a reload refetches), and
+     dropped explicitly whenever this adapter writes a paper, so an admin
+     never sees their own change missing. Question rows are deliberately NOT
+     cached here: they are large and this file is not their owner. */
+  let paperCache = null;      // Promise<Paper[]>, not the array — see below
+  let syllabusCache = null;
+  function invalidatePaperCache(){ paperCache = null; syllabusCache = null; }
+
   /* ---------------------------------------------------------- papers */
   async function upsertPaper(meta){
     const row = {
@@ -133,13 +147,22 @@ const DB = (function(){
     };
     const { data, error } = await client.from('papers').upsert(row, { onConflict: 'paper_key' }).select().single();
     check(error);
+    invalidatePaperCache();
     return paperRowToRecord(data);
   }
 
-  async function getAllPapers(){
-    const { data, error } = await client.from('papers').select('*');
-    check(error);
-    return data.map(paperRowToRecord);
+  function getAllPapers(){
+    // Returns the in-flight promise when one exists. The nav and the page
+    // body boot concurrently and both want this list; caching the resolved
+    // value only would still let both fire a query before either landed.
+    if (paperCache) return paperCache;
+    paperCache = (async () => {
+      const { data, error } = await client.from('papers').select('*');
+      check(error);
+      return data.map(paperRowToRecord);
+    })();
+    paperCache.catch(() => { paperCache = null; });   // don't cache a failure
+    return paperCache;
   }
 
   async function deletePaper(paperKey){
@@ -149,6 +172,7 @@ const DB = (function(){
     // server-side.
     const { error } = await client.from('papers').delete().eq('paper_key', paperKey);
     check(error);
+    invalidatePaperCache();
   }
 
   /* ---------------------------------------------------------- questions */
@@ -220,7 +244,17 @@ const DB = (function(){
 
   /* ---------------------------------------------------------- facets & search */
   async function getFacets(){
-    const [qs, papers] = [await getAllQuestions(), await getAllPapers()];
+    // Only the columns the facets actually need. This used to call
+    // getAllQuestions(), which selects `content` — the whole parsed question
+    // — for every row, to compute a topic list. Mirrors what
+    // backend/src/db.ts already does. Also runs the two queries in parallel;
+    // `[await a, await b]` ran them one after the other.
+    const [topicRes, papers] = await Promise.all([
+      client.from('questions').select('topics'),
+      getAllPapers()
+    ]);
+    check(topicRes.error);
+    const qs = topicRes.data || [];
     const uniq = (arr) => Array.from(new Set(arr.filter(Boolean))).sort();
     return {
       subjects: uniq(papers.map(p => p.subject)),
@@ -230,7 +264,7 @@ const DB = (function(){
       years: uniq(papers.map(p => p.year)).sort((a, b) => b - a),
       // A question has several topics, so the facet list is the union across
       // all of them rather than one value each.
-      topics: uniq(qs.flatMap(q => q.topics)),
+      topics: uniq(qs.flatMap(q => q.topics || [])),
       paperCount: papers.length,
       questionCount: qs.length
     };
@@ -361,11 +395,35 @@ const DB = (function(){
   }
 
   /* ---------------------------------------------------------- admin auth */
-  async function signIn(email, password){
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
+  /**
+   * Google OAuth, via Supabase Auth's own provider.
+   *
+   * There is no client id or secret in this codebase and no callback route
+   * to write: the credentials live in the Supabase project (Authentication
+   * -> Providers -> Google) and Supabase owns the callback at
+   * <project>.supabase.co/auth/v1/callback. The browser's only job is to
+   * start the flow and to say where the user should land afterwards.
+   *
+   * `redirectTo` is the CURRENT page, so an admin who hits the gate on
+   * modules.html comes back to modules.html rather than the site root. That
+   * URL must be listed under Authentication -> URL Configuration ->
+   * Redirect URLs, or Supabase refuses the round trip.
+   */
+  async function signInWithGoogle(redirectTo){
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectTo || window.location.href.split('#')[0]
+      }
+    });
     check(error);
     return data;
   }
+  async function currentUser(){
+    const { data: { user } } = await client.auth.getUser();
+    return user || null;
+  }
+
   async function signOut(){
     await client.auth.signOut();
   }
@@ -380,6 +438,93 @@ const DB = (function(){
     return !!data;
   }
 
+
+
+  /**
+   * Paper and question totals only.
+   *
+   * Home showed two numbers but reached them through getFacets(), which
+   * reads a row per question to build topic/subject/year lists it then threw
+   * away. `head: true` makes PostgREST return the count in a header and no
+   * rows at all.
+   */
+  async function getCounts(){
+    const [papers, questions] = await Promise.all([
+      client.from('papers').select('*', { count: 'exact', head: true }),
+      client.from('questions').select('*', { count: 'exact', head: true })
+    ]);
+    check(papers.error); check(questions.error);
+    return { paperCount: papers.count || 0, questionCount: questions.count || 0 };
+  }
+
+  /* ---------------------------------------------------------- syllabuses */
+  /**
+   * The subject/code catalogue that drives Browse navigation (see 0015),
+   * grouped by qualification and annotated with how many papers each
+   * subject actually has.
+   *
+   * Joined on `subject_code`, never on the subject NAME: papers.subject is
+   * derived from a folder name at import time ("Add Maths"), while the
+   * catalogue carries the board's own title ("Additional Mathematics").
+   * They differ today for 2 of the 5 subjects.
+   *
+   * `withPapers` is what the nav renders — a subject nobody has uploaded a
+   * paper for yet would otherwise be a dead end.
+   */
+  function getSyllabuses(knownPapers){
+    if (syllabusCache) return syllabusCache;
+    syllabusCache = buildSyllabuses(knownPapers);
+    syllabusCache.catch(() => { syllabusCache = null; });
+    return syllabusCache;
+  }
+
+  async function buildSyllabuses(knownPapers){
+    const [{ data: rows, error }, papers] = await Promise.all([
+      client.from('syllabuses').select('*').order('qualification').order('sort_order'),
+      // Browse already loads the paper list for its filters; re-fetching it
+      // here made three round-trips for the same rows on every page load.
+      knownPapers || getAllPapers()
+    ]);
+    check(error);
+
+    const paperCount = new Map();
+    papers.forEach(p => {
+      const code = p.subjectCode;
+      if (code) paperCount.set(code, (paperCount.get(code) || 0) + 1);
+    });
+
+    const subjects = (rows || []).map(r => ({
+      code: r.code,
+      title: r.title,
+      qualification: r.qualification,
+      board: r.board,
+      sortOrder: r.sort_order,
+      paperCount: paperCount.get(r.code) || 0
+    }));
+
+    // Preserve the order the query returned rather than re-sorting by name:
+    // sort_order is editable data, and that is the point of the table.
+    const byQualification = [];
+    subjects.forEach(s => {
+      let group = byQualification.find(g => g.qualification === s.qualification);
+      if (!group) byQualification.push(group = { qualification: s.qualification, board: s.board, subjects: [] });
+      group.subjects.push(s);
+    });
+
+    // Qualifications that actually have papers come first, then alphabetical.
+    // Plain alphabetical put "IGCSE" (0 papers) ahead of "O Level" (9), so
+    // Browse opened on an empty branch.
+    byQualification.forEach(g => { g.paperCount = g.subjects.reduce((n, x) => n + x.paperCount, 0); });
+    byQualification.sort((a, b) =>
+      (b.paperCount > 0) - (a.paperCount > 0) || a.qualification.localeCompare(b.qualification));
+
+    return {
+      subjects,
+      byQualification,
+      withPapers: subjects.filter(s => s.paperCount > 0)
+    };
+  }
+
   return {
     // The raw supabase-js client. Exposed for the two things this adapter
     // deliberately does not wrap: Storage uploads and reading the current
@@ -389,11 +534,11 @@ const DB = (function(){
     open, slug, paperKeyOf, paperLabel,
     upsertPaper, getAllPapers, deletePaper,
     getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,
-    getFacets, search,
+    getFacets, getCounts, search, getSyllabuses, invalidatePaperCache,
     saveModule, getAllModules, getModule, deleteModule,
     isPurchased, markPurchased,
     setVideo,
-    signIn, signOut, isAdmin
+    signInWithGoogle, signOut, isAdmin, currentUser
   };
 
 })();

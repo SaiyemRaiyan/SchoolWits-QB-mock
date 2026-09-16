@@ -63,6 +63,7 @@
   /* ---------------------------------------------------------- boot */
   async function boot(){
     await DB.open();
+    SWNav.render('modules');
     wireModeTabs();
     await refreshBuilder();
     await refreshStorefront();
@@ -357,7 +358,7 @@
           <div class="module-title">${escHTML(m.title)}</div>
         </div>
         <div class="module-body">
-          <div class="module-desc">${escHTML(m.description || 'A focused set of past-paper questions on this topic, with full mark schemes and exemplar answers.')}</div>
+          <div class="module-desc">${escHTML(m.description || 'A focused set of past-paper questions on this topic, with full mark schemes and worked solutions.')}</div>
           <div class="module-foot">
             <span class="module-qcount">${m.questionUids.length} question${m.questionUids.length === 1 ? '' : 's'}</span>
             ${owned
@@ -424,8 +425,8 @@
           </table>
         </details>
         <details style="margin-top:8px;">
-          <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Exemplar</summary>
-          <div style="margin-top:8px;">${renderer.toExemplarHtml(q.content)}</div>
+          <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Worked solution</summary>
+          <div style="margin-top:8px;">${renderer.toWorkedSolutionHtml(q.content)}</div>
         </details>
       </div>`;
   }
@@ -437,7 +438,7 @@
     wrap.innerHTML = `
       <div class="modal">
         <h3>Unlock "${escHTML(mod.title)}"</h3>
-        <p class="modal-sub">One-time purchase. Unlocks all ${mod.questionUids.length} questions with full mark schemes and exemplars, forever, on this device.</p>
+        <p class="modal-sub">One-time purchase. Unlocks all ${mod.questionUids.length} questions with full mark schemes and worked solutions, forever, on this device.</p>
         <div class="modal-price">৳${mod.price}</div>
         <div class="modal-note">This is a demo checkout — no real payment is taken. Connect a real payment provider (SSLCommerz, Stripe, bKash) before selling for real; the purchase flag is currently stored only in this browser.</div>
         <div class="modal-actions">

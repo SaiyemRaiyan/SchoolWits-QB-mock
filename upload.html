@@ -15,7 +15,21 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
     />
+    <link rel="icon" href="assets/img/logo.jpg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Preflight OFF. It is Tailwind's global reset, and the Play CDN
+      // injects its stylesheet into <head> at RUNTIME — after these <link>
+      // tags — so it was overriding css/style.css and zeroing the margin on
+      // every h1-h6, p, figure and pre, plus the padding on every list. The
+      // result was a site with no vertical rhythm at all.
+      //
+      // css/style.css already has its own reset and typography; Tailwind is
+      // here for utility classes on new markup, not to normalise the page.
+      tailwind.config = { corePlugins: { preflight: false } };
+    </script>
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/minimal.css" />
   </head>
   <body>
     <div class="app">
@@ -27,11 +41,8 @@
             <span class="brand-sub">Question Bank</span>
           </div>
         </div>
-        <nav class="sitenav">
-          <a href="index.html">Browse</a>
-          <a href="upload.html" class="active">Upload</a>
-          <a href="modules.html">Modules</a>
-        </nav>
+        <nav class="sitenav" id="siteNav"></nav>
+        <nav class="sitenav sitenav--secondary"><a href="modules.html">Modules</a><a href="upload.html" class="active">Upload</a></nav>
         <div style="flex: 1"></div>
       </header>
 
@@ -47,13 +58,10 @@
         <div id="adminGate" class="section-card" style="max-width:420px;margin:60px auto;">
           <h2>Admin sign-in required</h2>
           <p class="hint">Upload manages the shared question bank — sign in with an admin account to continue.</p>
-          <form id="adminGateForm" autocomplete="on">
-            <label>Email</label>
-            <input type="email" id="adminGateEmail" placeholder="you@example.com" required>
-            <label>Password</label>
-            <input type="password" id="adminGatePassword" required>
-            <button class="btn btn--primary" type="submit" style="margin-top:16px;width:100%;">Sign in</button>
-          </form>
+          <button class="btn btn--primary btn--google" type="button" id="adminGateGoogle" style="margin-top:16px;width:100%;">
+            <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-2.7-.4-4H24v7.3h12.1c-.2 1.9-1.6 4.9-4.5 6.9l6.9 5.4c4.1-3.8 6.6-9.4 6.6-15.6z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .7-4.4l-7.1-5.5C2.8 17 2 20.4 2 24s.8 7 2.3 9.9l7.2-5.5z"/><path fill="#EA4335" d="M24 10.2c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4 29.9 2 24 2 15.4 2 8.1 7 4.3 14.1l7.1 5.5C13.3 14.3 18.2 10.2 24 10.2z"/></svg>
+            Continue with Google
+          </button>
           <p id="adminGateError" class="hint" style="color:var(--marker-dark);margin-top:10px;" hidden></p>
         </div>
 
@@ -226,8 +234,8 @@
                     <button class="pd-tab" data-doc="markscheme" role="tab">
                       Mark Scheme
                     </button>
-                    <button class="pd-tab" data-doc="exemplar" role="tab">
-                      Exemplar &amp; Answers
+                    <button class="pd-tab" data-doc="worked-solution" role="tab">
+                      Worked Solutions
                     </button>
                   </div>
                   <div class="paperdoc-sheet">
@@ -241,7 +249,7 @@
                     ></div>
                     <div
                       class="pd-doc preview-scroll"
-                      id="previewArea-exemplar"
+                      id="previewArea-worked-solution"
                     ></div>
                   </div>
                 </div>
@@ -268,6 +276,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase/config.js"></script>
     <script src="js/supabase/store.js"></script>
+<script src="js/nav.js"></script>
     <script src="js/supabase/admin-gate.js"></script>
     <!-- The same renderer Browse uses, so the preview here is literally what
          students will see rather than an approximation of it. -->

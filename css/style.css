@@ -1047,7 +1047,7 @@ table.datatable .blankrow {
   border-bottom: 1px solid var(--marker-border);
 }
 
-/* ---- Exemplar panel ---- */
+/* ---- Worked solution panel ---- */
 .band {
   display: inline-block;
   font-family: var(--mono);
@@ -1063,7 +1063,7 @@ table.datatable .blankrow {
   box-shadow: 0 2px 8px rgba(184, 134, 46, .25);
 }
 
-.exemplar-box {
+.worked-solution-box {
   border-left: 4px solid var(--brass);
   background: linear-gradient(135deg, #FDFCF8 0%, #F8F6F0 100%);
   padding: 8px 24px 12px;
@@ -1074,7 +1074,7 @@ table.datatable .blankrow {
   box-shadow: var(--shadow-sm);
 }
 
-.exemplar-box h4 {
+.worked-solution-box h4 {
   font-family: var(--serif);
   font-weight: 600;
   font-size: 14.5px;
@@ -1082,11 +1082,11 @@ table.datatable .blankrow {
   margin: 18px 0 6px;
 }
 
-.exemplar-box h4:first-child {
+.worked-solution-box h4:first-child {
   margin-top: 14px;
 }
 
-.exemplar-box p {
+.worked-solution-box p {
   font-size: 14.5px;
   line-height: 1.72;
   margin: 0 0 10px;
@@ -2948,7 +2948,7 @@ button:focus-visible,
 .pd-qsection .mstable {
   margin-top: 2px;
 }
-.pd-qsection .exemplar-box {
+.pd-qsection .worked-solution-box {
   border-left-color: var(--qaccent, var(--brass));
 }
 
@@ -2995,4 +2995,87 @@ button:focus-visible,
   .pd-qmarks {
     margin-left: 0;
   }
+}
+/* =====================================================================
+   Syllabus picker — Browse's first level (qualification, then subject).
+   Rendered from the `syllabuses` table, so this styles whatever the data
+   contains rather than a fixed set of subjects.
+   ===================================================================== */
+.syllabus-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.syllabus-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.syllabus-step-label {
+  flex: 0 0 96px;
+  padding-top: 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.syllabus-step .pill-row {
+  flex: 1 1 260px;
+  margin: 0;
+}
+
+/* The syllabus code is the stable identifier students recognise from the
+   paper header, so it leads the pill rather than sitting in a tooltip. */
+.syllabus-code {
+  margin-right: 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-blue);
+}
+
+.pill.active .syllabus-code { color: inherit; }
+
+/* Modules/Upload: reachable, but not top-level navigation. */
+.sitenav--secondary {
+  margin-left: auto;
+  opacity: .82;
+}
+
+@media (max-width: 720px) {
+  .syllabus-step { gap: 6px; }
+  .syllabus-step-label { flex-basis: 100%; padding-top: 0; }
+}
+
+/* Google sign-in button — brand mark sits beside the label, so the button
+   needs to be a flex row rather than the default centred text. */
+.btn--google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.btn--google svg { flex: 0 0 16px; }
+
+/* Study page: the reveal toggles over mark scheme / worked solution. */
+.study-toggle {
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
 }

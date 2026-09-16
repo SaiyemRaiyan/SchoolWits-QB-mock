@@ -27,11 +27,9 @@
     fSession: document.getElementById('fSession'),
     fYear: document.getElementById('fYear'),
     fTopic: document.getElementById('fTopic'),
-    fBrowse: document.getElementById('fBrowse'),
     fText: document.getElementById('fText'),
 
-    railList: document.getElementById('railList'),
-    railHeading: document.getElementById('railHeading'),
+    qualPills: document.getElementById('qualPills'),
     statStrip: document.getElementById('statStrip'),
     paperStrip: document.getElementById('paperStrip'),
 
@@ -47,7 +45,7 @@
     stampMarks: document.getElementById('stampMarks'),
     qBody: document.getElementById('qBody'),
     msBody: document.getElementById('msBody'),
-    exemplarBody: document.getElementById('exemplarBody'),
+    workedSolutionBody: document.getElementById('workedSolutionBody'),
     videoArea: document.getElementById('videoArea'),
 
     prevBtn: document.getElementById('prevBtn'),
@@ -61,18 +59,125 @@
     pdTabs: document.querySelectorAll('.pd-tab'),
     pdDocPaper: document.getElementById('pdDoc-paper'),
     pdDocMarkscheme: document.getElementById('pdDoc-markscheme'),
-    pdDocExemplar: document.getElementById('pdDoc-exemplar')
+    pdDocWorkedSolution: document.getElementById('pdDoc-worked-solution')
   };
+
+  // Can this visitor change anything? False on the student portal by
+  // construction, and false for a signed-out or non-admin visitor on
+  // Browse. Only affects what is DRAWN — every write is independently
+  // refused by the database (anon lost INSERT/UPDATE/DELETE in migration
+  // 0017, and RLS checks is_admin() behind that), so this is UX, never the
+  // boundary.
+  const isStudentPortal = document.body.dataset.role === 'student';
+  let canEdit = false;
 
   let currentResults = [];   // questions matching the active filters/search
   let currentIndex = -1;     // index into currentResults
   let viewMode = 'single';   // 'single' (one question at a time) | 'full' (whole paper, continuous)
   const ACCENTS = ['#2F6FB3', '#1D8A5C', '#B9762A', '#8B4FB0', '#C0392B', '#1A9E96', '#7A6A1E', '#4A5568'];
 
+  /**
+   * The syllabus code from ?code=4037, set by the subject links in the nav
+   * (js/nav.js). Null on a plain Browse visit.
+   */
+  function activeCode(){
+    return new URLSearchParams(location.search).get('code');
+  }
+
+  /* ---------------------------------------------------------- syllabus picker */
+  // Browse now starts one level up: pick a qualification (Cambridge O Level
+  // / Cambridge IGCSE), then a subject. Both lists come from the
+  // `syllabuses` table, so a new subject is an INSERT rather than an edit
+  // here. Selecting a subject sets the `subject` filter the rest of the
+  // page already understands, which is why this bolts on without touching
+  // search().
+  let syllabus = { byQualification: [], subjects: [] };
+  let activeQualification = '';
+  let paperSubjectByCode = null;
+
+  async function initSyllabusPicker(){
+    try {
+      const papers = await DB.getAllPapers();
+      syllabus = await DB.getSyllabuses(papers);
+      paperSubjectByCode = new Map();
+      papers.forEach(pr => { if (pr.subjectCode) paperSubjectByCode.set(pr.subjectCode, pr.subject); });
+    } catch (err) {
+      console.error('Browse: could not load syllabuses —', err);
+      if (els.qualPills) els.qualPills.innerHTML = '<p class="hint">Could not load subjects.</p>';
+      return;
+    }
+
+    const code = activeCode();
+    const preset = code && syllabus.subjects.find(x => x.code === code);
+    activeQualification = preset ? preset.qualification
+      : (syllabus.byQualification.find(g => g.subjects.some(x => x.paperCount > 0))?.qualification || '');
+
+    renderQualPills();
+    fillSubjectOptions();
+    if (preset) applySubject(preset);
+  }
+
+  function renderQualPills(){
+    els.qualPills.innerHTML = syllabus.byQualification.map(g =>
+      `<button class="pill ${g.qualification === activeQualification ? 'active' : ''}" data-qual="${escAttr(g.qualification)}">`
+      + `${escHTML(g.board + ' ' + g.qualification)}<span class="count">${g.paperCount}</span></button>`).join('');
+
+    els.qualPills.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => {
+      activeQualification = b.dataset.qual;
+      renderQualPills();
+      // Subject options are scoped to the qualification, so the previous
+      // choice may not exist in the new list.
+      els.fSubject.value = '';
+      fillSubjectOptions();
+      runSearch();
+    }));
+  }
+
+  /**
+   * The Subject dropdown, scoped to the chosen qualification and labelled
+   * with the official syllabus code ("4037 — Additional Mathematics").
+   *
+   * The option VALUE stays the subject name the papers carry ("Add Maths"),
+   * because that is what search() filters on; only the label comes from the
+   * catalogue. The two differ for 2 of 5 subjects, which is why the code
+   * cannot simply be prepended to the stored name.
+   */
+  function fillSubjectOptions(){
+    const group = syllabus.byQualification.find(g => g.qualification === activeQualification);
+    const subjects = (group ? group.subjects : []).filter(x => x.paperCount > 0);
+    const keep = els.fSubject.value;
+
+    els.fSubject.innerHTML = '<option value="">Any subject</option>' + subjects.map(x => {
+      const name = syllabusSubjectName(x.code);
+      if (!name) return '';
+      return `<option value="${escAttr(name)}">${escHTML(x.code)} &mdash; ${escHTML(x.title)}</option>`;
+    }).join('');
+
+    if ([...els.fSubject.options].some(o => o.value === keep)) els.fSubject.value = keep;
+  }
+
+  /**
+   * Bridges the catalogue to the existing filters. `papers.subject` is a
+   * folder-derived name ("Add Maths") while the catalogue holds the board's
+   * title ("Additional Mathematics"), so the subject NAME is looked up from
+   * a paper carrying this code rather than assumed to match.
+   */
+  function applySubject(chosen){
+    const match = syllabusSubjectName(chosen.code);
+    if (match) els.fSubject.value = match;
+  }
+
+  function syllabusSubjectName(code){
+    return paperSubjectByCode ? (paperSubjectByCode.get(code) || null) : null;
+  }
+
   /* ---------------------------------------------------------- boot */
   async function boot(){
     await DB.open();
+    canEdit = isStudentPortal ? false : await DB.isAdmin();
+    SWNav.render(isStudentPortal ? 'home' : 'browse');
     await refreshFilterOptions();
+    await initSyllabusPicker();
     initEvents();
     await runSearch();
   }
@@ -86,7 +191,10 @@
 
   async function refreshFilterOptions(){
     const facets = await DB.getFacets();
-    fillSelect(els.fSubject, facets.subjects);
+    // fSubject is NOT filled here. It is built by fillSubjectOptions() from
+    // the syllabuses catalogue so each option can show its code, and it is
+    // scoped to the chosen qualification. Filling it from raw facet names
+    // would overwrite those labels with bare "Add Maths" strings.
     fillSelect(els.fPaper, facets.papers);
     fillSelect(els.fVariant, facets.variants);
     fillSelect(els.fSession, facets.sessions);
@@ -99,7 +207,7 @@
 
   /* ---------------------------------------------------------- events */
   function initEvents(){
-    [els.fSubject, els.fPaper, els.fVariant, els.fSession, els.fYear, els.fTopic, els.fBrowse]
+    [els.fSubject, els.fPaper, els.fVariant, els.fSession, els.fYear, els.fTopic]
       .forEach(sel => sel.addEventListener('change', runSearch));
     let debounce;
     els.fText.addEventListener('input', () => {
@@ -112,6 +220,11 @@
   }
 
   /* ---------------------------------------------------------- search / filter */
+  /** True when the user has narrowed to something worth fetching. */
+  function hasFilter(f){
+    return Boolean(f.subject || f.paper || f.variant || f.session || f.year || f.topic || (f.text || '').trim());
+  }
+
   async function runSearch(){
     const filters = {
       subject: els.fSubject.value,
@@ -122,6 +235,20 @@
       topic: els.fTopic.value,
       text: els.fText.value
     };
+    // Nothing chosen yet? Don't fetch. An unfiltered search pulls every
+    // question in the bank WITH its full `content` blob — measured at
+    // 908 KB — only for the user to immediately narrow it to one subject.
+    // The picker above is the prompt; the bank loads once it is answered.
+    if(!hasFilter(filters)){
+      currentResults = [];
+      currentIndex = -1;
+      renderPaperStrip(filters);
+      await updateViewModeUI(filters);
+      els.qnavStrip.hidden = true;
+      showEmpty('Choose a subject', 'Pick a qualification and subject above to load its questions.');
+      return;
+    }
+
     currentResults = await DB.search(filters);
     currentIndex = currentResults.length ? 0 : -1;
     renderPaperStrip(filters);
@@ -170,7 +297,7 @@
     }));
     els.pdTabs.forEach(tab => tab.addEventListener('click', () => {
       els.pdTabs.forEach(t => t.classList.toggle('active', t === tab));
-      ['paper', 'markscheme', 'exemplar'].forEach(name => {
+      ['paper', 'markscheme', 'worked-solution'].forEach(name => {
         document.getElementById('pdDoc-' + name).classList.toggle('active', name === tab.dataset.doc);
       });
     }));
@@ -186,7 +313,7 @@
       const msg = '<div class="pd-empty">No questions found for this paper.</div>';
       els.pdDocPaper.innerHTML = msg;
       els.pdDocMarkscheme.innerHTML = msg;
-      els.pdDocExemplar.innerHTML = msg;
+      els.pdDocWorkedSolution.innerHTML = msg;
       return;
     }
 
@@ -239,13 +366,13 @@
           <div class="pd-qhead">
             <span class="pd-qnum">Question ${q.id}</span>
           </div>
-          <div class="exemplar-box">${renderer.toExemplarHtml(q.content)}</div>
+          <div class="worked-solution-box">${renderer.toWorkedSolutionHtml(q.content)}</div>
         </article>`;
     }).join('');
 
     els.pdDocPaper.innerHTML = docHead('Question Paper') + qSections;
     els.pdDocMarkscheme.innerHTML = docHead('Mark Scheme') + msSections;
-    els.pdDocExemplar.innerHTML = docHead('Exemplar &amp; Model Answers') + exSections;
+    els.pdDocWorkedSolution.innerHTML = docHead('Worked Solutions') + exSections;
 
     renderMathIn(els.paperDoc);
   }
@@ -259,12 +386,11 @@
   }
 
   function renderPaperStrip(filters){
-    const mode = els.fBrowse.value;
     const bits = [filters.subject, filters.paper && `Paper ${filters.paper}`, filters.variant && `Var. ${filters.variant}`, filters.session, filters.year, filters.topic]
       .filter(Boolean);
     els.paperStrip.textContent = bits.length
-      ? `${bits.join(' · ')} — Grouped by: ${mode}`
-      : `All uploaded papers — Grouped by: ${mode}`;
+      ? bits.join(' · ')
+      : 'All uploaded papers';
   }
 
   /* ---------------------------------------------------------- horizontal question nav */
@@ -280,18 +406,19 @@
     strip.hidden = false;
     showBank();
 
-    const mode = els.fBrowse.value;
     let lastGroup = null;
     let groupEl = null;
 
     currentResults.forEach((q, i) => {
-      const groupKey = mode === 'Subject' ? q.subject : mode === 'Topical' ? q.topic : q.paperKey;
+      // Always grouped by paper now that the "Group by" control is gone —
+      // that was its default, and it is the order a question bank is read in.
+      const groupKey = q.paperKey;
       if(groupKey !== lastGroup){
         groupEl = document.createElement('div');
         groupEl.className = 'qnav-group';
         const label = document.createElement('span');
         label.className = 'qnav-group-label';
-        label.textContent = mode === 'Subject' ? q.subject : mode === 'Topical' ? (q.topic || 'Uncategorised') : DB.paperLabel(q);
+        label.textContent = DB.paperLabel(q);
         groupEl.appendChild(label);
         strip.appendChild(groupEl);
         lastGroup = groupKey;
@@ -313,10 +440,18 @@
     });
   }
 
-  function showEmpty(){
+  function showEmpty(title, text){
     els.card.hidden = true;
     els.emptyState.hidden = false;
     els.qnavStrip.hidden = true;
+    // Explicit copy wins — used by the "nothing chosen yet" state, which is
+    // a prompt rather than a failure and should not read like one.
+    if(title){
+      els.emptyTitle.textContent = title;
+      els.emptyText.textContent = text || '';
+      els.paperDoc.hidden = true;
+      return;
+    }
     const anyFilter = els.fSubject.value || els.fPaper.value || els.fVariant.value || els.fSession.value || els.fYear.value || els.fTopic.value || els.fText.value.trim();
     if(anyFilter){
       els.emptyTitle.textContent = 'No questions match those filters';
@@ -342,6 +477,10 @@
     els.qTitle.textContent = `Question ${q.id}`;
     els.qSub.textContent = `${q.ref || DB.paperLabel(q) + ' · Q' + q.id}${topicLabel ? ' · Topic: ' + topicLabel : ''}`;
     els.stampMarks.textContent = q.marks || '—';
+    // "1 marks" was wrong on every one-mark question, and this paper is 40
+    // of them. The <small> sits next to the number in the stamp.
+    const unit = els.stampMarks.nextElementSibling;
+    if(unit) unit.textContent = Number(q.marks) === 1 ? ' mark' : ' marks';
 
     els.qBody.innerHTML = `<div class="question-shell">${renderer.toQuestionHtml(q.content)}</div>`;
 
@@ -353,7 +492,7 @@
         <td>${escHTML(row.marks)}</td>
       </tr>`).join('') || '<tr><td colspan="3"><i>No mark scheme uploaded for this question.</i></td></tr>';
 
-    els.exemplarBody.innerHTML = renderer.toExemplarHtml(q.content);
+    els.workedSolutionBody.innerHTML = renderer.toWorkedSolutionHtml(q.content);
 
     const videoTab = Array.from(els.tabs).find(tab => tab.dataset.tab === 'video');
     if(videoTab){
@@ -390,15 +529,24 @@
 
   function renderVideo(q){
     if(q.videoId){
+      // Students get the video; only an admin gets the control that
+      // changes it. Previously "Change link" was drawn for everyone, which
+      // meant a student could click a button that could only ever fail.
       els.videoArea.innerHTML = `
         <div class="video-frame">
           <iframe src="https://www.youtube.com/embed/${q.videoId}" title="Video explanation for Question ${q.id}" allowfullscreen loading="lazy"></iframe>
         </div>
-        <div class="video-meta">
+        ${canEdit ? `<div class="video-meta">
           <span>Linked video: youtu.be/${q.videoId}</span>
           <button id="changeVideoBtn" type="button">Change link</button>
+        </div>` : ''}`;
+      if(canEdit) document.getElementById('changeVideoBtn').addEventListener('click', () => showVideoForm(q));
+    } else if(!canEdit){
+      els.videoArea.innerHTML = `
+        <div class="video-frame">
+          <div class="playbtn">&#9658;</div>
+          <div class="video-empty-text">No video for Question ${q.id} yet.</div>
         </div>`;
-      document.getElementById('changeVideoBtn').addEventListener('click', () => showVideoForm(q));
     } else {
       els.videoArea.innerHTML = `
         <div class="video-frame">

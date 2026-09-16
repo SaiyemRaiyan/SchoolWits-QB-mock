@@ -14,7 +14,7 @@ description (pages, data model, `.tex` upload format).
 - `js/render/` — turns a question's stored `content` JSON into HTML. Plain
   JS classes, one per concern, loaded as `<script>` tags. The pages call
   `SWRender.QuestionRenderer`'s three methods (`toQuestionHtml`,
-  `toMarkSchemeRows`, `toExemplarHtml`) and nothing else.
+  `toMarkSchemeRows`, `toWorkedSolutionHtml`) and nothing else.
 - **The `.tex` parser is no longer in the browser.** `js/latex.js` has been
   deleted, along with `js/compose.js`, `js/store.js` and `js/seed-data.js`.
   Parsing happens in `backend/src/latex/` and runs in Node (the `npm run

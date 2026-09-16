@@ -17,9 +17,7 @@
     const content = document.getElementById('adminGateContent');
     if(!gate || !content) return;
 
-    const form = document.getElementById('adminGateForm');
-    const emailInput = document.getElementById('adminGateEmail');
-    const passwordInput = document.getElementById('adminGatePassword');
+    const button = document.getElementById('adminGateGoogle');
     const errorEl = document.getElementById('adminGateError');
 
     // Pages whose scripts must not run until an admin is present listen for
@@ -35,20 +33,26 @@
     if(await DB.isAdmin()){ reveal(); return; }
     lock();
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Returning from Google, the session exists but the account may not be
+    // on the admin list. Say which account was refused — otherwise someone
+    // signed into the wrong Google account sees a login screen that appears
+    // to do nothing when they click it again.
+    const user = await DB.currentUser();
+    if(user){
+      errorEl.textContent = 'Signed in as ' + (user.email || 'this account')
+        + ', which is not on the admin list.';
+      errorEl.hidden = false;
+    }
+
+    button.addEventListener('click', async () => {
       errorEl.hidden = true;
+      button.disabled = true;
       try{
-        await DB.signIn(emailInput.value.trim(), passwordInput.value);
-        if(await DB.isAdmin()){
-          reveal();
-        } else {
-          await DB.signOut();
-          errorEl.textContent = 'Signed in, but this account is not on the admin list.';
-          errorEl.hidden = false;
-        }
+        // Redirects away; nothing after this runs on success.
+        await DB.signInWithGoogle();
       } catch(err){
-        errorEl.textContent = err.message || 'Could not sign in.';
+        button.disabled = false;
+        errorEl.textContent = err.message || 'Could not start Google sign-in.';
         errorEl.hidden = false;
       }
     });

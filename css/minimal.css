@@ -1,0 +1,672 @@
+/* =====================================================================
+   School Wits — minimal theme
+
+   Loaded AFTER css/style.css and after Tailwind, and deliberately so: the
+   original stylesheet still owns everything that renders exam CONTENT
+   (mark-scheme tables, worked solutions, KaTeX, figures), which is doing
+   real work and is not what needed simplifying. This file flattens the
+   surrounding CHROME — the dark gradient header, brass accents, glows and
+   heavy shadows — down to a plain light interface.
+
+   The rule followed throughout: one accent colour, one border colour, two
+   text weights, no gradients, no glow, no shadow heavier than a hairline.
+   ===================================================================== */
+
+:root {
+  --ink: #111827;
+  --text: #111827;
+  --muted: #6B7280;
+  --line: #E5E7EB;
+  --line-strong: #D1D5DB;
+  --paper: #FFFFFF;
+  --paper-warm: #FFFFFF;
+  --paper-cool: #F9FAFB;
+  --card: #FFFFFF;
+  --accent-blue: #2563EB;
+  --brass: #2563EB;
+  --brass-dark: #1D4ED8;
+  --brass-light: #3B82F6;
+  --brass-glow: rgba(37, 99, 235, .08);
+  --marker: #DC2626;
+  --marker-dark: #B91C1C;
+  --marker-soft: #FEF2F2;
+  --marker-border: #FECACA;
+  --tag-bg: #F3F4F6;
+  --header-accent: #2563EB;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --radius: 8px;
+  --radius-sm: 6px;
+  --serif: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: #FFFFFF !important;
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------- header */
+.console {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid var(--line);
+  box-shadow: none !important;
+  padding: 0 24px !important;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.console::before, .console::after { display: none !important; }
+
+.brand-mark { width: 26px; height: 26px; border-radius: 6px; box-shadow: none; }
+.brand-name { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0; }
+.brand-sub  { font-size: 11px; color: var(--muted); letter-spacing: 0; text-transform: none; }
+.console-brand { gap: 9px; }
+
+/* Nav: quiet text, one underline for the active page. The old treatment
+   was uppercase monospace with a filled brass chip, which made nine links
+   compete with each other and with the brand. */
+.sitenav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.sitenav a {
+  padding: 6px 10px !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  font-weight: 450 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--muted) !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  transition: color .12s, background .12s;
+}
+.sitenav a:hover { color: var(--ink) !important; background: #F3F4F6 !important; }
+.sitenav a.active {
+  color: var(--ink) !important;
+  font-weight: 600 !important;
+  background: #F3F4F6 !important;
+}
+.sitenav--secondary { margin-left: auto; opacity: 1; }
+.sitenav--secondary a { font-size: 12.5px !important; color: #9CA3AF !important; }
+
+/* ------------------------------------------------------- filters row */
+.console-filters label,
+.field label {
+  font-family: var(--sans) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--muted) !important;
+}
+.field select, .field input, select, input[type="text"], input[type="number"], input[type="email"], textarea {
+  background: #FFFFFF !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+.searchbar {
+  background: #FFFFFF !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.searchbar input { color: var(--ink) !important; }
+.searchbar input::placeholder { color: #9CA3AF; }
+
+/* ------------------------------------------------------------- cards */
+.section-card, .card, .module-card, .syllabus-picker, .preview-q {
+  background: #FFFFFF !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+.pagehead { background: none !important; border: 0 !important; }
+.pagehead-glow { display: none !important; }
+.pagehead h1 {
+  font-family: var(--sans) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  color: var(--ink) !important;
+  letter-spacing: -.01em;
+}
+.pagehead p { color: var(--muted) !important; font-size: 14px !important; max-width: 62ch; }
+.grad-text { background: none !important; -webkit-text-fill-color: var(--ink) !important; color: var(--ink) !important; }
+
+h2 { font-family: var(--sans) !important; font-size: 15px !important; font-weight: 600 !important; color: var(--ink) !important; }
+h3, h4 { font-family: var(--sans) !important; color: var(--ink) !important; }
+
+/* ------------------------------------------------------------- pills */
+.pill {
+  background: #FFFFFF !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 999px !important;
+  padding: 5px 12px !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  font-weight: 450 !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+.pill:hover { border-color: #9CA3AF !important; }
+.pill.active {
+  background: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
+  color: #FFFFFF !important;
+}
+.pill .count {
+  margin-left: 7px;
+  font-size: 11px;
+  color: var(--muted) !important;
+  background: none !important;
+  padding: 0 !important;
+}
+.pill.active .count { color: rgba(255,255,255,.75) !important; }
+.syllabus-code { color: var(--muted) !important; font-weight: 500; }
+.pill.active .syllabus-code { color: rgba(255,255,255,.85) !important; }
+
+/* ------------------------------------------------------------ chrome */
+.statstrip, .paperstrip {
+  font-family: var(--sans) !important;
+  font-size: 12.5px !important;
+  color: var(--muted) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+.btn {
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  font-family: var(--sans) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+}
+.btn--primary { background: var(--accent-blue) !important; border-color: var(--accent-blue) !important; color: #fff !important; }
+.btn--primary:hover { background: var(--brass-dark) !important; }
+.btn--google { background: #FFFFFF !important; color: var(--ink) !important; border: 1px solid var(--line-strong) !important; }
+.btn--google:hover { background: #F9FAFB !important; }
+
+.tabs { border-bottom: 1px solid var(--line) !important; gap: 2px !important; background: none !important; }
+.tab {
+  background: none !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--muted) !important;
+  box-shadow: none !important;
+}
+.tab.active { color: var(--accent-blue) !important; border-bottom-color: var(--accent-blue) !important; background: none !important; }
+.tabnum { display: none !important; }
+
+.eyebrow {
+  font-family: var(--sans) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: .02em !important;
+  color: var(--muted) !important;
+}
+.topic-chip {
+  background: var(--tag-bg) !important;
+  border: 0 !important;
+  color: var(--muted) !important;
+  font-family: var(--sans) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  border-radius: 4px !important;
+}
+
+/* Mark-scheme table: keep the structure, drop the tint. */
+.mstable td:last-child { background: none !important; color: var(--ink) !important; font-weight: 600 !important; }
+.mstable tr:nth-child(even) td { background: #FAFAFA !important; }
+.mstable tr:hover td { background: #F3F4F6 !important; }
+.mstable th {
+  background: #F9FAFB !important;
+  font-family: var(--sans) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--muted) !important;
+}
+
+.syllabus-step-label {
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--muted) !important;
+}
+.study-toggle {
+  font-family: var(--sans) !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+.hint { color: var(--muted) !important; font-size: 13px !important; }
+
+/* =====================================================================
+   Depth, grouping and hierarchy
+   Flat everywhere reads as undifferentiated, so elevation is used to say
+   what sits ON the page (cards) versus what IS the page (header, ground),
+   and one level deeper for things that float (the filters popover).
+   Three levels only — anything more and it stops meaning anything.
+   ===================================================================== */
+:root {
+  --elev-1: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+  --elev-2: 0 2px 4px rgba(16, 24, 40, .04), 0 4px 12px rgba(16, 24, 40, .08);
+  --elev-3: 0 8px 28px -8px rgba(16, 24, 40, .18);
+  --ground: #F7F8FA;
+}
+
+/* The page ground is a shade off-white so white cards read as raised. A
+   white card on a white page has nothing to lift off. */
+body { background: var(--ground) !important; }
+
+.console {
+  background: #FFFFFF !important;
+  box-shadow: var(--elev-1) !important;
+  border-bottom: 1px solid var(--line) !important;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 10px 24px !important;
+  row-gap: 8px;
+}
+
+/* --- brand: was white text for the old dark header, invisible on white. */
+.brand-name {
+  color: var(--ink) !important;
+  font-size: 14.5px !important;
+  font-weight: 650 !important;
+  text-shadow: none !important;
+}
+.brand-sub {
+  color: var(--muted) !important;
+  font-size: 10.5px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+.brand-mark { box-shadow: var(--elev-1) !important; }
+
+/* --- header grouping: brand | primary nav | (search, filters, admin) --- */
+.console > .searchbar {
+  order: 5;
+  flex: 0 1 260px;
+  min-width: 180px;
+  margin-left: auto;
+}
+.sitenav--secondary {
+  order: 7;
+  margin-left: 0;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+}
+
+.searchbar {
+  padding: 6px 10px !important;
+  box-shadow: none !important;
+}
+.searchbar:focus-within {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 0 3px var(--brass-glow) !important;
+}
+.searchbar input { font-size: 13px !important; min-width: 0; }
+
+/* --- cards lift off the ground --- */
+.section-card, .card, .syllabus-picker, .preview-q, .module-card {
+  box-shadow: var(--elev-1) !important;
+}
+.module-card { transition: box-shadow .14s, transform .14s; }
+.module-card:hover { box-shadow: var(--elev-2) !important; transform: translateY(-1px); }
+
+/* --- hierarchy: a labelled group reads as one unit --- */
+.syllabus-step {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.syllabus-step:last-child { border-bottom: 0; }
+.syllabus-step-label {
+  flex: 0 0 92px;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  color: #9CA3AF !important;
+  padding-top: 8px;
+}
+
+/* Page title outranks section titles outranks labels. */
+.pagehead h1 { font-weight: 650 !important; }
+.statstrip {
+  border-bottom: 1px solid var(--line);
+}
+.statstrip b { color: var(--ink) !important; font-weight: 650 !important; }
+
+/* The empty state is a prompt, not an error — solid and centred, not a
+   dashed placeholder box. */
+#emptyState {
+  background: #FFFFFF !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--elev-1) !important;
+}
+
+/* Footer was monospace, which made boilerplate shout. */
+.footnote, footer, .foot { font-family: var(--sans) !important; font-size: 12px !important; color: #9CA3AF !important; }
+
+@media (max-width: 900px) {
+  .console > .searchbar { order: 9; flex-basis: 100%; margin-left: 0; }
+  .sitenav--secondary { border-left: 0; padding-left: 0; }
+}
+
+/* The brand was a white->gold gradient clipped to the glyphs, for the old
+   dark header. `color` cannot override that — the fill is transparent and
+   the gradient shows through — so both the clip and the fill have to be
+   unset, not just recoloured. This was invisible on the new white header. */
+.brand-name {
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  color: var(--ink) !important;
+}
+
+/* Placeholder was being clipped at ~260px. Let the field breathe and
+   shorten the prompt itself rather than truncating mid-word. */
+.console > .searchbar { flex: 1 1 280px; max-width: 360px; }
+
+/* =====================================================================
+   Header: two deliberate rows instead of one cramped wrapping row.
+
+   Row 1 — identity and tools: brand, search, filters, admin links.
+   Row 2 — navigation: Home, the subjects, Study, Browse.
+
+   Eight nav items plus a search box plus two admin links do not fit one
+   1280px row, and letting them wrap put a stray divider mid-header. Making
+   the split intentional also separates "where am I going" from "what am I
+   looking for", which were previously interleaved.
+   ===================================================================== */
+.console { padding: 0 24px !important; row-gap: 0; align-items: stretch; }
+
+.console-brand { order: 1; align-self: center; padding: 10px 0; }
+.console > .searchbar { order: 2; margin-left: auto; align-self: center; flex: 0 1 280px; max-width: 300px; }
+.sitenav--secondary { order: 4; align-self: center; padding-left: 14px; border-left: 1px solid var(--line); }
+
+/* Force the nav onto its own full-width row, with a hairline above it. */
+.console > .sitenav:not(.sitenav--secondary) {
+  order: 10;
+  flex: 1 0 100%;
+  gap: 2px;
+  padding: 2px 0 6px;
+  border-top: 1px solid var(--line);
+  margin-top: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.console > .sitenav:not(.sitenav--secondary)::-webkit-scrollbar { display: none; }
+.console > .sitenav:not(.sitenav--secondary) a { white-space: nowrap; }
+
+/* Active page: an underline tied to the row's own rule reads as a tab,
+   which is what this row now is. */
+.console > .sitenav:not(.sitenav--secondary) a.active {
+  background: none !important;
+  color: var(--accent-blue) !important;
+  box-shadow: inset 0 -2px 0 var(--accent-blue);
+  border-radius: 0 !important;
+}
+
+/* --- marks stamp: was a red rubber-stamp circle. A count does not need
+   that much voice, and "1 MARKS" was wrong besides. --- */
+.stamp, .markstamp, .qstamp {
+  width: auto !important;
+  height: auto !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 999px !important;
+  transform: none !important;
+  background: #F9FAFB !important;
+  color: var(--ink) !important;
+  padding: 5px 12px !important;
+  box-shadow: none !important;
+  font-family: var(--sans) !important;
+}
+.stamp *, .markstamp *, .qstamp * {
+  color: var(--ink) !important;
+  font-family: var(--sans) !important;
+  letter-spacing: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .console > .searchbar { flex-basis: 100%; max-width: none; margin-left: 0; order: 9; }
+}
+
+/* =====================================================================
+   Character layer
+
+   The pass above went too far: it replaced Fraunces and IBM Plex Mono with
+   one system sans and the brand's navy/brass with a generic blue, which is
+   what made the result feel anonymous. The structure it introduced (light
+   ground, hairline groups, three elevations) is kept — this puts the
+   identity back on top of it.
+
+   Where each typeface earns its place:
+     Fraunces (serif)  — display only: page and question titles.
+     IBM Plex Mono     — data only: syllabus codes, paper refs, mark codes,
+                         group labels. These are things a student reads off
+                         an exam paper, and monospace is what makes a code
+                         look like a code rather than a word.
+     System sans       — everything you actually read in sentences.
+   ===================================================================== */
+:root {
+  --ink: #0F1E35;
+  --text: #16223A;
+  --muted: #5B6B82;
+  --line: #E3E8EF;
+  --line-strong: #CBD5E1;
+  --ground: #F6F7F9;
+
+  /* Brass is the brand accent and is reserved for SELECTION and MARKS —
+     the two things that are genuinely about the exam. Navy carries actions.
+     Darkened from the original #C4922A, which failed contrast on white. */
+  --brass: #96731A;
+  --brass-dark: #7A5D14;
+  --brass-light: #C4922A;
+  --brass-glow: rgba(150, 115, 26, .12);
+  --accent-blue: #1D3A6B;
+
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* --- display type: character where the eye lands first --- */
+.pagehead h1,
+.qtitle,
+.brand-name {
+  font-family: var(--serif) !important;
+  font-weight: 600 !important;
+  letter-spacing: -.005em !important;
+}
+.pagehead h1 { font-size: 27px !important; }
+.qtitle { font-size: 23px !important; color: var(--ink) !important; }
+.brand-name { font-size: 15px !important; }
+
+/* --- data type: codes and refs read as codes --- */
+.syllabus-code,
+.qsub,
+.paperstrip,
+.qnav-group-label,
+.mstable td:first-child,
+.mstable td:last-child,
+.pill .count {
+  font-family: var(--mono) !important;
+}
+.syllabus-code { color: var(--brass) !important; font-weight: 600 !important; }
+.syllabus-step-label,
+.eyebrow,
+.console-filters label,
+.field label {
+  font-family: var(--mono) !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: .07em !important;
+  text-transform: uppercase !important;
+  color: #8592A6 !important;
+}
+
+/* --- selection uses brass; it is the one warm note on the page --- */
+.pill.active {
+  background: var(--brass) !important;
+  border-color: var(--brass) !important;
+  color: #fff !important;
+  box-shadow: 0 1px 2px rgba(122, 93, 20, .3) !important;
+}
+.pill.active .count,
+.pill.active .syllabus-code { color: rgba(255,255,255,.8) !important; }
+.tab.active { color: var(--ink) !important; border-bottom-color: var(--brass) !important; }
+.console > .sitenav:not(.sitenav--secondary) a.active {
+  color: var(--ink) !important;
+  box-shadow: inset 0 -2px 0 var(--brass);
+}
+.btn--primary { background: var(--accent-blue) !important; border-color: var(--accent-blue) !important; }
+.btn--primary:hover { background: var(--ink) !important; }
+
+/* --- depth, placed rather than sprinkled -------------------------------
+   The question card is the subject of the page, so it is the only thing
+   that gets a second elevation level at rest plus a brass edge. Everything
+   else stays at level 1 so that distinction still means something. */
+.card {
+  box-shadow: var(--elev-2) !important;
+  border-left: 3px solid var(--brass) !important;
+}
+.card-head {
+  background: linear-gradient(180deg, #FBFBFC 0%, #FFFFFF 100%) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+/* The marks stamp: brass ring, mono numeral — the one place the old
+   rubber-stamp idea was actually right, just quieter. */
+.stamp {
+  border: 1.5px solid var(--brass-light) !important;
+  background: #FFFEF9 !important;
+  color: var(--brass-dark) !important;
+  box-shadow: 0 1px 2px rgba(122, 93, 20, .12) !important;
+}
+.stamp span { font-family: var(--mono) !important; font-weight: 600 !important; color: var(--brass-dark) !important; }
+.stamp small { font-family: var(--mono) !important; color: #A08A52 !important; }
+
+/* Grouped rows in the question strip get a real label column. */
+.qnav-group-label { color: #8592A6 !important; font-size: 10.5px !important; }
+
+/* A hairline of brand colour under the header ties the chrome together
+   without the old full-width gradient bar. */
+.console { border-bottom: 1px solid var(--line) !important; }
+.console::after {
+  display: block !important;
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brass) 0%, rgba(150,115,26,0) 42%);
+}
+.console { position: sticky; }
+
+/* Filters sit left, as a labelled row, the way they did before. */
+.console-filters { margin-left: 0 !important; flex-wrap: wrap; }
+.console > .searchbar { margin-left: auto !important; }
+
+/* =====================================================================
+   Spacing
+
+   Stated explicitly rather than inherited. Two things had been eating it:
+   Tailwind's preflight (now off — see the inline config in each page), and
+   this file's own `padding: 0 !important` on .pagehead and .console-filters.
+   Relying on browser defaults for body rhythm also meant the layout could
+   change with CDN load order, which is not something to leave to chance.
+
+   One 8px scale throughout: 8 / 12 / 16 / 20 / 24 / 32.
+   ===================================================================== */
+
+/* --- body rhythm: what preflight had flattened ------------------------ */
+.main p,
+.pagehead p,
+.worked-solution-box p,
+.preview-q p { margin: 0 0 12px; }
+.main p:last-child,
+.worked-solution-box p:last-child { margin-bottom: 0; }
+
+.worked-solution-box h4 { margin: 20px 0 8px; }
+.worked-solution-box h4:first-child { margin-top: 0; }
+.main ul, .main ol { margin: 0 0 12px; padding-left: 22px; }
+.main li { margin-bottom: 4px; }
+
+/* --- page frame ------------------------------------------------------- */
+.main { padding: 28px 24px 64px !important; }
+.pagehead { padding: 0 !important; margin: 0 0 24px !important; }
+.pagehead h1 { margin: 0 0 8px !important; }
+.pagehead p { margin: 0 !important; }
+
+/* --- header: the filters row needs breathing room under the nav ------- */
+.console { padding: 12px 24px 0 !important; }
+.console-brand { padding: 0 0 12px !important; }
+.console > .searchbar { margin-bottom: 12px !important; }
+.console-filters { padding: 0 0 12px !important; gap: 12px 14px !important; }
+.sitenav--secondary { margin-bottom: 12px !important; }
+.console > .sitenav:not(.sitenav--secondary) { padding: 6px 0 !important; margin-top: 0 !important; }
+
+/* --- cards: real interior padding ------------------------------------- */
+.section-card { padding: 20px !important; margin-bottom: 20px; }
+.card { padding: 0 !important; }            /* its own head/panels pad themselves */
+.card-head { padding: 20px 24px !important; }
+.panel { padding: 20px 24px !important; }
+.preview-q { padding: 20px !important; margin-bottom: 16px; }
+.module-card { padding: 0 !important; }
+.module-card-top { padding: 16px 18px 12px !important; }
+.module-body { padding: 0 18px 18px !important; }
+.module-grid { gap: 16px !important; }
+
+.syllabus-picker { padding: 4px 20px 12px !important; margin-bottom: 20px !important; }
+.syllabus-step { padding: 12px 0 !important; gap: 14px !important; }
+
+.statstrip { padding: 0 0 16px !important; margin: 0 0 20px !important; }
+.paperstrip-row { margin-bottom: 16px; }
+
+/* --- forms -------------------------------------------------------------*/
+.field select, .field input, select, input[type="text"], input[type="number"],
+input[type="email"], input[type="password"], textarea {
+  padding: 7px 10px !important;
+}
+.modform label { margin-top: 14px; display: block; }
+.modform label:first-of-type { margin-top: 0; }
+.modform input, .modform textarea, .modform select { margin-top: 5px; }
+.btn { padding: 8px 14px !important; }
+
+/* --- tables ----------------------------------------------------------- */
+.mstable th { padding: 9px 14px !important; }
+.mstable td { padding: 10px 14px !important; }
+
+/* --- study page toggles ----------------------------------------------- */
+.study-toggle { padding: 6px 0; }
+details > .mstable, details > div { margin-top: 10px; }
+
+@media (max-width: 720px) {
+  .main { padding: 20px 16px 48px !important; }
+  .section-card, .preview-q { padding: 16px !important; }
+  .card-head, .panel { padding: 16px !important; }
+  .console { padding: 10px 16px 0 !important; }
+}

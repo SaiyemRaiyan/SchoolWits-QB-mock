@@ -134,7 +134,7 @@ js/render/                 -- questions.content (JSON) -> HTML, browser only:
   options-renderer.js        MCQ options (records which of the four .tex
                                encodings the source used)
   mark-scheme-renderer.js    rows -> the shape app.js/modules.js draw
-  solution-renderer.js       worked-solution segments -> exemplar markup
+  solution-renderer.js       worked-solution segments -> worked-solution markup
   question-renderer.js       the facade the pages actually call
 ```
 

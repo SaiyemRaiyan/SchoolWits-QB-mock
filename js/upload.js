@@ -51,7 +51,7 @@
     'mSubject', 'mSubjectCode', 'mPaper', 'mVariant', 'mSession', 'mYear',
     'warnArea', 'saveCard', 'saveSummary', 'saveBtn', 'saveResult',
     'previewHint', 'previewDoc', 'previewTabs', 'paperList',
-    'previewArea-paper', 'previewArea-markscheme', 'previewArea-exemplar'
+    'previewArea-paper', 'previewArea-markscheme', 'previewArea-worked-solution'
   ];
 
   function esc(s) {
@@ -279,8 +279,8 @@
         <tbody>${rows}</tbody></table>`);
     }).join('');
 
-    els['previewArea-exemplar'].innerHTML = questions.map(q =>
-      section(q, `<div class="exemplar-box">${renderer.toExemplarHtml(q)}</div>`)).join('');
+    els['previewArea-worked-solution'].innerHTML = questions.map(q =>
+      section(q, `<div class="worked-solution-box">${renderer.toWorkedSolutionHtml(q)}</div>`)).join('');
 
     // Same config as the live pages, so the preview is a faithful check of
     // what Browse will show rather than an approximation of it.
@@ -417,6 +417,9 @@
   // that would query papers as an anonymous user and wire dead elements.
   document.addEventListener('sw:admin-ready', boot);
   document.addEventListener('DOMContentLoaded', () => {
+    // The nav is public and renders regardless of the admin gate — a
+    // signed-out visitor still needs a way off this page.
+    SWNav.render('upload');
     if (!document.getElementById('adminGateContent').hidden) boot();
   });
 })();

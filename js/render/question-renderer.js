@@ -3,13 +3,13 @@
    The one class the pages talk to.
 
    This is the adapter boundary. app.js reads exactly three things off a
-   question today — qHTML, markScheme[], exemplarHTML — so this exposes
+   question today — qHTML, markScheme[], workedSolutionHtml — so this exposes
    those three and nothing else changes on screen:
 
        const r = new SWRender.QuestionRenderer();
        r.toQuestionHtml(q)     // was q.qHTML
        r.toMarkSchemeRows(q)   // was q.markScheme
-       r.toExemplarHtml(q)     // was q.exemplarHTML
+       r.toWorkedSolutionHtml(q)     // was q.workedSolutionHtml
 
    Collaborators are injected so a view can swap one (hide marks in the
    storefront teaser, show guidance in an admin view) without subclassing
@@ -54,7 +54,7 @@ window.SWRender = window.SWRender || {};
       return this.markScheme.renderTable(question);
     }
 
-    toExemplarHtml(question) {
+    toWorkedSolutionHtml(question) {
       return this.solution.render(question);
     }
 
@@ -70,7 +70,7 @@ window.SWRender = window.SWRender || {};
         kind: question ? question.kind : 'structured',
         questionHtml: this.toQuestionHtml(question),
         markSchemeRows: this.toMarkSchemeRows(question),
-        exemplarHtml: this.toExemplarHtml(question)
+        workedSolutionHtml: this.toWorkedSolutionHtml(question)
       };
     }
 

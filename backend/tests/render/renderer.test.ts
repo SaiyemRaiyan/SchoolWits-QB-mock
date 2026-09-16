@@ -161,20 +161,20 @@ describe('toMarkSchemeRows', () => {
   });
 });
 
-describe('toExemplarHtml', () => {
+describe('toWorkedSolutionHtml', () => {
   it('labels each segment with its ref', () => {
-    const html = renderer().toExemplarHtml(q1());
+    const html = renderer().toWorkedSolutionHtml(q1());
     expect(html).toContain('1(a)');
-    expect(html).toContain('exemplar-part');
+    expect(html).toContain('worked-solution-part');
   });
 
   it('leads with the letter for a multiple-choice question', () => {
     const q = mcq.questions.find((x: Question) => x.answer?.correct)!;
-    expect(renderer().toExemplarHtml(q)).toContain('Answer: ' + q.answer!.correct);
+    expect(renderer().toWorkedSolutionHtml(q)).toContain('Answer: ' + q.answer!.correct);
   });
 
-  it('says so when there is no exemplar', () => {
-    expect(renderer().toExemplarHtml({ answer: null } as never)).toContain('No exemplar');
+  it('says so when there is no worked solution', () => {
+    expect(renderer().toWorkedSolutionHtml({ answer: null } as never)).toContain('No worked solution');
   });
 });
 
@@ -202,7 +202,7 @@ describe('every question in both papers renders', () => {
         const html = r.toQuestionHtml(q);
         expect(html.length, `Q${q.number} empty`).toBeGreaterThan(0);
         expect(html, `Q${q.number} leaked undefined`).not.toContain('undefined');
-        expect(r.toExemplarHtml(q), `Q${q.number} exemplar`).not.toContain('undefined');
+        expect(r.toWorkedSolutionHtml(q), `Q${q.number} worked solution`).not.toContain('undefined');
       }
     }
   });

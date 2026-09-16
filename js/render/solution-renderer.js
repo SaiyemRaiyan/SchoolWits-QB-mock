@@ -1,8 +1,8 @@
 /* =====================================================================
    School Wits — render/SolutionRenderer
-   Worked-solution segments -> the exemplar HTML the UI expects.
+   Worked-solution segments -> the worked-solution HTML the UI expects.
 
-   app.js drops this straight into .exemplar-box, which the stylesheet
+   app.js drops this straight into .worked-solution-box, which the stylesheet
    already handles, so the output is a plain fragment rather than a
    wrapper of its own.
 
@@ -21,7 +21,7 @@ window.SWRender = window.SWRender || {};
     constructor(options) {
       const opts = options || {};
       this.emptyMessage = opts.emptyMessage ||
-        'No exemplar answer uploaded for this question.';
+        'No worked solution uploaded for this question.';
     }
 
     render(question) {
@@ -36,7 +36,7 @@ window.SWRender = window.SWRender || {};
       // For MCQ the letter is the answer, so it leads rather than hiding at
       // the end of the explanation.
       if (correct) {
-        html += '<p class="exemplar-correct"><strong>Answer: ' +
+        html += '<p class="worked-solution-correct"><strong>Answer: ' +
                 ns.escapeHTML(correct) + '</strong></p>';
       }
 
@@ -45,9 +45,9 @@ window.SWRender = window.SWRender || {};
     }
 
     _segment(seg) {
-      let out = '<div class="exemplar-part">';
+      let out = '<div class="worked-solution-part">';
       const label = this._label(seg);
-      if (label) out += '<h4 class="exemplar-head">' + label + '</h4>';
+      if (label) out += '<h4 class="worked-solution-head">' + label + '</h4>';
       out += '<div>' + (seg.html || '') + '</div>';
       return out + '</div>';
     }

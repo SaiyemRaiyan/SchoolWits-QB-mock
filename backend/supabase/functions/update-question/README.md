@@ -48,6 +48,18 @@ Three things follow from that:
 again. It is rejected without a `moduleId`, because there is nothing to
 reset on the bank question.
 
+### Editing during creation
+
+An override needs a `module_id`, but that is not a reason to make an admin
+finish the pack first. `js/modules.js` calls `moduleIdForEditing()` on the
+Edit button: if the pack has never been saved it saves it there and then
+(and ticks the question, since editing a question for a pack means it is in
+the pack), and the edit proceeds. Saving again updates that module rather
+than creating another, because `persistModule()` passes the id.
+
+So the ordering constraint is satisfied by creating the row at the moment it
+is first needed, not by imposing a workflow.
+
 ### `saveModule` must never touch the override
 
 `saveModule` in both `js/supabase/store.js` and `backend/src/db.ts` used to

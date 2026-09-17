@@ -61,16 +61,19 @@
   let excludedTopics = new Set();
 
   // The saved module currently open in the builder, or null when building a
-  // fresh pack. Set by loadModuleIntoBuilder(); saveModule() passes it as
+  // fresh pack. Set by loadModuleIntoBuilder(); persistModule() passes it as
   // `id` so a reopened pack is updated in place rather than duplicated.
   //
-  // It also gates per-question editing: a module's edited copy of a question
-  // hangs off module_id (0018), so a pack that has never been saved has
-  // nowhere to put one. Hence build -> Save -> edit.
+  // A module's edited copy of a question hangs off module_id (0018), so an
+  // edit needs this to be set. It is NOT a gate on the admin, though:
+  // moduleIdForEditing() saves the pack on the spot the first time a
+  // question is edited, so editing works while building as well as after.
   let editingModuleId = null;
   // uids whose copy in THIS module has been edited, so the pick list can
   // mark them. Refreshed whenever a module is loaded or an edit is saved.
   let overriddenUids = new Set();
+  // Guards the save-then-edit sequence against a double click.
+  let editBusy = false;
 
   /* ---------------------------------------------------------- boot */
   async function boot(){
@@ -208,8 +211,7 @@
               class="btn btn--ghost btn--sm"
               type="button"
               data-edit-uid="${escAttr(q.uid)}"
-              ${editingModuleId ? '' : 'disabled'}
-              title="${editingModuleId ? 'Edit this module\u2019s own copy of the question' : 'Save the module first \u2014 an edited copy belongs to a saved module'}"
+              title="Edit this module\u2019s own copy \u2014 the paper in the bank is left alone"
             >Edit${overriddenUids.has(q.uid) ? ' \u270e' : ''}</button>
             <button class="btn btn--ghost btn--sm" type="button" data-video-uid="${escAttr(q.uid)}">${q.videoId ? 'Update video' : 'Add video'}</button>
           </div>
@@ -227,13 +229,38 @@
         });
       });
       els.pickList.querySelectorAll('button[data-edit-uid]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if(!editingModuleId) return;
+        btn.addEventListener('click', async () => {
           const uid = btn.dataset.editUid;
           const q = questionForUid(uid);
           if(!q) return;
+
+          // A double click would otherwise start two saves of the same
+          // not-yet-saved pack, and the second would create a duplicate.
+          if(editBusy) return;
+          editBusy = true;
+
+          // Editing a question for this pack means it is in the pack —
+          // the override is keyed on (module_id, question_id), so an
+          // unticked question has no row to attach one to. Ticking it is
+          // the only reading of the click that does what was meant.
+          if(!selected.has(uid)){
+            selected.add(uid);
+            updateSelCount();
+          }
+
+          let moduleId = null;
+          try {
+            moduleId = await moduleIdForEditing();
+          } finally {
+            editBusy = false;
+            // One re-render, after the await — doing it before would detach
+            // the very button this handler is running on.
+            renderPickList();
+          }
+          if(!moduleId) return;
+
           SWEdit.open(q.pk, {
-            moduleId: editingModuleId,
+            moduleId,
             onSaved: (content, info) => {
               // Keep the builder's copy in step so View shows the edit
               // straight away without another round trip.
@@ -315,14 +342,34 @@
     }));
   }
 
-  async function saveModule(){
+  /**
+   * Validate the form and write the module, returning its id.
+   *
+   * Split out of saveModule() because editing a question needs the module to
+   * exist: content_override hangs off module_id (0018), so there has to be a
+   * row to hang it on. Rather than making the admin save first and then come
+   * back -- which is the ordering the data model implies but not the one
+   * anybody wants -- the Edit button calls this itself and carries on.
+   *
+   * Returns null and writes the reason into the status line if the form is
+   * not ready. `reason` explains an automatic save the admin did not ask for.
+   */
+  async function persistModule(reason){
     const title = els.modTitle.value.trim();
     const premium = els.modPremium.value === 'premium';
     const price = premium ? Math.max(0, Number(els.modPrice.value) || 0) : 0;
     const picked = selectedQuestions();
 
-    if(!title){ els.modSaveResult.innerHTML = '<span style="color:var(--marker-dark);">Give the module a title first.</span>'; return; }
-    if(!picked.length){ els.modSaveResult.innerHTML = '<span style="color:var(--marker-dark);">Select at least one question.</span>'; return; }
+    if(!title){
+      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">Give the module a title first${reason ? ' — ' + escHTML(reason) : ''}.</span>`;
+      els.modTitle.focus();
+      els.modTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return null;
+    }
+    if(!picked.length){
+      els.modSaveResult.innerHTML = '<span style="color:var(--marker-dark);">Select at least one question.</span>';
+      return null;
+    }
 
     // The subject is taken from the questions, not the filter dropdown — the
     // dropdown is where picking STARTED, and a stale value there would
@@ -331,13 +378,12 @@
     const subjects = Array.from(new Set(picked.map(q => q.subject)));
     if(subjects.length > 1){
       els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">This pack mixes ${escHTML(subjects.join(' and '))}. A module covers one subject — untick the questions that don't belong.</span>`;
-      return;
+      return null;
     }
 
     els.saveModBtn.disabled = true;
-    let savedId = null;
     try {
-      savedId = await DB.saveModule({
+      const savedId = await DB.saveModule({
         id: editingModuleId || undefined,
         title,
         subject: subjects[0] || activeSubject,
@@ -347,21 +393,46 @@
         currency: '৳',
         questionUids: Array.from(selected)
       });
+      editingModuleId = savedId || editingModuleId;
+      return editingModuleId;
     } catch (err) {
       els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">Could not save: ${escHTML(err.message || String(err))}</span>`;
-      return;
+      return null;
     } finally {
       els.saveModBtn.disabled = false;
     }
+  }
 
-    // Stay on the saved module rather than clearing the form. A module's
-    // edited copy of a question hangs off module_id, so Edit only becomes
-    // available once the pack exists — clearing here would drop the admin
-    // back into a state where the button they now want is disabled again.
+  /**
+   * The module id to attach an edit to, saving the pack first if it has
+   * never been saved.
+   *
+   * This is what lets editing happen *while* building. The ordering
+   * constraint was never "you must finish the module first" — it was only
+   * that an edit has to belong to a row. So the row gets created at the
+   * moment it is first needed, and the admin keeps working.
+   */
+  async function moduleIdForEditing(){
+    if(editingModuleId) return editingModuleId;
+    const id = await persistModule('the module has to exist before a question can be edited for it');
+    if(id){
+      els.modSaveResult.innerHTML =
+        `<span class="hint">Saved <strong>${escHTML(els.modTitle.value.trim())}</strong> so this edit has somewhere to live. Carry on — saving again updates it rather than creating another.</span>`;
+      await refreshBuiltList();
+      await refreshStorefront();
+    }
+    return id;
+  }
+
+  async function saveModule(){
     const wasNew = !editingModuleId;
-    editingModuleId = savedId || editingModuleId;
+    const savedId = await persistModule();
+    if(!savedId) return;
+
+    // Stay on the saved module rather than clearing the form, so the pack
+    // the admin just built is still the one in front of them.
     els.modSaveResult.innerHTML = `<span style="color:#2A6B42;font-weight:600;">Saved${wasNew ? '' : ' (updated)'}. Visible on the Storefront tab.</span>`
-      + ` <span class="hint">You can now use <strong>Edit</strong> on a question to change its values for this module only, or <button type="button" class="linkbtn" id="newModuleBtn">start a new module</button>.</span>`;
+      + ` <span class="hint">Use <strong>Edit</strong> on a question to change its values for this module only, or <button type="button" class="linkbtn" id="newModuleBtn">start a new module</button>.</span>`;
     renderPickList();
     await refreshBuiltList();
     await refreshStorefront();

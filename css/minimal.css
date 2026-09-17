@@ -828,11 +828,9 @@ details > .mstable, details > div { margin-top: 10px; }
   font-weight: 600;
 }
 
-/* A disabled Edit means "save the module first" rather than "broken", so
-   it keeps the cursor that invites the tooltip explaining why. */
 .pickrow-actions .btn[disabled] {
   opacity: .45;
-  cursor: help;
+  cursor: progress;
 }
 
 .topic-chip--edited {

@@ -286,14 +286,28 @@ const DB = (function(){
     return payload;
   }
 
-  /** The editable fields of one question, as { path, label, kind, value }. */
-  async function getQuestionLeaves(id){
-    return callEditFunction({ id: Number(id) });
+  /**
+   * The editable fields of one question, as { path, label, kind, value }.
+   *
+   * With a moduleId this describes that module's own copy (0018) rather
+   * than the question in the bank, falling back to the bank's version when
+   * the module has not edited it yet.
+   */
+  async function getQuestionLeaves(id, moduleId){
+    const body = { id: Number(id) };
+    if(moduleId != null) body.moduleId = Number(moduleId);
+    return callEditFunction(body);
   }
 
-  /** Apply [{ path, value }] edits. Returns the saved content and new leaves. */
-  async function saveQuestionEdits(id, edits){
-    return callEditFunction({ id: Number(id), edits });
+  /**
+   * Apply [{ path, value }] edits. Returns the saved content and new leaves.
+   * With a moduleId the edit lands on that module's copy and the paper in
+   * the bank is left untouched.
+   */
+  async function saveQuestionEdits(id, edits, moduleId){
+    const body = { id: Number(id), edits };
+    if(moduleId != null) body.moduleId = Number(moduleId);
+    return callEditFunction(body);
   }
 
   /* ---------------------------------------------------------- facets & search */
@@ -378,22 +392,40 @@ const DB = (function(){
     check(error);
 
     // Resolve the uid list to real question rows the same way
-    // getQuestionsByUids does, then replace module_questions wholesale —
-    // mirrors the old IndexedDB record's questionUids array being
-    // overwritten in full on every save.
+    // getQuestionsByUids does.
     const uids = mod.questionUids || [];
     const questions = await getQuestionsByUids(uids);
     const byUid = new Map(questions.map(q => [q.uid, q]));
     const orderedQuestions = uids.map(u => byUid.get(u)).filter(Boolean);
+    const keptIds = orderedQuestions.map(q => q.pk);
 
-    const del = await client.from('module_questions').delete().eq('module_id', savedRow.id);
-    check(del.error);
-
+    // Upsert-then-prune, NOT delete-then-insert.
+    //
+    // This used to replace module_questions wholesale, mirroring the old
+    // IndexedDB record's questionUids array. That stopped being safe when
+    // 0018 added content_override: a module's own edited copy of a question
+    // lives on this row, so deleting and re-inserting would silently destroy
+    // every edit the moment the pack was re-saved.
+    //
+    // Upserting refreshes sort_order while leaving content_override alone —
+    // the row object below never mentions that column, so an update cannot
+    // clear it. Overrides therefore only ever change through the
+    // update-question Edge Function.
     if(orderedQuestions.length){
       const linkRows = orderedQuestions.map((q, i) => ({ module_id: savedRow.id, question_id: q.pk, sort_order: i }));
-      const ins = await client.from('module_questions').insert(linkRows);
-      check(ins.error);
+      const up = await client
+        .from('module_questions')
+        .upsert(linkRows, { onConflict: 'module_id,question_id' });
+      check(up.error);
     }
+
+    // Drop only the links no longer picked. Removing a question from a pack
+    // does discard its edited copy — that is the right reading of "this
+    // question is not in this module any more".
+    let prune = client.from('module_questions').delete().eq('module_id', savedRow.id);
+    if(keptIds.length) prune = prune.not('question_id', 'in', `(${keptIds.join(',')})`);
+    const del = await prune;
+    check(del.error);
 
     return savedRow.id;
   }
@@ -417,6 +449,45 @@ const DB = (function(){
     });
 
     return mods.map(m => moduleRowToRecord(m, byModule.get(m.id) || []));
+  }
+
+  /**
+   * A module's questions, in module order, with each module's own edited
+   * copy already applied.
+   *
+   * Replaces the getQuestionsByUids() path the storefront used to take,
+   * which fetched EVERY question in the bank (each with its whole `content`
+   * blob) and then filtered in memory — and returned them in table order,
+   * silently losing the sort_order getModule() had just resolved.
+   *
+   * `content_override` (0018) is merged into `.content` here so that
+   * js/render and js/modules need no knowledge of overrides at all: they
+   * render whatever `.content` holds. `hasOverride` is exposed separately
+   * for the builder, which marks edited rows.
+   */
+  async function getModuleQuestions(moduleId){
+    const { data, error } = await client
+      .from('module_questions')
+      .select('sort_order, content_override, questions(*, papers(*))')
+      .eq('module_id', Number(moduleId))
+      .order('sort_order');
+    check(error);
+
+    return (data || [])
+      .filter(link => link.questions)
+      .map(link => {
+        const record = questionRowToRecord(link.questions, link.questions.papers);
+        return Object.assign(record, {
+          content: link.content_override || record.content,
+          hasOverride: link.content_override != null,
+          sortOrder: link.sort_order
+        });
+      });
+  }
+
+  /** Drop a module's edited copy, so it renders the paper's version again. */
+  async function resetQuestionOverride(moduleId, questionId){
+    return callEditFunction({ id: Number(questionId), moduleId: Number(moduleId), reset: true });
   }
 
   async function getModule(id){
@@ -590,6 +661,7 @@ const DB = (function(){
     getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,
     getFacets, getCounts, search, getSyllabuses, invalidatePaperCache,
     saveModule, getAllModules, getModule, deleteModule,
+    getModuleQuestions, resetQuestionOverride,
     isPurchased, markPurchased,
     setVideo,
     getQuestionLeaves, saveQuestionEdits,

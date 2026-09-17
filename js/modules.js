@@ -60,6 +60,18 @@
   // selection grows instead of going stale the moment it is touched once.
   let excludedTopics = new Set();
 
+  // The saved module currently open in the builder, or null when building a
+  // fresh pack. Set by loadModuleIntoBuilder(); saveModule() passes it as
+  // `id` so a reopened pack is updated in place rather than duplicated.
+  //
+  // It also gates per-question editing: a module's edited copy of a question
+  // hangs off module_id (0018), so a pack that has never been saved has
+  // nowhere to put one. Hence build -> Save -> edit.
+  let editingModuleId = null;
+  // uids whose copy in THIS module has been edited, so the pick list can
+  // mark them. Refreshed whenever a module is loaded or an edit is saved.
+  let overriddenUids = new Set();
+
   /* ---------------------------------------------------------- boot */
   async function boot(){
     await DB.open();
@@ -187,15 +199,51 @@
             <input type="checkbox" data-uid="${escAttr(q.uid)}" ${selected.has(q.uid) ? 'checked' : ''}>
             <span class="pickrow-body">
               <span class="pickrow-title">Q${q.id} &middot; ${escHTML(q.topic || 'Untagged')} &middot; ${escHTML(String(q.marks || '?'))} marks</span>
-              <span class="pickrow-meta">${escHTML(DB.paperLabel(q))}${q.ref ? ' &middot; ' + escHTML(q.ref) : ''}</span>
+              <span class="pickrow-meta">${escHTML(DB.paperLabel(q))}${q.ref ? ' &middot; ' + escHTML(q.ref) : ''}${overriddenUids.has(q.uid) ? ' &middot; <span class="pickrow-edited">\u270e edited for this module</span>' : ''}</span>
             </span>
           </label>
-          <button class="btn btn--ghost btn--sm" type="button" data-video-uid="${escAttr(q.uid)}">${q.videoId ? 'Update video' : 'Add video'}</button>
+          <div class="pickrow-actions">
+            <button class="btn btn--ghost btn--sm" type="button" data-view-uid="${escAttr(q.uid)}">View</button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              data-edit-uid="${escAttr(q.uid)}"
+              ${editingModuleId ? '' : 'disabled'}
+              title="${editingModuleId ? 'Edit this module\u2019s own copy of the question' : 'Save the module first \u2014 an edited copy belongs to a saved module'}"
+            >Edit${overriddenUids.has(q.uid) ? ' \u270e' : ''}</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-video-uid="${escAttr(q.uid)}">${q.videoId ? 'Update video' : 'Add video'}</button>
+          </div>
         </div>`).join('');
       els.pickList.querySelectorAll('input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => {
           if(cb.checked) selected.add(cb.dataset.uid); else selected.delete(cb.dataset.uid);
           updateSelCount();
+        });
+      });
+      els.pickList.querySelectorAll('button[data-view-uid]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const q = questionForUid(btn.dataset.viewUid);
+          if(q) showQuestionPreview(q);
+        });
+      });
+      els.pickList.querySelectorAll('button[data-edit-uid]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if(!editingModuleId) return;
+          const uid = btn.dataset.editUid;
+          const q = questionForUid(uid);
+          if(!q) return;
+          SWEdit.open(q.pk, {
+            moduleId: editingModuleId,
+            onSaved: (content, info) => {
+              // Keep the builder's copy in step so View shows the edit
+              // straight away without another round trip.
+              const index = allQuestions.findIndex(item => item.uid === uid);
+              if(index >= 0) allQuestions[index] = Object.assign({}, allQuestions[index], { content });
+              if(info && info.edited === false) overriddenUids.delete(uid);
+              else overriddenUids.add(uid);
+              renderPickList();
+            }
+          });
         });
       });
       els.pickList.querySelectorAll('button[data-video-uid]').forEach(btn => {
@@ -287,8 +335,10 @@
     }
 
     els.saveModBtn.disabled = true;
+    let savedId = null;
     try {
-      await DB.saveModule({
+      savedId = await DB.saveModule({
+        id: editingModuleId || undefined,
         title,
         subject: subjects[0] || activeSubject,
         topics: chosenTopics(),
@@ -304,13 +354,77 @@
       els.saveModBtn.disabled = false;
     }
 
-    els.modSaveResult.innerHTML = `<span style="color:#2A6B42;font-weight:600;">Saved. Visible on the Storefront tab.</span>`;
-    selected = new Set();
-    excludedTopics = new Set();
-    els.modTitle.value = ''; els.modDesc.value = '';
+    // Stay on the saved module rather than clearing the form. A module's
+    // edited copy of a question hangs off module_id, so Edit only becomes
+    // available once the pack exists — clearing here would drop the admin
+    // back into a state where the button they now want is disabled again.
+    const wasNew = !editingModuleId;
+    editingModuleId = savedId || editingModuleId;
+    els.modSaveResult.innerHTML = `<span style="color:#2A6B42;font-weight:600;">Saved${wasNew ? '' : ' (updated)'}. Visible on the Storefront tab.</span>`
+      + ` <span class="hint">You can now use <strong>Edit</strong> on a question to change its values for this module only, or <button type="button" class="linkbtn" id="newModuleBtn">start a new module</button>.</span>`;
     renderPickList();
     await refreshBuiltList();
     await refreshStorefront();
+    const newBtn = document.getElementById('newModuleBtn');
+    if(newBtn) newBtn.addEventListener('click', () => {
+      resetBuilder();
+      els.modSaveResult.innerHTML = '';
+      renderPickList();
+      renderModTopicPills();
+    });
+  }
+
+  /**
+   * Reopen a saved module in the builder.
+   *
+   * The builder was create-only before this: saveModule() never passed an
+   * id, so every save made a new pack and there was no way back into one.
+   * Per-question editing needs that way back, because a module's edited copy
+   * of a question hangs off its module_id.
+   */
+  async function loadModuleIntoBuilder(id){
+    const mod = await DB.getModule(id);
+    if(!mod) return;
+    const questions = await DB.getModuleQuestions(mod.id);
+
+    editingModuleId = mod.id;
+    overriddenUids = new Set(questions.filter(q => q.hasOverride).map(q => q.uid));
+    selected = new Set(questions.map(q => q.uid));
+
+    // An edited copy lives on the module, so the builder must render the
+    // module's version of a question, not the bank's.
+    questions.forEach(q => {
+      const index = allQuestions.findIndex(item => item.uid === q.uid);
+      if(index >= 0) allQuestions[index] = Object.assign({}, allQuestions[index], { content: q.content });
+    });
+
+    els.modTitle.value = mod.title;
+    els.modDesc.value = mod.description || '';
+    els.modPremium.value = mod.premium ? 'premium' : 'free';
+    els.modPrice.value = mod.price || 0;
+    // Topics are derived from the picked questions; the stored list is the
+    // derived set minus whatever was unticked, so that is what we restore.
+    excludedTopics = new Set(derivedTopics().filter(t => !mod.topics.includes(t)));
+
+    activeSubject = mod.subject || activeSubject;
+    if(els.bSubject) els.bSubject.value = activeSubject;
+
+    els.modSaveResult.innerHTML = `<span class="hint">Editing <strong>${escHTML(mod.title)}</strong>. Saving updates this module rather than creating a new one.</span>`;
+    renderPaperOptions();
+    renderTopicPills();
+    renderPickList();
+    renderModTopicPills();
+    els.modTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /** Drop back to building a fresh pack. */
+  function resetBuilder(){
+    editingModuleId = null;
+    overriddenUids = new Set();
+    selected = new Set();
+    excludedTopics = new Set();
+    els.modTitle.value = '';
+    els.modDesc.value = '';
   }
 
   async function refreshBuiltList(){
@@ -325,12 +439,21 @@
           <div class="pickrow-title">${escHTML(m.title)} ${m.premium ? `<span class="module-badge" style="position:static;display:inline-block;color:var(--brass-dark);border-color:var(--brass);background:var(--brass-glow);">Premium</span>` : ''}</div>
           <div class="pickrow-meta">${m.subject ? escHTML(m.subject) + ' &middot; ' : ''}${escHTML(m.topicLabel)} &middot; ${m.questionUids.length} question${m.questionUids.length === 1 ? '' : 's'} ${m.premium ? '&middot; ৳' + m.price : '&middot; Free'}</div>
         </div>
-        <button class="btn btn--danger btn--sm" data-id="${m.id}">Delete</button>
+        <div class="pickrow-actions">
+          <button class="btn btn--ghost btn--sm" data-edit-module="${m.id}">Edit</button>
+          <button class="btn btn--danger btn--sm" data-id="${m.id}">Delete</button>
+        </div>
       </div>`).join('');
+    els.builtList.querySelectorAll('button[data-edit-module]').forEach(btn => {
+      btn.addEventListener('click', () => loadModuleIntoBuilder(btn.dataset.editModule));
+    });
     els.builtList.querySelectorAll('button[data-id]').forEach(btn => {
       btn.addEventListener('click', async () => {
         if(!confirm('Delete this module? (The underlying questions stay in the bank.)')) return;
         await DB.deleteModule(btn.dataset.id);
+        // Deleting the pack that is open in the builder would otherwise
+        // leave editingModuleId pointing at a module that no longer exists.
+        if(String(editingModuleId) === String(btn.dataset.id)) resetBuilder();
         await refreshBuiltList();
         await refreshStorefront();
       });
@@ -378,7 +501,12 @@
   async function openModule(id){
     const mod = await DB.getModule(id);
     if(!mod) return;
-    const questions = await DB.getQuestionsByUids(mod.questionUids);
+    // getModuleQuestions, not getQuestionsByUids: it returns the questions
+    // in the module's own sort_order (the old path fetched EVERY question in
+    // the bank and filtered in memory, losing that order), and it merges
+    // each module's edited copy into .content, so the renderer below needs
+    // no knowledge of overrides at all.
+    const questions = await DB.getModuleQuestions(mod.id);
     const owned = !mod.premium || DB.isPurchased(mod.id);
 
     const listHTML = questions.map((q, i) => renderModQuestion(q, i, owned || i === 0)).join('');
@@ -407,28 +535,74 @@
     els.moduleDetail.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  /**
+   * One question rendered as the storefront shows it: body, mark scheme and
+   * worked solution.
+   *
+   * Extracted from renderModQuestion so the builder's View button and the
+   * storefront draw from exactly the same function — a preview that differs
+   * from what a student sees would defeat the point of previewing. It takes
+   * whatever `q.content` holds, which is already the module's edited copy
+   * when there is one (DB.getModuleQuestions merges the override in).
+   */
+  function questionPreviewHtml(q){
+    return `
+      <h4>Q${q.id} <span class="topic-chip">${escHTML(q.topic)}</span> <span class="topic-chip">${escHTML(String(q.marks || '?'))} marks</span>${q.hasOverride ? ' <span class="topic-chip topic-chip--edited">\u270e edited for this module</span>' : ''}</h4>
+      ${renderer.toQuestionHtml(q.content)}
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Mark scheme</summary>
+        <table class="mstable" style="margin-top:8px;">
+          <thead><tr><th>Part</th><th>Expected answer</th><th>Mark</th></tr></thead>
+          <tbody>${renderer.toMarkSchemeRows(q.content).map(r => r.isBanner
+            ? `<tr class="ms-banner-row"><td colspan="3">${r.answer}</td></tr>`
+            : `<tr><td>${escHTML(r.part)}</td><td>${r.answer}</td><td>${escHTML(r.marks)}</td></tr>`).join('') || '<tr><td colspan="3"><i>None uploaded.</i></td></tr>'}</tbody>
+        </table>
+      </details>
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Worked solution</summary>
+        <div style="margin-top:8px;">${renderer.toWorkedSolutionHtml(q.content)}</div>
+      </details>`;
+  }
+
   function renderModQuestion(q, i, visible){
     if(!visible){
       return `<div class="preview-q"><h4>Q${q.id} <span class="topic-chip">${escHTML(q.topic)}</span></h4><p style="color:var(--muted);">Locked.</p></div>`;
     }
-    return `
-      <div class="preview-q">
-        <h4>Q${q.id} <span class="topic-chip">${escHTML(q.topic)}</span> <span class="topic-chip">${escHTML(String(q.marks || '?'))} marks</span></h4>
-        ${renderer.toQuestionHtml(q.content)}
-        <details style="margin-top:10px;">
-          <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Mark scheme</summary>
-          <table class="mstable" style="margin-top:8px;">
-            <thead><tr><th>Part</th><th>Expected answer</th><th>Mark</th></tr></thead>
-            <tbody>${renderer.toMarkSchemeRows(q.content).map(r => r.isBanner
-              ? `<tr class="ms-banner-row"><td colspan="3">${r.answer}</td></tr>`
-              : `<tr><td>${escHTML(r.part)}</td><td>${r.answer}</td><td>${escHTML(r.marks)}</td></tr>`).join('') || '<tr><td colspan="3"><i>None uploaded.</i></td></tr>'}</tbody>
-          </table>
-        </details>
-        <details style="margin-top:8px;">
-          <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-blue);">Worked solution</summary>
-          <div style="margin-top:8px;">${renderer.toWorkedSolutionHtml(q.content)}</div>
-        </details>
+    return `<div class="preview-q">${questionPreviewHtml(q)}</div>`;
+  }
+
+  /** The uid -> record lookup the builder's row buttons need. */
+  function questionForUid(uid){
+    return allQuestions.find(item => item.uid === uid) || null;
+  }
+
+  /**
+   * Read-only preview of one question, opened from the builder's View
+   * button. Deliberately the same markup the storefront renders, so what an
+   * admin checks before editing is what a student will get.
+   */
+  function showQuestionPreview(q){
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop eq-backdrop';
+    backdrop.innerHTML = `
+      <div class="modal eq-modal" role="dialog" aria-modal="true" aria-label="Question preview">
+        <div class="eq-head">
+          <div>
+            <h2 class="eq-title">Question ${escHTML(String(q.id))}</h2>
+            <p class="eq-sub">${escHTML(q.ref || DB.paperLabel(q))}</p>
+          </div>
+          <button class="eq-close" type="button" aria-label="Close">&times;</button>
+        </div>
+        <div class="eq-body"><div class="preview-q">${questionPreviewHtml(q)}</div></div>
       </div>`;
+    document.body.appendChild(backdrop);
+    SWKatex.renderMathIn(backdrop);
+
+    const close = () => { document.removeEventListener('keydown', onKey); backdrop.remove(); };
+    function onKey(e){ if(e.key === 'Escape') close(); }
+    backdrop.querySelector('.eq-close').addEventListener('click', close);
+    backdrop.addEventListener('click', (e) => { if(e.target === backdrop) close(); });
+    document.addEventListener('keydown', onKey);
   }
 
   /* ================================================================ CHECKOUT (mock, local-only) */

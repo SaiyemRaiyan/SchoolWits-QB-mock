@@ -408,24 +408,43 @@ export class SchoolWitsDB {
       .single();
     if (error) throw error;
 
-    // Replace the module's question set wholesale — mirrors the old
-    // IndexedDB record's `questionUids` array being overwritten in full on
-    // every save, rather than diffed.
-    const del = await this.client
-      .from("module_questions")
-      .delete()
-      .eq("module_id", savedModule.id);
-    if (del.error) throw del.error;
-
+    // Upsert-then-prune, NOT delete-then-insert.
+    //
+    // This used to replace the question set wholesale, mirroring the old
+    // IndexedDB record's `questionUids` array. That stopped being safe when
+    // 0018 added `content_override`: a module's own edited copy of a
+    // question lives on this row, so deleting and re-inserting would
+    // silently destroy every edit the moment the pack was re-saved.
+    //
+    // Upserting refreshes sort_order while leaving content_override alone —
+    // the row object below never mentions that column, so an update cannot
+    // clear it. Overrides only ever change through the update-question Edge
+    // Function. Kept in step with js/supabase/store.js by hand, as the two
+    // copies always are (see backend/CLAUDE.md).
     if (mod.questionIds.length) {
       const rows = mod.questionIds.map((question_id, i) => ({
         module_id: savedModule.id,
         question_id,
         sort_order: i,
       }));
-      const ins = await this.client.from("module_questions").insert(rows);
-      if (ins.error) throw ins.error;
+      const up = await this.client
+        .from("module_questions")
+        .upsert(rows, { onConflict: "module_id,question_id" });
+      if (up.error) throw up.error;
     }
+
+    // Drop only the links no longer picked. Removing a question from a pack
+    // does discard its edited copy — that is the right reading of "this
+    // question is not in this module any more".
+    let prune = this.client
+      .from("module_questions")
+      .delete()
+      .eq("module_id", savedModule.id);
+    if (mod.questionIds.length) {
+      prune = prune.not("question_id", "in", `(${mod.questionIds.join(",")})`);
+    }
+    const del = await prune;
+    if (del.error) throw del.error;
 
     return savedModule;
   }

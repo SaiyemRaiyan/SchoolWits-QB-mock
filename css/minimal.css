@@ -810,3 +810,62 @@ details > .mstable, details > div { margin-top: 10px; }
   .eq-foot { flex-direction: column; align-items: stretch; }
   .eq-actions .btn { flex: 1; }
 }
+
+/* ---------------------------------------------------------------------
+   Module builder: per-question View / Edit, and the "this module has its
+   own copy" marker. See migration 0018.
+   --------------------------------------------------------------------- */
+
+.pickrow-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pickrow-edited {
+  color: var(--brass);
+  font-weight: 600;
+}
+
+/* A disabled Edit means "save the module first" rather than "broken", so
+   it keeps the cursor that invites the tooltip explaining why. */
+.pickrow-actions .btn[disabled] {
+  opacity: .45;
+  cursor: help;
+}
+
+.topic-chip--edited {
+  color: var(--brass) !important;
+  border-color: var(--brass) !important;
+  background: var(--brass-glow) !important;
+}
+
+/* The banner at the top of the edit modal when it is scoped to a module. */
+.eq-banner {
+  margin: 0;
+  padding: 12px 24px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--brass-glow);
+  border-bottom: 1px solid var(--line);
+}
+.eq-banner strong { color: var(--brass-dark); }
+
+/* Inline text button, for "start a new module" inside a status line. */
+.linkbtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--brass);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.linkbtn:hover { color: var(--brass-dark); }
+
+@media (max-width: 640px) {
+  .pickrow-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .eq-banner { padding-left: 16px; padding-right: 16px; }
+}

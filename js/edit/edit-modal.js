@@ -82,7 +82,19 @@ window.SWEdit = (function () {
       </div>`;
   }
 
-  function open(questionId, onSaved) {
+  /**
+   * open(questionId, onSaved)                     — edit the question in the bank
+   * open(questionId, { moduleId, onSaved })       — edit ONE module's copy
+   *
+   * The two-argument form is what js/app.js (Browse) calls and is kept as
+   * is. With a moduleId the edits land on module_questions.content_override
+   * and the paper in the bank is never written — see migration 0018.
+   */
+  function open(questionId, options) {
+    const opts = typeof options === 'function' ? { onSaved: options } : (options || {});
+    const moduleId = opts.moduleId != null ? opts.moduleId : null;
+    const onSaved = opts.onSaved;
+
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop eq-backdrop';
     backdrop.innerHTML = `
@@ -94,10 +106,19 @@ window.SWEdit = (function () {
           </div>
           <button class="eq-close" type="button" aria-label="Close">&times;</button>
         </div>
+        ${moduleId != null ? `
+          <div class="eq-banner">
+            <strong>Editing this module's own copy.</strong>
+            The question in the bank, and every other module using it, stays
+            as the paper has it. Change a value and the mark scheme and
+            worked solution below will need changing too — nothing can
+            recompute them.
+          </div>` : ''}
         <div class="eq-body" id="eqBody"><p class="hint">Loading the editable fields…</p></div>
         <div class="eq-foot">
           <div class="eq-status" id="eqStatus"></div>
           <div class="eq-actions">
+            ${moduleId != null ? '<button class="btn" type="button" id="eqReset" hidden>Reset to original</button>' : ''}
             <button class="btn" type="button" id="eqCancel">Cancel</button>
             <button class="btn btn--primary" type="button" id="eqSave" disabled>Save changes</button>
           </div>
@@ -179,10 +200,19 @@ window.SWEdit = (function () {
       refreshState();
     }
 
-    DB.getQuestionLeaves(questionId).then((res) => {
+    function applyLoaded(res) {
       leaves = res.leaves || [];
+      const edited = res.edited === true;
       backdrop.querySelector('#eqRef').textContent =
-        `${res.ref || '#' + questionId} · ${leaves.length} editable field${leaves.length === 1 ? '' : 's'}`;
+        `${res.ref || '#' + questionId} · ${leaves.length} editable field${leaves.length === 1 ? '' : 's'}`
+        + (edited ? ' · edited for this module' : '');
+      // Only offer Reset once there is actually a copy to discard.
+      const resetBtn = backdrop.querySelector('#eqReset');
+      if (resetBtn) resetBtn.hidden = !edited;
+    }
+
+    DB.getQuestionLeaves(questionId, moduleId).then((res) => {
+      applyLoaded(res);
       if (leaves.length === 0) {
         body.innerHTML = '<p class="hint">This question has no editable text fields.</p>';
         return;
@@ -197,19 +227,49 @@ window.SWEdit = (function () {
       body.innerHTML = `<p class="eq-error">${esc(err.message)}</p>`;
     });
 
+    const resetBtn = backdrop.querySelector('#eqReset');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', async () => {
+        if (!window.confirm(
+          'Discard this module\u2019s edited copy and go back to the paper\u2019s version? '
+          + 'The other modules using this question are unaffected either way.'
+        )) return;
+        resetBtn.disabled = true;
+        status.textContent = 'Resetting\u2026';
+        try {
+          const res = await DB.resetQuestionOverride(moduleId, questionId);
+          saved = true;
+          // Redraw from the paper's version rather than closing, so it is
+          // visible that the reset actually took.
+          applyLoaded(res);
+          body.innerHTML = group(leaves).map((g) => `
+            <section class="eq-group">
+              <h3 class="eq-group-title">${esc(g.name)}</h3>
+              ${g.items.map((it) => fieldHtml(it.leaf, it.index)).join('')}
+            </section>`).join('');
+          wire();
+          status.textContent = 'Reset to the original.';
+          if (typeof onSaved === 'function') onSaved(res.content, { edited: false });
+        } catch (err) {
+          resetBtn.disabled = false;
+          status.innerHTML = `<span class="eq-error">${esc(err.message)}</span>`;
+        }
+      });
+    }
+
     saveBtn.addEventListener('click', async () => {
       const edits = changedEdits();
       if (edits.length === 0) return;
       saveBtn.disabled = true;
       status.textContent = 'Saving…';
       try {
-        const res = await DB.saveQuestionEdits(questionId, edits);
+        const res = await DB.saveQuestionEdits(questionId, edits, moduleId);
         saved = true;
         status.textContent = `Saved ${res.applied} change${res.applied === 1 ? '' : 's'}.`;
         // The response carries the stored content, so the page can re-render
         // from what the database actually holds rather than from what was
         // typed — if the server normalised anything, that is what shows.
-        if (typeof onSaved === 'function') onSaved(res.content);
+        if (typeof onSaved === 'function') onSaved(res.content, { edited: res.edited === true });
         setTimeout(close, 600);
       } catch (err) {
         saveBtn.disabled = false;

@@ -6,15 +6,55 @@ Admin editing of one already-imported question. Deployed to
 Called by `js/edit/edit-modal.js` through `DB.getQuestionLeaves()` /
 `DB.saveQuestionEdits()` in `js/supabase/store.js`.
 
-## Two operations, one endpoint
+## Operations, one endpoint
 
 ```
-POST { id }                  -> { id, ref, leaves }
-POST { id, edits: [...] }    -> { id, ref, applied, saved, content, leaves }
+POST { id }                        -> { id, ref, leaves }
+POST { id, edits: [...] }          -> { id, ref, applied, saved, content, leaves }
+POST { id, moduleId }              -> { ..., moduleId, edited }
+POST { id, moduleId, edits: [...] }-> { ..., moduleId, edited, applied, saved }
+POST { id, moduleId, reset: true } -> { ..., edited: false }
 ```
 
 A `leaf` is `{ path, label, kind, value }` — one editable string, where
 `path` locates it inside `content` (`['parts',2,'content',0,'html']`).
+
+## Module copies
+
+Without `moduleId` this edits the question in the bank. With one, it edits
+**that module's own copy** — an admin changing values ("10x + 7 = 2" ->
+"2x + 7 = 67") so students practise the same shape of problem with different
+numbers, without touching the source paper or any other module.
+
+| | base content read | written to |
+|---|---|---|
+| no `moduleId` | `questions.content` | `questions` (+ `q_text` recompute) |
+| `moduleId` | `content_override ?? questions.content` | `module_questions.content_override` |
+
+Three things follow from that:
+
+- **The first edit is copy-on-write.** There is no override row to create,
+  only a column to fill (migration 0018), so nothing has to be prepared
+  before an admin edits a question for the first time.
+- **The module link must already exist**, and is checked. Otherwise an
+  override could be attached to a question that is not in the module, and
+  nothing would ever render or clean up that row.
+- **No `q_text`/`topics`/`marks` recompute on this path.** Those columns and
+  `search_vector` live on `questions`, which this branch never writes. A
+  module copy is not separately searchable and does not need to be — modules
+  are browsed as bundles, not searched.
+
+`reset: true` clears the copy so the module renders the paper's version
+again. It is rejected without a `moduleId`, because there is nothing to
+reset on the bank question.
+
+### `saveModule` must never touch the override
+
+`saveModule` in both `js/supabase/store.js` and `backend/src/db.ts` used to
+**delete every `module_questions` row and re-insert them**. With 0018 that
+would destroy every edited copy the moment a pack was re-saved, so both are
+now upsert-then-prune: the upserted row object never mentions
+`content_override`, so only this endpoint can change it.
 
 ## Why it takes edits and not `content`
 
@@ -68,15 +108,20 @@ called `update-question`. This one is built the way that README says its
 replacement should be.
 
 Verified against the deployment: an anon-key caller gets `403 Admins only.`
-for both operations, and a request with no `Authorization` header gets
-`401`.
+for every operation including the module ones (read, edit, reset), and a
+request with no `Authorization` header gets `401`.
 
 ## Re-upload wins
 
 Re-importing a paper upserts on `(paper_id, question_number)`, which
-overwrites `content`. Edits made here do not survive that — deliberately.
-The `.tex` stays the source format; this endpoint fixes what is already in
-the bank.
+overwrites `content`. Edits to the **bank** question do not survive that —
+deliberately. The `.tex` stays the source format; this endpoint fixes what
+is already in the bank.
+
+**Module copies are the exception**: a re-import does not clear
+`content_override`, so once a question is edited for a module that copy is
+independent of the paper for good. Removing the question from the module
+does discard it, since the row goes with it.
 
 ## Deploying
 

@@ -192,3 +192,61 @@ describe('applyEdits', () => {
     expect(after.answer.markScheme[0].code).toBe('M1');
   });
 });
+
+/**
+ * The module path (migration 0018) does not add a code path inside
+ * leaves.ts — the Edge Function just hands it a different base content
+ * (content_override ?? questions.content) and writes the result somewhere
+ * else. These pin the behaviour that makes that safe.
+ */
+describe('applyEdits on a module copy', () => {
+  it('edits the override, leaving the source untouched', () => {
+    const source = question();
+    const leaves = collectLeaves(source);
+    // First edit for a module: the base IS the source, copy-on-write.
+    const { content: override } = applyEdits(source, [
+      { path: pathOf(leaves, 'Stem · text'), value: 'A parachutist falls.' },
+    ]);
+    expect((override as any).stem[0].html).toBe('A parachutist falls.');
+    expect(source.stem[0].html).toBe('A skydiver falls.');
+  });
+
+  it('applies a second edit on top of an existing override', () => {
+    const source = question();
+    const first = applyEdits(source, [
+      { path: ['stem', 0, 'html'], value: 'Version two.' },
+    ]).content;
+    // Second edit uses the OVERRIDE as its base, not the source.
+    const leaves = collectLeaves(first);
+    const { content: second, applied } = applyEdits(first, [
+      { path: pathOf(leaves, '1(a) · mark scheme'), value: 'upthrust' },
+    ]);
+    expect(applied).toBe(1);
+    expect((second as any).stem[0].html).toBe('Version two.');
+    expect((second as any).answer.markScheme[0].answer).toBe('upthrust');
+    expect(source.stem[0].html).toBe('A skydiver falls.');
+  });
+
+  it('accepts a value change of the kind the feature exists for', () => {
+    // The motivating case: same question, different numbers.
+    const source = question();
+    source.parts[0].content[0].html = 'Solve 10x + 7 = 2.';
+    const leaves = collectLeaves(source);
+    const { content } = applyEdits(source, [
+      { path: pathOf(leaves, '1(a) · text'), value: 'Solve 2x + 7 = 67.' },
+    ]);
+    expect((content as any).parts[0].content[0].html).toBe('Solve 2x + 7 = 67.');
+  });
+
+  it('constrains an override to the same shape as the source', () => {
+    // An override is still parser-shaped: the leaf allow-list is derived
+    // from the document, so a module cannot grow a part the paper lacks.
+    const source = question();
+    const override = applyEdits(source, [
+      { path: ['stem', 0, 'html'], value: 'Edited.' },
+    ]).content;
+    expect(() => applyEdits(override, [{ path: ['parts', 5, 'content', 0, 'html'], value: 'x' }]))
+      .toThrow(EditError);
+    expect(() => applyEdits(override, [{ path: ['marks'], value: '99' }])).toThrow(EditError);
+  });
+});

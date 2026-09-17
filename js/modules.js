@@ -250,7 +250,7 @@
 
           let moduleId = null;
           try {
-            moduleId = await moduleIdForEditing();
+            moduleId = await moduleIdForEditing(q);
           } finally {
             editBusy = false;
             // One re-render, after the await — doing it before would detach
@@ -412,16 +412,30 @@
    * that an edit has to belong to a row. So the row gets created at the
    * moment it is first needed, and the admin keeps working.
    */
-  async function moduleIdForEditing(){
-    if(editingModuleId) return editingModuleId;
-    const id = await persistModule('the module has to exist before a question can be edited for it');
-    if(id){
+  async function moduleIdForEditing(q){
+    if(!editingModuleId){
+      const id = await persistModule('the module has to exist before a question can be edited for it');
+      if(!id) return null;
       els.modSaveResult.innerHTML =
         `<span class="hint">Saved <strong>${escHTML(els.modTitle.value.trim())}</strong> so this edit has somewhere to live. Carry on — saving again updates it rather than creating another.</span>`;
       await refreshBuiltList();
       await refreshStorefront();
+      return id;
     }
-    return id;
+
+    // The module exists, but this question may have been ticked since it was
+    // last saved — in which case there is still no (module_id, question_id)
+    // row for the override to live on, and update-question refuses to invent
+    // one. Link just this question; Save still does the full reconcile, so
+    // nothing here prunes or reorders anything else.
+    try {
+      await DB.addModuleQuestion(editingModuleId, q.pk, Array.from(selected).indexOf(q.uid));
+    } catch (err) {
+      els.modSaveResult.innerHTML =
+        `<span style="color:var(--marker-dark);">Could not add Q${escHTML(String(q.id))} to the module: ${escHTML(err.message || String(err))}</span>`;
+      return null;
+    }
+    return editingModuleId;
   }
 
   async function saveModule(){

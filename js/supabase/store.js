@@ -501,6 +501,29 @@ const DB = (function(){
       });
   }
 
+  /**
+   * Make sure one question is linked to a module, without disturbing the
+   * rest of the pack.
+   *
+   * Needed because an edited copy is keyed on (module_id, question_id): a
+   * question ticked in the builder but not yet saved has no row for the
+   * override to live on, and update-question rightly refuses to create one.
+   *
+   * ignoreDuplicates so an existing link keeps its sort_order — this is a
+   * "make sure it is there", not a reorder. The full reconcile (including
+   * pruning what was unticked) still happens on Save, so nothing here
+   * destroys a link or an override.
+   */
+  async function addModuleQuestion(moduleId, questionPk, sortOrder){
+    const { error } = await client
+      .from('module_questions')
+      .upsert(
+        { module_id: Number(moduleId), question_id: Number(questionPk), sort_order: Number(sortOrder) || 0 },
+        { onConflict: 'module_id,question_id', ignoreDuplicates: true }
+      );
+    check(error);
+  }
+
   /** Drop a module's edited copy, so it renders the paper's version again. */
   async function resetQuestionOverride(moduleId, questionId){
     return callEditFunction({ id: Number(questionId), moduleId: Number(moduleId), reset: true });
@@ -677,7 +700,7 @@ const DB = (function(){
     getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,
     getFacets, getCounts, search, getSyllabuses, invalidatePaperCache,
     saveModule, getAllModules, getModule, deleteModule,
-    getModuleQuestions, resetQuestionOverride,
+    getModuleQuestions, resetQuestionOverride, addModuleQuestion,
     isPurchased, markPurchased,
     setVideo,
     getQuestionLeaves, saveQuestionEdits,

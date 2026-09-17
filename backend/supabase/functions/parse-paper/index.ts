@@ -30,6 +30,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
+  flattenQuestion,
   mergePaper,
   parseAnswerPaper,
   parseQuestionPaper,
@@ -46,40 +47,6 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { ...CORS, 'Content-Type': 'application/json' },
   });
-}
-
-/** Flattened plain text for questions.search_vector — math is dropped. */
-function flatten(q: any): string {
-  const out: string[] = [];
-  const blocks = (bs: any[] = []) => {
-    for (const b of bs) {
-      if (b.type === 'text') out.push(b.html);
-      else if (b.type === 'figure' && b.caption) out.push(b.caption);
-      else if (b.type === 'table') out.push(b.html);
-    }
-  };
-  const parts = (ps: any[] = []) => {
-    for (const p of ps) {
-      blocks(p.content);
-      parts(p.subparts);
-    }
-  };
-  blocks(q.stem);
-  parts(q.parts);
-  for (const it of q.options?.items ?? []) out.push(it.content);
-  for (const r of q.answer?.markScheme ?? []) out.push(r.answer);
-  for (const s of q.answer?.workedSolution ?? []) {
-    if (s.heading) out.push(s.heading);
-    out.push(s.html);
-  }
-  return out
-    .join(' ')
-    .replace(/\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$]*\$|\\\([\s\S]*?\\\)/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&[a-z]+;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 8000);
 }
 
 /**
@@ -179,7 +146,7 @@ Deno.serve(async (req: Request) => {
     topics: q.topics,
     marks: q.marks,
     ref: `${meta.paperId} -- Q${q.number}`,
-    q_text: flatten(q),
+    q_text: flattenQuestion(q),
     content: q,
   }));
 

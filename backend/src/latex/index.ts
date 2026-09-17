@@ -27,6 +27,7 @@ export { parseAnsbox, extractSolution, parseCorrectOption } from './solutions.js
 export { parseOptions } from './options.js';
 export { inlineToHtml } from './inline.js';
 export { toBlocks, resolveImage } from './content.js';
+export { flattenQuestion } from './flatten.js';
 
 /**
  * Whether a question states its options as text we could actually read,

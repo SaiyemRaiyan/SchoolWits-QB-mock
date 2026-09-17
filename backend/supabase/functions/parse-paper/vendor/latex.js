@@ -53,9 +53,19 @@ function normalizeWhitespace(src) {
   return src.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 function detectMstabColumns(preamble) {
-  const m = /\\newenvironment\{mstab\}\[(\d)\]/.exec(preamble);
-  if (!m) return 3;
-  return m[1] === "2" ? 4 : 3;
+  const header = /Question\s*&[^\\]*?\\\\/.exec(preamble);
+  if (header) {
+    const cells = header[0].split("&").length;
+    if (cells >= 4) return 4;
+    if (cells === 3) return 3;
+  }
+  const spec = /\\begin\{tabularx\}|\\tabularx\{[^}]*\}\{([\s\S]*?)\}%?\s*\n\s*\\hline/.exec(preamble);
+  if (spec && spec[1]) {
+    const columns = (spec[1].match(/p\{[^}]*\}|(?<![a-zA-Z])X(?![a-zA-Z])/g) || []).length;
+    if (columns >= 4) return 4;
+    if (columns === 3) return 3;
+  }
+  return 3;
 }
 
 // src/latex/scan.ts
@@ -830,6 +840,38 @@ function extractCorrectOption(body) {
   return null;
 }
 
+// src/latex/flatten.ts
+var MAX_LENGTH = 8e3;
+var MATH = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$]*\$|\\\([\s\S]*?\\\)/g;
+function flattenQuestion(q) {
+  if (!q) return "";
+  const out = [];
+  const fromBlocks = (blocks) => {
+    for (const block of blocks ?? []) {
+      const b = block;
+      if (b.type === "text") out.push(b.html ?? "");
+      else if (b.type === "figure" && b.caption) out.push(b.caption);
+      else if (b.type === "table") out.push(b.html ?? "");
+    }
+  };
+  const fromParts = (parts) => {
+    for (const part of parts ?? []) {
+      const p = part;
+      fromBlocks(p.content);
+      fromParts(p.subparts);
+    }
+  };
+  fromBlocks(q.stem);
+  fromParts(q.parts);
+  for (const item of q.options?.items ?? []) out.push(item.content ?? "");
+  for (const row of q.answer?.markScheme ?? []) out.push(row.answer ?? "");
+  for (const seg of q.answer?.workedSolution ?? []) {
+    if (seg.heading) out.push(seg.heading);
+    out.push(seg.html ?? "");
+  }
+  return out.join(" ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
+}
+
 // src/latex/index.ts
 function hasRealOptions(options) {
   return options !== null && options.source !== "figure" && options.items.length > 0;
@@ -959,6 +1001,7 @@ export {
   extractAnswerSpace,
   extractMarkScheme,
   extractSolution,
+  flattenQuestion,
   inlineToHtml,
   mergePaper,
   parseAnsbox,

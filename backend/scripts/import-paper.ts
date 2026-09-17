@@ -22,8 +22,8 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServiceRoleClient } from '../src/client.js';
 import { SchoolWitsDB, type PaperMeta, type QuestionRow } from '../src/db.js';
-import { mergePaper, parseAnswerPaper, parseQuestionPaper } from '../src/latex/index.js';
-import type { Block, ImageMap, ParsedPaper, Part, Question } from '../src/latex/types.js';
+import { flattenQuestion, mergePaper, parseAnswerPaper, parseQuestionPaper } from '../src/latex/index.js';
+import type { ImageMap, ParsedPaper } from '../src/latex/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(here, '..', '..');
@@ -60,49 +60,6 @@ function findPair(dir: string): { qp: string; qa: string | null } | null {
 
 function figureFiles(dir: string): string[] {
   return readdirSync(dir).filter((f) => MIME[extname(f).toLowerCase()]);
-}
-
-/**
- * Flatten a question to plain text for the search vector.
- *
- * Body text now lives inside content's block tree, so without this a
- * question would only be findable by its topic and ref. Math is dropped
- * rather than indexed — "$\frac{1}{2}$" makes no useful search terms.
- */
-function flattenQuestion(q: Question): string {
-  const out: string[] = [];
-
-  const fromBlocks = (blocks: Block[] | undefined) => {
-    for (const b of blocks ?? []) {
-      if (b.type === 'text') out.push(b.html);
-      else if (b.type === 'figure' && b.caption) out.push(b.caption);
-      else if (b.type === 'table') out.push(b.html);
-    }
-  };
-  const fromParts = (parts: Part[] | undefined) => {
-    for (const p of parts ?? []) {
-      fromBlocks(p.content);
-      fromParts(p.subparts);
-    }
-  };
-
-  fromBlocks(q.stem);
-  fromParts(q.parts);
-  for (const item of q.options?.items ?? []) out.push(item.content);
-  for (const row of q.answer?.markScheme ?? []) out.push(row.answer);
-  for (const seg of q.answer?.workedSolution ?? []) {
-    if (seg.heading) out.push(seg.heading);
-    out.push(seg.html);
-  }
-
-  return out
-    .join(' ')
-    .replace(/\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$]*\$|\\\([\s\S]*?\\\)/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&[a-z]+;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 8000);
 }
 
 function toPaperMeta(paper: NonNullable<ParsedPaper['paper']>, subject: string): PaperMeta {

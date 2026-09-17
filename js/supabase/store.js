@@ -386,6 +386,35 @@ const DB = (function(){
       price: mod.premium ? (Number(mod.price) || 0) : 0,
       currency: mod.currency || '৳'
     };
+    const uids = mod.questionUids || [];
+    const questions = await getQuestionsByUids(uids);
+    const byUid = new Map(questions.map(q => [q.uid, q]));
+    const orderedQuestions = uids.map(u => byUid.get(u)).filter(Boolean);
+    const keptIds = orderedQuestions.map(q => q.pk);
+
+    // Refuse to prune on an incomplete resolve.
+    //
+    // keptIds is what survives the prune below, and it is built from the
+    // uids that RESOLVED. A uid that failed to resolve is indistinguishable
+    // from one the admin removed, so a partial read would silently delete
+    // live links — and with them the modules' edited copies, which are not
+    // recoverable from the .tex.
+    //
+    // getQuestionsByUids resolves against getAllQuestions(), so this can
+    // happen for reasons that have nothing to do with intent: PostgREST's
+    // max-rows cap once the bank outgrows it, or a question deleted between
+    // the builder loading and the admin saving. Failing loudly is the only
+    // safe answer — the save is abandoned with nothing written.
+    if(orderedQuestions.length !== uids.length){
+      const missing = uids.filter(u => !byUid.has(u));
+      throw new Error(
+        `Refusing to save: ${missing.length} of ${uids.length} questions could not be read back `
+        + `(${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ', …' : ''}). `
+        + `Saving now would remove them from the module along with any edits made for it. `
+        + `Reload the page and try again.`
+      );
+    }
+
     // INSERT for a new module, UPDATE for an existing one — deliberately not
     // an upsert with the id in the row.
     //
@@ -409,12 +438,6 @@ const DB = (function(){
 
     // Resolve the uid list to real question rows the same way
     // getQuestionsByUids does.
-    const uids = mod.questionUids || [];
-    const questions = await getQuestionsByUids(uids);
-    const byUid = new Map(questions.map(q => [q.uid, q]));
-    const orderedQuestions = uids.map(u => byUid.get(u)).filter(Boolean);
-    const keptIds = orderedQuestions.map(q => q.pk);
-
     // Upsert-then-prune, NOT delete-then-insert.
     //
     // This used to replace module_questions wholesale, mirroring the old

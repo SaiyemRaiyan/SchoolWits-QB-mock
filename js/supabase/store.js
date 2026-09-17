@@ -386,10 +386,26 @@ const DB = (function(){
       price: mod.premium ? (Number(mod.price) || 0) : 0,
       currency: mod.currency || '৳'
     };
-    if(mod.id) row.id = Number(mod.id);
-
-    const { data: savedRow, error } = await client.from('modules').upsert(row).select().single();
-    check(error);
+    // INSERT for a new module, UPDATE for an existing one — deliberately not
+    // an upsert with the id in the row.
+    //
+    // modules.id is `generated always as identity`, and PostgREST implements
+    // upsert as INSERT ... ON CONFLICT, so the id is part of the INSERT
+    // column list even when the row already exists. Postgres rejects that
+    // outright: "cannot insert a non-DEFAULT value into column id". The
+    // upsert worked only for as long as nothing ever passed an id.
+    let savedRow;
+    if(mod.id){
+      const { data, error } = await client
+        .from('modules').update(row).eq('id', Number(mod.id)).select().single();
+      check(error);
+      savedRow = data;
+    } else {
+      const { data, error } = await client
+        .from('modules').insert(row).select().single();
+      check(error);
+      savedRow = data;
+    }
 
     // Resolve the uid list to real question rows the same way
     // getQuestionsByUids does.

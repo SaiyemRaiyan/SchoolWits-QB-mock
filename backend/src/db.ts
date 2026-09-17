@@ -399,14 +399,21 @@ export class SchoolWitsDB {
       price: mod.premium ? mod.price : 0,
       currency: mod.currency ?? "৳",
     };
-    if (mod.id) (row as { id?: number }).id = mod.id;
-
-    const { data: savedModule, error } = await this.client
-      .from("modules")
-      .upsert(row)
-      .select()
-      .single();
-    if (error) throw error;
+    // INSERT for a new module, UPDATE for an existing one — deliberately not
+    // an upsert with the id in the row.
+    //
+    // modules.id is `generated always as identity`, and PostgREST implements
+    // upsert as INSERT ... ON CONFLICT, so the id is part of the INSERT
+    // column list even when the row already exists. Postgres rejects that
+    // outright: "cannot insert a non-DEFAULT value into column id". The
+    // upsert worked only for as long as nothing ever passed an id.
+    // Kept in step with js/supabase/store.js by hand, as the two copies
+    // always are (see backend/CLAUDE.md).
+    const written = mod.id
+      ? await this.client.from("modules").update(row).eq("id", mod.id).select().single()
+      : await this.client.from("modules").insert(row).select().single();
+    if (written.error) throw written.error;
+    const savedModule = written.data;
 
     // Upsert-then-prune, NOT delete-then-insert.
     //

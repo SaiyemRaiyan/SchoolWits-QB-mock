@@ -670,3 +670,143 @@ details > .mstable, details > div { margin-top: 10px; }
   .card-head, .panel { padding: 16px !important; }
   .console { padding: 10px 16px 0 !important; }
 }
+
+/* =====================================================================
+   Question editor (admin) — js/edit/edit-modal.js
+
+   Reuses .modal-backdrop from style.css for the overlay, then overrides
+   the .modal box: the checkout modal it was written for is a 400px
+   confirmation, and this is a long scrolling form.
+   ===================================================================== */
+
+.eq-backdrop { align-items: flex-start; padding: 32px 16px; overflow-y: auto; }
+
+.eq-modal {
+  max-width: 760px;
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 64px);
+  border: 1px solid var(--line-strong);
+}
+
+.eq-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.eq-title { margin: 0; font-size: 16px; font-weight: 600; color: var(--ink); }
+.eq-sub { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+.eq-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 4px;
+}
+.eq-close:hover { color: var(--ink); }
+
+/* The form scrolls; the header and footer stay put, so Save is always
+   reachable on a question with 40 editable fields. */
+.eq-body { padding: 8px 24px 20px; overflow-y: auto; flex: 1; }
+
+.eq-group { margin-top: 20px; }
+.eq-group:first-child { margin-top: 12px; }
+.eq-group-title {
+  margin: 0 0 10px;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--brass);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.eq-field { margin-bottom: 14px; }
+.eq-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.eq-label-text { font-size: 12px; font-weight: 500; color: var(--muted); }
+.eq-changed {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--brass);
+  background: var(--brass-glow);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+.eq-input {
+  width: 100%;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  resize: vertical;
+}
+.eq-input:focus {
+  outline: none;
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px var(--brass-glow);
+}
+
+/* The preview is what the field will actually look like once rendered,
+   so it is indented under the input rather than sitting beside it. */
+.eq-preview {
+  margin-top: 6px;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper-cool);
+  border-left: 2px solid var(--brass);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  overflow-x: auto;
+}
+.eq-preview--error {
+  border-left-color: var(--marker-dark);
+  color: var(--marker-dark);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.eq-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--paper-cool);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.eq-status { font-size: 12.5px; color: var(--muted); }
+.eq-actions { display: flex; gap: 8px; }
+.eq-error { color: var(--marker-dark); font-size: 12.5px; }
+
+.navbtn--edit { margin-left: 8px; }
+
+@media (max-width: 640px) {
+  .eq-backdrop { padding: 0; }
+  .eq-modal { max-height: 100vh; border-radius: 0; border: none; }
+  .eq-head, .eq-body, .eq-foot { padding-left: 16px; padding-right: 16px; }
+  .eq-foot { flex-direction: column; align-items: stretch; }
+  .eq-actions .btn { flex: 1; }
+}

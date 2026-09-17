@@ -59,6 +59,7 @@
 
     prevBtn: document.getElementById('prevBtn'),
     nextBtn: document.getElementById('nextBtn'),
+    editQBtn: document.getElementById('editQBtn'),
     tabs: document.querySelectorAll('.tab'),
     panels: document.querySelectorAll('.panel'),
 
@@ -578,6 +579,31 @@
 
     els.prevBtn.disabled = currentIndex === 0;
     els.nextBtn.disabled = currentIndex === currentResults.length - 1;
+
+    // Editing is admin-only. canEdit is already false on the student portal
+    // (isStudentPortal short-circuits it), so Home never shows this. The
+    // real boundary is the Edge Function's own is_admin() check plus RLS —
+    // this only decides whether to draw the button.
+    if(els.editQBtn){
+      els.editQBtn.hidden = !canEdit;
+      els.editQBtn.onclick = canEdit ? () => openEditor(q) : null;
+    }
+  }
+
+  /**
+   * Edit one question's stored text.
+   *
+   * q.pk is the Postgres primary key, not q.id — q.id is the per-paper
+   * question number, which is not unique across the bank.
+   */
+  function openEditor(q){
+    SWEdit.open(q.pk, (content) => {
+      // Re-render from what the database returned, and keep the in-memory
+      // result set in step so paging away and back does not show the old
+      // text from before the edit.
+      q.content = content;
+      renderQuestion();
+    });
   }
 
   /* ---------------------------------------------------------- KaTeX */

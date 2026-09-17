@@ -242,6 +242,60 @@ const DB = (function(){
     return updateQuestion(uid, { videoId });
   }
 
+  /* ------------------------------------------------- question editing */
+
+  /**
+   * Question editing goes through the update-question Edge Function, not
+   * through a table write from here.
+   *
+   * Two reasons. First, q_text has to be recomputed from content on every
+   * save -- search_vector is generated from q_text/topics/ref, not from
+   * content, so writing content alone leaves the question findable only by
+   * its old wording -- and the code that flattens a question lives in
+   * backend/src/latex, which a browser cannot import. Second, the function
+   * applies edits to the content already in the database rather than
+   * trusting a tree from here, so what is stored keeps the shape the parser
+   * produced.
+   *
+   * Which fields are editable is also the function's answer, not ours: it
+   * returns the leaf list. A second opinion in this file would drift.
+   */
+  const EDIT_FUNCTION_URL = window.SUPABASE_URL + '/functions/v1/update-question';
+
+  async function callEditFunction(body){
+    const { data: { session } } = await client.auth.getSession();
+    if(!session) throw new Error('Your session expired \u2014 sign in again.');
+
+    const res = await fetch(EDIT_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': window.SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    let payload;
+    try {
+      payload = await res.json();
+    } catch {
+      throw new Error(`Server returned ${res.status} with no JSON body.`);
+    }
+    if(!res.ok) throw new Error(payload.error || `Request failed (${res.status}).`);
+    return payload;
+  }
+
+  /** The editable fields of one question, as { path, label, kind, value }. */
+  async function getQuestionLeaves(id){
+    return callEditFunction({ id: Number(id) });
+  }
+
+  /** Apply [{ path, value }] edits. Returns the saved content and new leaves. */
+  async function saveQuestionEdits(id, edits){
+    return callEditFunction({ id: Number(id), edits });
+  }
+
   /* ---------------------------------------------------------- facets & search */
   async function getFacets(){
     // Only the columns the facets actually need. This used to call
@@ -538,6 +592,7 @@ const DB = (function(){
     saveModule, getAllModules, getModule, deleteModule,
     isPurchased, markPurchased,
     setVideo,
+    getQuestionLeaves, saveQuestionEdits,
     signInWithGoogle, signOut, isAdmin, currentUser
   };
 

@@ -15,6 +15,8 @@
     "import": "tsx scripts/import-paper.ts",
     "build:function": "esbuild src/latex/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/parse-paper/vendor/latex.js --banner:js='/* GENERATED - do not edit. Bundled from backend/src/latex/ by npm run build:function. */'",
     "deploy:function": "npm run build:function && supabase functions deploy parse-paper --project-ref zzztbpbvxfpyzuxxlkdh",
+    "build:edit-function": "esbuild src/edit/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/update-question/vendor/edit.js --banner:js='/* GENERATED - do not edit. Bundled from backend/src/edit/ by npm run build:edit-function. */'",
+    "deploy:edit-function": "npm run build:edit-function && supabase functions deploy update-question --project-ref zzztbpbvxfpyzuxxlkdh",
     "delete:legacy-functions": "supabase functions delete save-paper --project-ref zzztbpbvxfpyzuxxlkdh && supabase functions delete delete-paper --project-ref zzztbpbvxfpyzuxxlkdh && supabase functions delete update-question --project-ref zzztbpbvxfpyzuxxlkdh"
   },
   "dependencies": {

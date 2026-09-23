@@ -42,12 +42,12 @@ window.SWNav = (function () {
       '<a href="' + href + '"' + (isActive ? ' class="active"' : '') + '>' + escapeHtml(label) + '</a>';
 
     // Two entry points, one interface:
-    //   Home   the student portal — read-only
-    //   Browse the same UI for admins, with write controls
+    //   Home   the marketing/gateway page — subject/curriculum picker
+    //   Browse the same student/admin UI, with write controls for admins
     // Subject links used to sit between them, one per syllabus. They were
     // removed because both pages pick subject from their own dropdown, so
     // the nav was restating a choice the page already offers.
-    let html = link('home.html', 'Home', current === 'home');
+    let html = link('landing.html', 'Home', current === 'home');
     html += link('index.html', 'Browse', current === 'browse');
 
     nav.innerHTML = html;

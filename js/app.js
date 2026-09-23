@@ -33,7 +33,11 @@
     // control was removed.
     fTopicInput: document.getElementById('fTopicInput'),
     fTopicMenu: document.getElementById('fTopicMenu'),
+    fTopicMenuList: document.getElementById('fTopicMenuList'),
     topicCombo: document.getElementById('topicCombo'),
+    topicWrap: document.getElementById('topicWrap'),
+    topicFlyoutToggle: document.getElementById('topicFlyoutToggle'),
+    topicFlyoutClose: document.getElementById('topicFlyoutClose'),
     marksDist: document.getElementById('marksDist'),
     fText: document.getElementById('fText'),
 
@@ -84,7 +88,9 @@
   let currentResults = [];   // questions matching the active filters/search
   let currentIndex = -1;     // index into currentResults
   let viewMode = 'single';   // 'single' (one question at a time) | 'full' (whole paper, continuous)
-  let topicList = [];        // full facet list backing the topic combobox's filter
+  let topicList = [];        // topics backing the topic combobox — all of them, or just the active subject's
+  let allTopics = [];        // unscoped fallback for when no subject is selected
+  let topicsRequestId = 0;   // guards against an older getTopicsForSubject() reply landing after a newer one
   const ACCENTS = ['#2F6FB3', '#1D8A5C', '#B9762A', '#8B4FB0', '#C0392B', '#1A9E96', '#7A6A1E', '#4A5568'];
 
   /**
@@ -133,13 +139,14 @@
       `<button class="pill ${g.qualification === activeQualification ? 'active' : ''}" data-qual="${escAttr(g.qualification)}">`
       + `${escHTML(g.board + ' ' + g.qualification)}<span class="count">${g.paperCount}</span></button>`).join('');
 
-    els.qualPills.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => {
+    els.qualPills.querySelectorAll('.pill').forEach(b => b.addEventListener('click', async () => {
       activeQualification = b.dataset.qual;
       renderQualPills();
       // Subject options are scoped to the qualification, so the previous
       // choice may not exist in the new list.
       els.fSubject.value = '';
       fillSubjectOptions();
+      await refreshTopicsForSubject();
       runSearch();
     }));
   }
@@ -182,6 +189,21 @@
     return paperSubjectByCode ? (paperSubjectByCode.get(code) || null) : null;
   }
 
+  /**
+   * A topic deep-linked from the landing page (?topic=...), applied once
+   * the topic facet list is loaded. Silently ignored if it doesn't match
+   * any topic in the bank — this is a convenience prefill, not a filter
+   * that should ever error the page.
+   */
+  function applyTopicFromUrl(){
+    const wanted = new URLSearchParams(location.search).get('topic');
+    if(!wanted) return;
+    const match = topicList.find(t => t.toLowerCase() === wanted.toLowerCase());
+    if(!match) return;
+    els.fTopic.value = match;
+    els.fTopicInput.value = match;
+  }
+
   /* ---------------------------------------------------------- boot */
   async function boot(){
     await DB.open();
@@ -189,6 +211,8 @@
     SWNav.render(isStudentPortal ? 'home' : 'browse');
     await refreshFilterOptions();
     await initSyllabusPicker();
+    await refreshTopicsForSubject();
+    applyTopicFromUrl();
     initEvents();
     await runSearch();
   }
@@ -210,7 +234,8 @@
     fillSelect(els.fVariant, facets.variants);
     fillSelect(els.fSession, facets.sessions);
     fillSelect(els.fYear, facets.years.map(String));
-    fillTopicCombo(facets.topics);
+    allTopics = facets.topics;
+    fillTopicCombo(allTopics);
     els.statStrip.innerHTML = facets.paperCount
       ? `<span><b>${facets.paperCount}</b> paper${facets.paperCount === 1 ? '' : 's'} indexed</span><span class="dot">&middot;</span><span><b>${facets.questionCount}</b> questions searchable</span>`
       : `<span>No papers indexed yet &mdash; <a href="upload.html">upload a .tex file</a> to get started</span>`;
@@ -230,21 +255,73 @@
     }
   }
 
+  /**
+   * Topics are scoped to the selected subject (DB.getTopicsForSubject) once
+   * one is chosen, instead of always listing every topic in the bank —
+   * otherwise Physics questions would clutter the list while browsing Add
+   * Maths. Falls back to the full facet list when no subject is picked.
+   */
+  async function refreshTopicsForSubject(){
+    const subject = els.fSubject.value;
+    const reqId = ++topicsRequestId;
+    const topics = subject ? await DB.getTopicsForSubject(subject) : allTopics;
+    if(reqId !== topicsRequestId) return; // a newer subject change already landed
+    fillTopicCombo(topics);
+  }
+
   function renderTopicMenu(filterText){
     const q = (filterText || '').trim().toLowerCase();
     const matches = q ? topicList.filter(t => t.toLowerCase().includes(q)) : topicList;
     const rows = ['<div class="combo-option' + (els.fTopic.value ? '' : ' active') + '" data-value="">Any topic</div>']
       .concat(matches.map(t => `<div class="combo-option${t === els.fTopic.value ? ' active' : ''}" data-value="${escAttr(t)}">${escHTML(t)}</div>`));
     if(!matches.length) rows.push('<div class="combo-empty">No matching topics</div>');
-    els.fTopicMenu.innerHTML = rows.join('');
-    els.fTopicMenu.hidden = false;
+    els.fTopicMenuList.innerHTML = rows.join('');
+    openTopicFlyout();
   }
 
   function selectTopic(value){
     els.fTopic.value = value;
     els.fTopicInput.value = value;
-    els.fTopicMenu.hidden = true;
+    closeTopicFlyout();
     els.fTopic.dispatchEvent(new Event('change'));
+  }
+
+  /**
+   * The flyout is `position:fixed` and placed by hand (rather than CSS
+   * `left:100%` on an ancestor) because it lives inside `.sidebar`, which
+   * scrolls — an absolutely-positioned panel would get clipped by that
+   * overflow. Only pinned beside the sidebar on desktop; the mobile layout
+   * (sidebar becomes a near-full-width drawer) centers it instead via CSS.
+   *
+   * Anchored to the top of the sidebar itself (not the Topic field's own
+   * position) and stretched to the bottom of the viewport, so it reads as
+   * one tall panel rather than a short box hanging off wherever Topic
+   * happens to sit in the filter list.
+   */
+  function positionTopicFlyout(){
+    if(window.innerWidth <= 980){
+      els.fTopicMenu.style.top = '';
+      els.fTopicMenu.style.left = '';
+      els.fTopicMenu.style.maxHeight = '';
+      return;
+    }
+    const sidebarRect = els.topicWrap.closest('.sidebar').getBoundingClientRect();
+    const wrapRect = els.topicWrap.getBoundingClientRect();
+    const top = Math.max(12, sidebarRect.top);
+    els.fTopicMenu.style.top = top + 'px';
+    els.fTopicMenu.style.left = (wrapRect.right + 12) + 'px';
+    els.fTopicMenu.style.maxHeight = (window.innerHeight - top - 20) + 'px';
+  }
+
+  function openTopicFlyout(){
+    positionTopicFlyout();
+    els.fTopicMenu.classList.add('open');
+    els.topicFlyoutToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeTopicFlyout(){
+    els.fTopicMenu.classList.remove('open');
+    els.topicFlyoutToggle.setAttribute('aria-expanded', 'false');
   }
 
   function wireTopicCombo(){
@@ -253,28 +330,42 @@
     els.fTopicInput.addEventListener('keydown', (e) => {
       if(e.key === 'Enter'){
         e.preventDefault();
-        const options = els.fTopicMenu.querySelectorAll('.combo-option');
+        const options = els.fTopicMenuList.querySelectorAll('.combo-option');
         // Skip the always-present "Any topic" row once the user has typed
         // something to filter by, so Enter picks the match, not "Any".
         const pick = els.fTopicInput.value.trim() && options.length > 1 ? options[1] : options[0];
         if(pick) selectTopic(pick.dataset.value);
       } else if(e.key === 'Escape'){
-        els.fTopicMenu.hidden = true;
+        closeTopicFlyout();
         els.fTopicInput.blur();
       }
     });
+    // Toggle arrow: click to open/browse without typing, click again to
+    // slide it back shut.
+    els.topicFlyoutToggle.addEventListener('click', () => {
+      if(els.fTopicMenu.classList.contains('open')) closeTopicFlyout();
+      else { renderTopicMenu(els.fTopicInput.value); els.fTopicInput.focus(); }
+    });
+    els.topicFlyoutClose.addEventListener('click', () => closeTopicFlyout());
     els.fTopicMenu.addEventListener('mousedown', (e) => {
       const opt = e.target.closest('.combo-option');
       if(opt) selectTopic(opt.dataset.value);
     });
     document.addEventListener('click', (e) => {
-      if(!els.topicCombo.contains(e.target)) els.fTopicMenu.hidden = true;
+      if(!els.topicWrap.contains(e.target) && !els.fTopicMenu.contains(e.target)) closeTopicFlyout();
+    });
+    window.addEventListener('resize', () => {
+      if(els.fTopicMenu.classList.contains('open')) positionTopicFlyout();
     });
   }
 
   /* ---------------------------------------------------------- events */
   function initEvents(){
-    [els.fSubject, els.fPaper, els.fVariant, els.fSession, els.fYear, els.fTopic]
+    els.fSubject.addEventListener('change', async () => {
+      await refreshTopicsForSubject();
+      runSearch();
+    });
+    [els.fPaper, els.fVariant, els.fSession, els.fYear, els.fTopic]
       .forEach(sel => sel.addEventListener('change', runSearch));
     wireTopicCombo();
     let debounce;

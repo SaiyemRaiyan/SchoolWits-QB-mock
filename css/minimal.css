@@ -67,10 +67,6 @@ body {
 .brand-name { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0; }
 .brand-sub  { font-size: 11px; color: var(--muted); letter-spacing: 0; text-transform: none; }
 .console-brand { gap: 9px; }
-
-/* Nav: quiet text, one underline for the active page. The old treatment
-   was uppercase monospace with a filled brass chip, which made nine links
-   compete with each other and with the brand. */
 .sitenav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
 .sitenav a {
   padding: 6px 10px !important;
@@ -95,7 +91,7 @@ body {
 .sitenav--secondary { margin-left: auto; opacity: 1; }
 .sitenav--secondary a { font-size: 12.5px !important; color: #9CA3AF !important; }
 
-/* ------------------------------------------------------- filters row */
+/* filters row */
 .console-filters label,
 .field label {
   font-family: var(--sans) !important;
@@ -124,7 +120,7 @@ body {
 .searchbar input { color: var(--ink) !important; }
 .searchbar input::placeholder { color: #9CA3AF; }
 
-/* ------------------------------------------------------------- cards */
+/* cards */
 .section-card, .card, .module-card, .syllabus-picker, .preview-q {
   background: #FFFFFF !important;
   border: 1px solid var(--line) !important;
@@ -146,7 +142,7 @@ body {
 h2 { font-family: var(--sans) !important; font-size: 15px !important; font-weight: 600 !important; color: var(--ink) !important; }
 h3, h4 { font-family: var(--sans) !important; color: var(--ink) !important; }
 
-/* ------------------------------------------------------------- pills */
+/* pills */
 .pill {
   background: #FFFFFF !important;
   border: 1px solid var(--line-strong) !important;
@@ -175,7 +171,7 @@ h3, h4 { font-family: var(--sans) !important; color: var(--ink) !important; }
 .syllabus-code { color: var(--muted) !important; font-weight: 500; }
 .pill.active .syllabus-code { color: rgba(255,255,255,.85) !important; }
 
-/* ------------------------------------------------------------ chrome */
+/* chrome */
 .statstrip, .paperstrip {
   font-family: var(--sans) !important;
   font-size: 12.5px !important;
@@ -260,13 +256,6 @@ h3, h4 { font-family: var(--sans) !important; color: var(--ink) !important; }
 }
 .hint { color: var(--muted) !important; font-size: 13px !important; }
 
-/* =====================================================================
-   Depth, grouping and hierarchy
-   Flat everywhere reads as undifferentiated, so elevation is used to say
-   what sits ON the page (cards) versus what IS the page (header, ground),
-   and one level deeper for things that float (the filters popover).
-   Three levels only — anything more and it stops meaning anything.
-   ===================================================================== */
 :root {
   --elev-1: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
   --elev-2: 0 2px 4px rgba(16, 24, 40, .04), 0 4px 12px rgba(16, 24, 40, .08);
@@ -274,8 +263,6 @@ h3, h4 { font-family: var(--sans) !important; color: var(--ink) !important; }
   --ground: #F7F8FA;
 }
 
-/* The page ground is a shade off-white so white cards read as raised. A
-   white card on a white page has nothing to lift off. */
 body { background: var(--ground) !important; }
 
 .console {
@@ -289,7 +276,6 @@ body { background: var(--ground) !important; }
   row-gap: 8px;
 }
 
-/* --- brand: was white text for the old dark header, invisible on white. */
 .brand-name {
   color: var(--ink) !important;
   font-size: 14.5px !important;
@@ -305,7 +291,6 @@ body { background: var(--ground) !important; }
 }
 .brand-mark { box-shadow: var(--elev-1) !important; }
 
-/* --- header grouping: brand | primary nav | (search, filters, admin) --- */
 .console > .searchbar {
   order: 5;
   flex: 0 1 260px;
@@ -376,10 +361,6 @@ body { background: var(--ground) !important; }
   .sitenav--secondary { border-left: 0; padding-left: 0; }
 }
 
-/* The brand was a white->gold gradient clipped to the glyphs, for the old
-   dark header. `color` cannot override that — the fill is transparent and
-   the gradient shows through — so both the clip and the fill have to be
-   unset, not just recoloured. This was invisible on the new white header. */
 .brand-name {
   background: none !important;
   -webkit-background-clip: border-box !important;
@@ -388,23 +369,8 @@ body { background: var(--ground) !important; }
   color: var(--ink) !important;
 }
 
-/* Placeholder was being clipped at ~260px. Let the field breathe and
-   shorten the prompt itself rather than truncating mid-word. */
 .console > .searchbar { flex: 1 1 280px; max-width: 360px; }
-
-/* =====================================================================
-   Header: two deliberate rows instead of one cramped wrapping row.
-
-   Row 1 — identity and tools: brand, search, filters, admin links.
-   Row 2 — navigation: Home, the subjects, Study, Browse.
-
-   Eight nav items plus a search box plus two admin links do not fit one
-   1280px row, and letting them wrap put a stray divider mid-header. Making
-   the split intentional also separates "where am I going" from "what am I
-   looking for", which were previously interleaved.
-   ===================================================================== */
 .console { padding: 0 24px !important; row-gap: 0; align-items: stretch; }
-
 .console-brand { order: 1; align-self: center; padding: 10px 0; }
 .console > .searchbar { order: 2; margin-left: auto; align-self: center; flex: 0 1 280px; max-width: 300px; }
 .sitenav--secondary { order: 4; align-self: center; padding-left: 14px; border-left: 1px solid var(--line); }
@@ -422,9 +388,6 @@ body { background: var(--ground) !important; }
 }
 .console > .sitenav:not(.sitenav--secondary)::-webkit-scrollbar { display: none; }
 .console > .sitenav:not(.sitenav--secondary) a { white-space: nowrap; }
-
-/* Active page: an underline tied to the row's own rule reads as a tab,
-   which is what this row now is. */
 .console > .sitenav:not(.sitenav--secondary) a.active {
   background: none !important;
   color: var(--accent-blue) !important;
@@ -432,8 +395,6 @@ body { background: var(--ground) !important; }
   border-radius: 0 !important;
 }
 
-/* --- marks stamp: was a red rubber-stamp circle. A count does not need
-   that much voice, and "1 MARKS" was wrong besides. --- */
 .stamp, .markstamp, .qstamp {
   width: auto !important;
   height: auto !important;
@@ -456,23 +417,6 @@ body { background: var(--ground) !important; }
   .console > .searchbar { flex-basis: 100%; max-width: none; margin-left: 0; order: 9; }
 }
 
-/* =====================================================================
-   Character layer
-
-   The pass above went too far: it replaced Fraunces and IBM Plex Mono with
-   one system sans and the brand's navy/brass with a generic blue, which is
-   what made the result feel anonymous. The structure it introduced (light
-   ground, hairline groups, three elevations) is kept — this puts the
-   identity back on top of it.
-
-   Where each typeface earns its place:
-     Fraunces (serif)  — display only: page and question titles.
-     IBM Plex Mono     — data only: syllabus codes, paper refs, mark codes,
-                         group labels. These are things a student reads off
-                         an exam paper, and monospace is what makes a code
-                         look like a code rather than a word.
-     System sans       — everything you actually read in sentences.
-   ===================================================================== */
 :root {
   --ink: #0F1E35;
   --text: #16223A;
@@ -480,10 +424,6 @@ body { background: var(--ground) !important; }
   --line: #E3E8EF;
   --line-strong: #CBD5E1;
   --ground: #F6F7F9;
-
-  /* Brass is the brand accent and is reserved for SELECTION and MARKS —
-     the two things that are genuinely about the exam. Navy carries actions.
-     Darkened from the original #C4922A, which failed contrast on white. */
   --brass: #96731A;
   --brass-dark: #7A5D14;
   --brass-light: #C4922A;
@@ -545,11 +485,6 @@ body { background: var(--ground) !important; }
 }
 .btn--primary { background: var(--accent-blue) !important; border-color: var(--accent-blue) !important; }
 .btn--primary:hover { background: var(--ink) !important; }
-
-/* --- depth, placed rather than sprinkled -------------------------------
-   The question card is the subject of the page, so it is the only thing
-   that gets a second elevation level at rest plus a brass edge. Everything
-   else stays at level 1 so that distinction still means something. */
 .card {
   box-shadow: var(--elev-2) !important;
   border-left: 3px solid var(--brass) !important;
@@ -559,8 +494,6 @@ body { background: var(--ground) !important; }
   border-bottom: 1px solid var(--line) !important;
 }
 
-/* The marks stamp: brass ring, mono numeral — the one place the old
-   rubber-stamp idea was actually right, just quieter. */
 .stamp {
   border: 1.5px solid var(--brass-light) !important;
   background: #FFFEF9 !important;
@@ -572,9 +505,6 @@ body { background: var(--ground) !important; }
 
 /* Grouped rows in the question strip get a real label column. */
 .qnav-group-label { color: #8592A6 !important; font-size: 10.5px !important; }
-
-/* A hairline of brand colour under the header ties the chrome together
-   without the old full-width gradient bar. */
 .console { border-bottom: 1px solid var(--line) !important; }
 .console::after {
   display: block !important;
@@ -589,20 +519,6 @@ body { background: var(--ground) !important; }
 /* Filters sit left, as a labelled row, the way they did before. */
 .console-filters { margin-left: 0 !important; flex-wrap: wrap; }
 .console > .searchbar { margin-left: auto !important; }
-
-/* =====================================================================
-   Spacing
-
-   Stated explicitly rather than inherited. Two things had been eating it:
-   Tailwind's preflight (now off — see the inline config in each page), and
-   this file's own `padding: 0 !important` on .pagehead and .console-filters.
-   Relying on browser defaults for body rhythm also meant the layout could
-   change with CDN load order, which is not something to leave to chance.
-
-   One 8px scale throughout: 8 / 12 / 16 / 20 / 24 / 32.
-   ===================================================================== */
-
-/* --- body rhythm: what preflight had flattened ------------------------ */
 .main p,
 .pagehead p,
 .worked-solution-box p,
@@ -615,7 +531,7 @@ body { background: var(--ground) !important; }
 .main ul, .main ol { margin: 0 0 12px; padding-left: 22px; }
 .main li { margin-bottom: 4px; }
 
-/* --- page frame ------------------------------------------------------- */
+/* --- page frame --- */
 .main { padding: 28px 24px 64px !important; }
 .pagehead { padding: 0 !important; margin: 0 0 24px !important; }
 .pagehead h1 { margin: 0 0 8px !important; }
@@ -629,7 +545,7 @@ body { background: var(--ground) !important; }
 .sitenav--secondary { margin-bottom: 12px !important; }
 .console > .sitenav:not(.sitenav--secondary) { padding: 6px 0 !important; margin-top: 0 !important; }
 
-/* --- cards: real interior padding ------------------------------------- */
+/* --- cards: real interior padding ---- */
 .section-card { padding: 20px !important; margin-bottom: 20px; }
 .card { padding: 0 !important; }            /* its own head/panels pad themselves */
 .card-head { padding: 20px 24px !important; }
@@ -639,7 +555,6 @@ body { background: var(--ground) !important; }
 .module-card-top { padding: 16px 18px 12px !important; }
 .module-body { padding: 0 18px 18px !important; }
 .module-grid { gap: 16px !important; }
-
 .syllabus-picker { padding: 4px 20px 12px !important; margin-bottom: 20px !important; }
 .syllabus-step { padding: 12px 0 !important; gap: 14px !important; }
 
@@ -673,10 +588,6 @@ details > .mstable, details > div { margin-top: 10px; }
 
 /* =====================================================================
    Question editor (admin) — js/edit/edit-modal.js
-
-   Reuses .modal-backdrop from style.css for the overlay, then overrides
-   the .modal box: the checkout modal it was written for is a 400px
-   confirmation, and this is a long scrolling form.
    ===================================================================== */
 
 .eq-backdrop { align-items: flex-start; padding: 32px 16px; overflow-y: auto; }
@@ -711,9 +622,6 @@ details > .mstable, details > div { margin-top: 10px; }
   padding: 0 4px;
 }
 .eq-close:hover { color: var(--ink); }
-
-/* The form scrolls; the header and footer stay put, so Save is always
-   reachable on a question with 40 editable fields. */
 .eq-body { padding: 8px 24px 20px; overflow-y: auto; flex: 1; }
 
 .eq-group { margin-top: 20px; }
@@ -767,8 +675,6 @@ details > .mstable, details > div { margin-top: 10px; }
   box-shadow: 0 0 0 3px var(--brass-glow);
 }
 
-/* The preview is what the field will actually look like once rendered,
-   so it is indented under the input rather than sitting beside it. */
 .eq-preview {
   margin-top: 6px;
   padding: 8px 10px;
@@ -813,7 +719,7 @@ details > .mstable, details > div { margin-top: 10px; }
 
 /* ---------------------------------------------------------------------
    Module builder: per-question View / Edit, and the "this module has its
-   own copy" marker. See migration 0018.
+   own copy" marker.
    --------------------------------------------------------------------- */
 
 .pickrow-actions {

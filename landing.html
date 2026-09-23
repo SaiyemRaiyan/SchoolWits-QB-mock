@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School Wits — Cambridge Question Bank</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="icon" href="assets/img/logo.jpg" />
+    <link rel="stylesheet" href="css/landing.css" />
+  </head>
+  <body class="landing-body">
+    <div class="landing">
+      <!-- HEADER -->
+      <div class="landing-header-wrap">
+        <header class="landing-header">
+          <div class="landing-brand">
+            <img src="assets/img/logo.jpg" alt="School Wits" />
+            <div class="landing-brand-text">
+              <span class="landing-brand-name">School Wits</span>
+              <span class="landing-brand-sub">Cambridge Question Bank</span>
+            </div>
+          </div>
+          <nav class="landing-header-links">
+            <a href="home.html">Skip to Browse</a>
+          </nav>
+        </header>
+      </div>
+
+      <!-- HERO -->
+      <main class="landing-hero">
+        <div class="landing-hero-inner">
+          <span class="landing-eyebrow"
+            ><span class="dot"></span>Cambridge O Level &amp; IGCSE</span
+          >
+          <h1 class="landing-title">
+            Past papers, mark schemes<br />and <em>worked solutions</em>
+          </h1>
+          <p class="landing-subtitle">
+            Choose your subject and curriculum to jump straight into the
+            question bank. Narrow it down to a topic if you already know what
+            you want to revise — it's entirely optional.
+          </p>
+
+          <form class="picker-card" id="pickerForm" novalidate>
+            <div class="picker-steps">
+              <div class="picker-step">
+                <div class="picker-step-head">
+                  <span><span class="num">1</span>Subject choice</span>
+                </div>
+                <select id="pfSubject" required disabled>
+                  <option value="">Loading subjects…</option>
+                </select>
+              </div>
+
+              <div class="picker-step">
+                <div class="picker-step-head">
+                  <span><span class="num">2</span>Curriculum</span>
+                </div>
+                <select id="pfQual" required disabled>
+                  <option value="">Loading…</option>
+                </select>
+              </div>
+
+              <div class="picker-step">
+                <div class="picker-step-head">
+                  <span><span class="num">3</span>Topic</span>
+                  <span class="optional">optional</span>
+                </div>
+                <div class="lp-combo" id="pfTopicCombo">
+                  <input
+                    type="text"
+                    id="pfTopicInput"
+                    placeholder="Any topic"
+                    autocomplete="off"
+                    disabled
+                  />
+                  <input type="hidden" id="pfTopic" value="" />
+                  <div class="lp-combo-menu" id="pfTopicMenu" hidden></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="picker-footer">
+              <span class="picker-hint" id="pickerHint"
+                >Pick a subject and curriculum to continue.</span
+              >
+              <button
+                type="submit"
+                class="btn-search"
+                id="pickerSearchBtn"
+                disabled
+              >
+                Search Question Bank
+              </button>
+            </div>
+          </form>
+
+          <div class="landing-stats" id="landingStats"></div>
+        </div>
+      </main>
+
+      <footer class="landing-footer">
+        School Wits &middot; Cambridge O Level &amp; IGCSE question bank
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase/config.js"></script>
+    <script src="js/supabase/store.js"></script>
+    <script src="js/landing.js"></script>
+  </body>
+</html>

@@ -1,166 +1,304 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modules &middot; School Wits Question Bank</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modules &middot; School Wits Question Bank</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<link rel="icon" href="assets/img/logo.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <link rel="icon" href="assets/img/logo.jpg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Preflight OFF. It is Tailwind's global reset, and the Play CDN
-      // injects its stylesheet into <head> at RUNTIME — after these <link>
-      // tags — so it was overriding css/style.css and zeroing the margin on
-      // every h1-h6, p, figure and pre, plus the padding on every list. The
-      // result was a site with no vertical rhythm at all.
-      //
-      // css/style.css already has its own reset and typography; Tailwind is
-      // here for utility classes on new markup, not to normalise the page.
       tailwind.config = { corePlugins: { preflight: false } };
     </script>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/minimal.css" />
-</head>
-<body>
-
-<div class="app">
-
-  <header class="console">
-    <div class="console-brand">
-      <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits">
-      <div class="brand-text">
-        <span class="brand-name">School Wits</span>
-        <span class="brand-sub">Question Bank</span>
-      </div>
-    </div>
-    <nav class="sitenav" id="siteNav"></nav>
-    <nav class="sitenav sitenav--secondary"><a href="modules.html" class="active">Modules</a><a href="upload.html">Upload</a></nav>
-    <nav class="sitenav" id="modeTabs" style="margin-left:auto;">
-      <a href="#" data-mode="storefront" class="active">Storefront</a>
-      <a href="#" data-mode="builder">Builder</a>
-    </nav>
-  </header>
-
-  <main class="main" style="max-width:1180px;margin:0 auto;padding:28px 24px 60px;width:100%;">
-
-    <!-- ================= STOREFRONT ================= -->
-    <section id="viewStorefront">
-      <div class="pagehead">
-        <h1>Topic modules</h1>
-        <p>Bundles of questions pulled from any paper in the bank, grouped around one topic. Free modules open straight away; premium modules unlock after checkout.</p>
-      </div>
-      <div id="moduleGrid" class="module-grid"></div>
-      <div id="moduleDetail" style="margin-top:26px;"></div>
-    </section>
-
-    <!-- ================= BUILDER ================= -->
-    <section id="viewBuilder" hidden>
-
-      <div id="adminGate" class="section-card" style="max-width:420px;margin:60px auto;">
-        <h2>Admin sign-in required</h2>
-        <p class="hint">Building modules is an admin action — sign in to continue. The Storefront tab stays open to everyone without signing in.</p>
-        <button class="btn btn--primary btn--google" type="button" id="adminGateGoogle" style="margin-top:16px;width:100%;">
-          <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-2.7-.4-4H24v7.3h12.1c-.2 1.9-1.6 4.9-4.5 6.9l6.9 5.4c4.1-3.8 6.6-9.4 6.6-15.6z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .7-4.4l-7.1-5.5C2.8 17 2 20.4 2 24s.8 7 2.3 9.9l7.2-5.5z"/><path fill="#EA4335" d="M24 10.2c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4 29.9 2 24 2 15.4 2 8.1 7 4.3 14.1l7.1 5.5C13.3 14.3 18.2 10.2 24 10.2z"/></svg>
-          Continue with Google
-        </button>
-        <p id="adminGateError" class="hint" style="color:var(--marker-dark);margin-top:10px;" hidden></p>
-      </div>
-
-      <div id="adminGateContent" hidden>
-      <div class="pagehead">
-        <h1>Build a module</h1>
-        <p>Pick a topic to narrow the list, tick the questions you want, then package and price them. Nothing here re-enters or duplicates content — it just points at questions already in the bank.</p>
-      </div>
-
-      <div class="section-card">
-        <h2>1 &middot; Choose a subject</h2>
-        <p class="hint">A module covers one subject. Pick it first — everything below narrows to it.</p>
-        <div class="row2" style="margin-top:12px;">
-          <label style="flex:1;">Subject
-            <select id="bSubject"></select>
-          </label>
-          <label style="flex:1;">Paper <span class="hint" style="font-weight:400;">(optional — leave on Any to mix papers)</span>
-            <select id="bPaper"></select>
-          </label>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <h2>2 &middot; Narrow by topic</h2>
-        <p class="hint">Pick as many topics as you like — questions matching <em>any</em> of them are shown. Your ticked questions are kept when you change these.</p>
-        <div class="pill-row" id="topicPills" style="margin-top:12px;"></div>
-        <div class="searchbar" style="margin-top:14px;max-width:420px;background:var(--paper-warm);border-color:var(--line-strong);">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4E5D72" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-          <input type="text" id="builderSearch" placeholder="Search within results…" style="color:#121C2E;">
-        </div>
-      </div>
-
-      <div class="builder-grid">
-        <div class="section-card">
-          <h2>3 &middot; Select questions</h2>
-          <div class="selectedcount" id="selCount">0 selected</div>
-          <div id="selSummary" class="hint" style="margin-bottom:10px;"></div>
-          <div id="pickList"></div>
-        </div>
-
-        <div class="section-card modform">
-          <h2>4 &middot; Package &amp; price</h2>
-          <label>Module title</label>
-          <input type="text" id="modTitle" placeholder="e.g. Forces &amp; Motion — Full Topic Pack">
-          <label>Topics covered <span class="hint" style="font-weight:400;">— filled in from what you picked; click to include or exclude</span></label>
-          <div class="pill-row" id="modTopicPills" style="margin:6px 0 4px;"></div>
-          <p class="hint" id="modTopicEmpty" hidden>Select some questions and their topics land here.</p>
-          <label>Description</label>
-          <textarea id="modDesc" placeholder="What's in this pack, and who it's for."></textarea>
-          <div class="row2">
-            <label style="flex:1;">Access
-              <select id="modPremium">
-                <option value="free">Free</option>
-                <option value="premium" selected>Premium (paid)</option>
-              </select>
-            </label>
-            <label style="flex:1;">Price (&#2547;)
-              <input type="number" id="modPrice" min="0" step="1" value="199">
-            </label>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="console">
+        <div class="console-brand">
+          <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits" />
+          <div class="brand-text">
+            <span class="brand-name">School Wits</span>
+            <span class="brand-sub">Question Bank</span>
           </div>
-          <button class="btn btn--primary" id="saveModBtn" style="margin-top:16px;width:100%;">Save module</button>
-          <div id="modSaveResult" style="margin-top:10px;font-size:12.5px;"></div>
         </div>
-      </div>
+        <div class="console-center">
+          <nav class="sitenav" id="siteNav"></nav>
+          <nav class="sitenav sitenav--secondary">
+            <a href="modules.html" class="active">Modules</a
+            ><a href="upload.html">Upload</a>
+          </nav>
+          <nav class="sitenav" id="modeTabs">
+            <a href="#" data-mode="storefront" class="active">Storefront</a>
+            <a href="#" data-mode="builder">Builder</a>
+          </nav>
+        </div>
+      </header>
 
-      <div class="section-card">
-        <h2>Modules you've built</h2>
-        <div id="builtList"></div>
-      </div>
-      </div>
-    </section>
+      <main
+        class="main"
+        style="
+          max-width: 1180px;
+          margin: 0 auto;
+          padding: 28px 24px 60px;
+          width: 100%;
+        "
+      >
+        <!-- ================= STOREFRONT ================= -->
+        <section id="viewStorefront">
+          <div class="pagehead pagehead--upload">
+            <div class="pagehead-glow"></div>
+            <h1>Topic <span class="grad-text">modules</span></h1>
+            <p>
+              Bundles of questions pulled from any paper in the bank, grouped
+              around one topic. Free modules open straight away; premium modules
+              unlock after checkout.
+            </p>
+          </div>
+          <div id="moduleGrid" class="module-grid"></div>
+          <div id="moduleDetail" style="margin-top: 26px"></div>
+        </section>
 
-  </main>
-</div>
+        <!-- ================= BUILDER ================= -->
+        <section id="viewBuilder" hidden>
+          <div
+            id="adminGate"
+            class="section-card step-glow step-glow--teal"
+            style="max-width: 420px; margin: 60px auto"
+          >
+            <h2>Admin sign-in required</h2>
+            <p class="hint">
+              Building modules is an admin action — sign in to continue. The
+              Storefront tab stays open to everyone without signing in.
+            </p>
+            <button
+              class="btn btn--primary btn--google"
+              type="button"
+              id="adminGateGoogle"
+              style="margin-top: 16px; width: 100%"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 48 48"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#4285F4"
+                  d="M45.1 24.5c0-1.6-.1-2.7-.4-4H24v7.3h12.1c-.2 1.9-1.6 4.9-4.5 6.9l6.9 5.4c4.1-3.8 6.6-9.4 6.6-15.6z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M11.5 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .7-4.4l-7.1-5.5C2.8 17 2 20.4 2 24s.8 7 2.3 9.9l7.2-5.5z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M24 10.2c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4 29.9 2 24 2 15.4 2 8.1 7 4.3 14.1l7.1 5.5C13.3 14.3 18.2 10.2 24 10.2z"
+                />
+              </svg>
+              Continue with Google
+            </button>
+            <p
+              id="adminGateError"
+              class="hint"
+              style="color: var(--marker-dark); margin-top: 10px"
+              hidden
+            ></p>
+          </div>
 
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase/config.js"></script>
-<script src="js/supabase/store.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/supabase/admin-gate.js"></script>
-<!-- JSON -> HTML renderer. Load order matters: escape defines the helpers
+          <div id="adminGateContent" hidden>
+            <div class="pagehead pagehead--upload">
+              <div class="pagehead-glow"></div>
+              <h1>Build a <span class="grad-text">module</span></h1>
+              <p>
+                Pick a topic to narrow the list, tick the questions you want,
+                then package and price them. Nothing here re-enters or
+                duplicates content — it just points at questions already in the
+                bank.
+              </p>
+            </div>
+
+            <div class="section-card step-glow step-glow--teal">
+              <h2>1 &middot; Choose a subject</h2>
+              <p class="hint">
+                A module covers one subject. Pick it first — everything below
+                narrows to it.
+              </p>
+              <div class="row2 builder-pickers" style="margin-top: 12px">
+                <label class="builder-field" style="flex: 1">
+                  <span class="builder-field__label">Subject</span>
+                  <span class="builder-picker-wrap">
+                    <select id="bSubject" class="builder-picker"></select>
+                  </span>
+                </label>
+                <label class="builder-field" style="flex: 1">
+                  <span class="builder-field__label">Paper</span>
+                  <span class="builder-field__hint"
+                    >(optional — leave on Any to mix papers)</span
+                  >
+                  <span class="builder-picker-wrap">
+                    <select id="bPaper" class="builder-picker"></select>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="section-card step-glow step-glow--brass">
+              <h2>2 &middot; Narrow by topic</h2>
+              <p class="hint">
+                Pick as many topics as you like — questions matching
+                <em>any</em> of them are shown. Your ticked questions are kept
+                when you change these.
+              </p>
+              <div
+                class="pill-row"
+                id="topicPills"
+                style="margin-top: 12px"
+              ></div>
+              <div
+                class="searchbar"
+                style="
+                  margin-top: 14px;
+                  max-width: 420px;
+                  background: var(--paper-warm);
+                  border-color: var(--line-strong);
+                "
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#4E5D72"
+                  stroke-width="2"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.3-4.3" />
+                </svg>
+                <input
+                  type="text"
+                  id="builderSearch"
+                  placeholder="Search within results…"
+                  style="color: #121c2e"
+                />
+              </div>
+            </div>
+
+            <div class="builder-grid">
+              <div class="section-card step-glow step-glow--blue">
+                <h2>3 &middot; Select questions</h2>
+                <div class="selectedcount" id="selCount">0 selected</div>
+                <div
+                  id="selSummary"
+                  class="hint"
+                  style="margin-bottom: 10px"
+                ></div>
+                <div id="pickList"></div>
+              </div>
+
+              <div class="section-card modform step-glow step-glow--violet">
+                <h2>4 &middot; Package &amp; price</h2>
+                <label>Module title</label>
+                <input
+                  type="text"
+                  id="modTitle"
+                  placeholder="e.g. Forces &amp; Motion — Full Topic Pack"
+                />
+                <label
+                  >Topics covered
+                  <span class="hint" style="font-weight: 400"
+                    >— filled in from what you picked; click to include or
+                    exclude</span
+                  ></label
+                >
+                <div
+                  class="pill-row"
+                  id="modTopicPills"
+                  style="margin: 6px 0 4px"
+                ></div>
+                <p class="hint" id="modTopicEmpty" hidden>
+                  Select some questions and their topics land here.
+                </p>
+                <label>Description</label>
+                <textarea
+                  id="modDesc"
+                  placeholder="What's in this pack, and who it's for."
+                ></textarea>
+                <div class="row2">
+                  <label style="flex: 1"
+                    >Access
+                    <select id="modPremium">
+                      <option value="free">Free</option>
+                      <option value="premium" selected>Premium (paid)</option>
+                    </select>
+                  </label>
+                  <label style="flex: 1"
+                    >Price (&#2547;)
+                    <input
+                      type="number"
+                      id="modPrice"
+                      min="0"
+                      step="1"
+                      value="199"
+                    />
+                  </label>
+                </div>
+                <button
+                  class="btn btn--primary"
+                  id="saveModBtn"
+                  style="margin-top: 16px; width: 100%"
+                >
+                  Save module
+                </button>
+                <div
+                  id="modSaveResult"
+                  style="margin-top: 10px; font-size: 12.5px"
+                ></div>
+              </div>
+            </div>
+
+            <div class="section-card step-glow step-glow--green">
+              <h2>Modules you've built</h2>
+              <div id="builtList"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase/config.js"></script>
+    <script src="js/supabase/store.js"></script>
+    <script src="js/nav.js"></script>
+    <script src="js/supabase/admin-gate.js"></script>
+    <!-- JSON -> HTML renderer. Load order matters: escape defines the helpers
      the others use, and question-renderer composes them. -->
-<script src="js/katex-config.js"></script>
-<script src="js/render/escape.js"></script>
-<script src="js/render/block-renderer.js"></script>
-<script src="js/render/part-renderer.js"></script>
-<script src="js/render/options-renderer.js"></script>
-<script src="js/render/mark-scheme-renderer.js"></script>
-<script src="js/render/solution-renderer.js"></script>
-<script src="js/render/question-renderer.js"></script>
-<!-- Admin editor. The Builder tab uses it for per-module question edits. -->
-<script src="js/edit/edit-modal.js"></script>
-<script src="js/modules.js"></script>
-</body>
+    <script src="js/katex-config.js"></script>
+    <script src="js/render/escape.js"></script>
+    <script src="js/render/block-renderer.js"></script>
+    <script src="js/render/part-renderer.js"></script>
+    <script src="js/render/options-renderer.js"></script>
+    <script src="js/render/mark-scheme-renderer.js"></script>
+    <script src="js/render/solution-renderer.js"></script>
+    <script src="js/render/question-renderer.js"></script>
+    <!-- Admin editor. The Builder tab uses it for per-module question edits. -->
+    <script src="js/edit/edit-modal.js"></script>
+    <script src="js/modules.js"></script>
+  </body>
 </html>

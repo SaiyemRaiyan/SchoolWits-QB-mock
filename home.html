@@ -20,58 +20,71 @@
     <link rel="icon" href="assets/img/logo.jpg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Preflight OFF. It is Tailwind's global reset, and the Play CDN
-      // injects its stylesheet into <head> at RUNTIME — after these <link>
-      // tags — so it was overriding css/style.css and zeroing the margin on
-      // every h1-h6, p, figure and pre, plus the padding on every list. The
-      // result was a site with no vertical rhythm at all.
-      //
-      // css/style.css already has its own reset and typography; Tailwind is
-      // here for utility classes on new markup, not to normalise the page.
       tailwind.config = { corePlugins: { preflight: false } };
     </script>
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/minimal.css" />
   </head>
   <body data-role="student">
     <div class="app">
       <!-- ============================================================ HEADER / CONTROL CONSOLE -->
       <header class="console">
-        <div class="console-brand">
+        <a
+          class="console-brand"
+          href="landing.html"
+          title="Back to subject picker"
+        >
           <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits" />
           <div class="brand-text">
             <span class="brand-name">School Wits</span>
             <span class="brand-sub">Study</span>
           </div>
+        </a>
+
+        <div class="console-center">
+          <nav class="sitenav" id="siteNav"></nav>
+
+          <div class="searchbar">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#6B7280"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3" />
+            </svg>
+            <input type="text" id="fText" placeholder="Search questions…" />
+          </div>
         </div>
 
-        <nav class="sitenav" id="siteNav"></nav>
-        
-        <div class="searchbar">
+        <button
+          class="sidebar-toggle-btn"
+          id="sidebarToggle"
+          type="button"
+          aria-label="Toggle filters"
+        >
           <svg
             width="15"
             height="15"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#6B7280"
+            stroke="currentColor"
             stroke-width="2"
           >
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.3-4.3" />
+            <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
-          <input
-            type="text"
-            id="fText"
-            placeholder="Search questions…"
-          />
-        </div>
-
-        <div id="filterMount"></div>
+          Filters
+        </button>
       </header>
 
       <!-- ============================================================ BODY -->
-      <main class="main" id="main">
-</main>
+      <div class="layout">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="filterMount"></aside>
+        <main class="main" id="main"></main>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -79,9 +92,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase/config.js"></script>
     <script src="js/supabase/store.js"></script>
-<script src="js/nav.js"></script>
-    <!-- JSON -> HTML renderer. Load order matters: escape defines the
-         helpers the others use, and question-renderer composes them. -->
+    <script src="js/nav.js"></script>
     <script src="js/katex-config.js"></script>
     <script src="js/render/escape.js"></script>
     <script src="js/render/block-renderer.js"></script>
@@ -91,7 +102,9 @@
     <script src="js/render/solution-renderer.js"></script>
     <script src="js/render/question-renderer.js"></script>
     <script src="js/browse-shell.js"></script>
-    <script>SWShell.mount();</script>
+    <script>
+      SWShell.mount();
+    </script>
     <script src="js/app.js"></script>
   </body>
 </html>

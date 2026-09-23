@@ -338,6 +338,23 @@ const DB = (function(){
     };
   }
 
+  /**
+   * Topic facet scoped to one subject — used by the landing page's Topic
+   * picker so choosing Physics doesn't also offer Chemistry/Maths topics.
+   * Deliberately its own lightweight query (not getFacets(), which is
+   * global) rather than pulling `content` for every question.
+   */
+  async function getTopicsForSubject(subject){
+    if(!subject) return [];
+    const { data, error } = await client
+      .from('questions')
+      .select('topics, papers!inner(subject)')
+      .eq('papers.subject', subject);
+    check(error);
+    const uniq = (arr) => Array.from(new Set(arr.filter(Boolean))).sort();
+    return uniq((data || []).flatMap(q => q.topics || []));
+  }
+
   // Filtering now happens in Postgres rather than by pulling every question
   // and scanning it in memory. That stopped being viable when the question
   // body moved into `content`: matching text would mean walking a JSON tree
@@ -721,7 +738,7 @@ const DB = (function(){
     open, slug, paperKeyOf, paperLabel,
     upsertPaper, getAllPapers, deletePaper,
     getAllQuestions, getQuestionsByPaperKey, getQuestionsByUids, updateQuestion,
-    getFacets, getCounts, search, getSyllabuses, invalidatePaperCache,
+    getFacets, getCounts, search, getSyllabuses, getTopicsForSubject, invalidatePaperCache,
     saveModule, getAllModules, getModule, deleteModule,
     getModuleQuestions, resetQuestionOverride, addModuleQuestion,
     isPurchased, markPurchased,

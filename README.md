@@ -4,12 +4,12 @@ A fully front-end system — no server, no database to host. Everything lives
 in the browser via **IndexedDB**, so it scales to hundreds or thousands of
 questions without a backend.
 
-Open `index.html` directly in a browser (double-click, or serve the folder
+Open `pages/index.html` directly in a browser (double-click, or serve the folder
 with any static file server). All three pages share the same data:
 
 ## Pages
 
-- **`index.html` — Browse & Search.**
+- **`pages/index.html` — Browse & Search.**
   Filter by subject, paper, variant, session, year and topic (all options
   are generated from whatever you've uploaded — nothing is hardcoded), or
   free-text search across every question, mark scheme and worked solution.
@@ -17,7 +17,7 @@ with any static file server). All three pages share the same data:
   views. Comes pre-loaded with the sample paper you provided: Physics,
   Paper 1, Variant 1, M/J session, 2025 (all 9 questions).
 
-- **`upload.html` — Upload.**
+- **`pages/upload.html` — Upload.**
   Two separate `.tex` files build one paper: a **Questions** file (topic,
   marks, `\qtext`) and an **Answers** file (`\markscheme`, `\exemplar`),
   matched automatically by question number — download
@@ -32,10 +32,10 @@ with any static file server). All three pages share the same data:
   questions file first and add the answers file later — click Save again
   and it updates the same paper.
 
-- **`modules.html` — Modules.**
-  *Builder* tab: filter the whole bank by topic, tick the questions you
+- **`pages/modules.html` — Modules.**
+  _Builder_ tab: filter the whole bank by topic, tick the questions you
   want, and package them into a named module with a description and a
-  price (or mark it free). *Storefront* tab: modules appear as cards;
+  price (or mark it free). _Storefront_ tab: modules appear as cards;
   free ones open immediately, premium ones show a blurred preview with a
   "first question free" teaser and an unlock button. Checkout is a clearly
   labelled **demo** — no real payment is taken; the unlock is just a flag
@@ -53,6 +53,7 @@ show "No video has been uploaded" and a form to add one.
 ## Data model (`js/store.js`)
 
 IndexedDB database `schoolwits_bank` with three stores:
+
 - `papers` — one record per subject/paper/variant/session/year combo.
 - `questions` — one record per question, keyed by
   `subject|paper|variant|session|year::id`, indexed by subject, topic,

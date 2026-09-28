@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "rm -rf dist && mkdir -p dist && cp index.html home.html landing.html modules.html upload.html dist/ && cp -r assets css js dist/",
+  "buildCommand": "rm -rf dist && mkdir -p dist/pages && cp landing.html dist/ && cp pages/home.html pages/index.html pages/modules.html pages/upload.html dist/pages/ && cp -r assets css js dist/",
   "outputDirectory": "dist",
   "framework": null,
   "cleanUrls": false,
@@ -14,5 +14,8 @@
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/landing.html" }
   ]
 }

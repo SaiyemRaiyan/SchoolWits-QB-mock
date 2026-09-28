@@ -216,8 +216,8 @@ window.SWShell = (function () {
           <h2 id="emptyTitle">No questions match yet</h2>
           <p id="emptyText">
             Try widening a filter, or clear the search box. Nothing uploaded
-            yet? Head to <a href="upload.html">Upload</a> to add a paper from a
-            .tex file.
+            yet? Head to <a href="upload.html">Upload</a> to add a paper
+            from a .tex file.
           </p>
         </div>
 

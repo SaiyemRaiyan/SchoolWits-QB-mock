@@ -17,9 +17,21 @@
 window.SWNav = (function () {
   'use strict';
 
+  function isPagesPage() {
+    return location.pathname.split('/').includes('pages');
+  }
+
+  function appPage(file) {
+    return (isPagesPage() ? '' : 'pages/') + file;
+  }
+
+  function rootPage(file) {
+    return (isPagesPage() ? '../' : '') + file;
+  }
+
   /** Deep link into the student portal, pre-filtered to one syllabus. */
   function browseHref(code) {
-    return 'home.html?code=' + encodeURIComponent(code);
+    return appPage('home.html') + '?code=' + encodeURIComponent(code);
   }
 
   /**
@@ -47,8 +59,8 @@ window.SWNav = (function () {
     // Subject links used to sit between them, one per syllabus. They were
     // removed because both pages pick subject from their own dropdown, so
     // the nav was restating a choice the page already offers.
-    let html = link('landing.html', 'Home', current === 'home');
-    html += link('index.html', 'Browse', current === 'browse');
+    let html = link(rootPage('landing.html'), 'Home', current === 'home');
+    html += link(appPage('index.html'), 'Browse', current === 'browse');
 
     nav.innerHTML = html;
   }

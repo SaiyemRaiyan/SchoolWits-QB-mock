@@ -5,7 +5,8 @@ description (pages, data model, `.tex` upload format).
 
 ## Structure
 
-- `index.html`, `upload.html`, `modules.html` — the three frontend pages,
+- `pages/home.html`, `pages/index.html`, `pages/modules.html`,
+  `pages/upload.html`, and root-level `landing.html` — frontend pages,
   each with matching logic in `js/` (`app.js`, `modules.js`). Data lives in
   Supabase Postgres, via `js/supabase/store.js` (a plain-JS `DB.*` adapter
   loaded by CDN `<script>` tag — no bundler). `upload.html` is fully
@@ -18,7 +19,7 @@ description (pages, data model, `.tex` upload format).
 - **The `.tex` parser is no longer in the browser.** `js/latex.js` has been
   deleted, along with `js/compose.js`, `js/store.js` and `js/seed-data.js`.
   Parsing happens in `backend/src/latex/` and runs in Node (the `npm run
-  import` CLI) and Deno (the `parse-paper` Edge Function). `js/upload.js`
+import` CLI) and Deno (the `parse-paper` Edge Function). `js/upload.js`
   was rewritten against that function: it uploads figures, POSTs the
   `.tex`, and renders the reply — it never parses anything itself.
 - `templates/` — the canonical `.tex` templates every paper is written
@@ -47,7 +48,7 @@ description (pages, data model, `.tex` upload format).
 - `backend/src/latex/` must stay **dependency-free with no `node:`
   imports**, so the same files can run inside a Deno Edge Function. Node
   built-ins belong in `backend/scripts/` and the integration tests only.
-- Comments in `backend/` explain *why*, not *what* — this project is being
+- Comments in `backend/` explain _why_, not _what_ — this project is being
   built collaboratively with someone still learning the stack, so lean
   toward slightly more explanatory comments there than usual, especially
   around anything that deviates from the obvious/naive approach.

@@ -2,7 +2,7 @@
    School Wits — Landing / gateway page
 
    Subject choice -> Curriculum -> optional Topic -> "Search Question Bank"
-   hands off to home.html with a syllabus `code` (and optional `topic`)
+    hands off to pages/home.html with a syllabus `code` (and optional `topic`)
    query param, which js/app.js already knows how to apply (see
    initSyllabusPicker / activeCode there). This file only has to resolve
    the user's picks down to that one `code`.
@@ -170,7 +170,7 @@
       }
       const params = new URLSearchParams({ code });
       if (els.topic.value) params.set('topic', els.topic.value);
-      location.href = 'home.html?' + params.toString();
+      location.href = 'pages/home.html?' + params.toString();
     });
 
     try {

@@ -9,8 +9,8 @@ plain `<script>`-tag HTML with no build step (a deliberate constraint —
 see `CLAUDE.md` at the repo root), so `backend/src/db.ts` — which needs a
 bundler to run in a browser — couldn't be shared with them directly.
 Instead, `js/supabase/store.js` is a **separate, plain-JS mirror** of the
-same `DB.*` API, loaded via CDN `<script>` tags, that `index.html`/
-`upload.html`/`modules.html` actually use. `backend/src/db.ts` remains the
+same `DB.*` API, loaded via CDN `<script>` tags, that `pages/index.html`/
+`pages/upload.html`/`pages/modules.html` actually use. `backend/src/db.ts` remains the
 Node-oriented version for admin/ops scripts (seeding `admin_users`, bulk
 imports) run from a terminal, not a browser. **Keep both in sync by hand**
 when the schema changes — there's no shared code path between them, that's
@@ -49,7 +49,7 @@ Only `scripts/` and `tests/integration/` touch `node:fs`; keep it that way.
 
 Images work the way the old notes anticipated, just keyed differently:
 figures upload to the `question-images` bucket **first**, and the resulting
-`{ filename: url }` map is an *input* to the parse. The parser resolves
+`{ filename: url }` map is an _input_ to the parse. The parser resolves
 `\qfig{fig1.png}` against it and writes the real URL into the figure block,
 so nothing rewrites image paths afterwards and no base64 is ever stored.
 Because that happens before any question row exists, the tracking table is
@@ -57,16 +57,16 @@ Because that happens before any question row exists, the tracking table is
 
 ## Schema overview
 
-| Table | Purpose | Notable choices |
-|---|---|---|
-| `papers` | one row per subject/paper/variant/session/year | `paper_key` is a Postgres **generated column** (the natural key, equivalent to the old IndexedDB `paperKey`); `label` stays app-computed (see `paperLabel()` in `src/db.ts`) since its format has a conditional that's easier to keep in one place |
-| `questions` | one row per question, FK to `papers` | `content jsonb` holds the whole parsed question (stem, parts tree, options, mark scheme, worked solution). One column, not four, for the same reason `mark_scheme` was jsonb before: nothing queries the pieces independently. `topics text[]` (GIN) replaced the single `topic` string — `\examq` genuinely carries a list. `kind` and `marks` are columns because they're filtered/sorted on. See `0011`. |
-| `paper_images` | figure metadata | keyed `(paper_id, filename)`, because figures upload *before* the questions exist and `\qfig` refers to them by bare filename. `storage_path` is `{paper_key}/{filename}` with unsafe characters stripped — `paper_key` is pipe-delimited and Storage rejects `\|`. See `0012`. |
-| `modules` / `module_questions` | topic packs | `module_questions` replaces the old `questionUids` string array with a real join table; `sort_order` preserves pick order. `content_override jsonb` (0018) is that module's **own edited copy** of the question — null means render the original. It is why `saveModule` is upsert-then-prune rather than delete-then-insert: the old wholesale replace would have wiped every edit on each save. Written only by the `update-question` Edge Function, and deliberately **not** cleared by a paper re-import. |
-| `admin_users` / `is_admin()` | write gating | a plain allow-list table, not custom JWT claims — simplest thing that works for a handful of trusted admin accounts; see `0006_admin_users.sql` |
+| Table                          | Purpose                                        | Notable choices                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `papers`                       | one row per subject/paper/variant/session/year | `paper_key` is a Postgres **generated column** (the natural key, equivalent to the old IndexedDB `paperKey`); `label` stays app-computed (see `paperLabel()` in `src/db.ts`) since its format has a conditional that's easier to keep in one place                                                                                                                                                                                                                                                            |
+| `questions`                    | one row per question, FK to `papers`           | `content jsonb` holds the whole parsed question (stem, parts tree, options, mark scheme, worked solution). One column, not four, for the same reason `mark_scheme` was jsonb before: nothing queries the pieces independently. `topics text[]` (GIN) replaced the single `topic` string — `\examq` genuinely carries a list. `kind` and `marks` are columns because they're filtered/sorted on. See `0011`.                                                                                                   |
+| `paper_images`                 | figure metadata                                | keyed `(paper_id, filename)`, because figures upload _before_ the questions exist and `\qfig` refers to them by bare filename. `storage_path` is `{paper_key}/{filename}` with unsafe characters stripped — `paper_key` is pipe-delimited and Storage rejects `\|`. See `0012`.                                                                                                                                                                                                                               |
+| `modules` / `module_questions` | topic packs                                    | `module_questions` replaces the old `questionUids` string array with a real join table; `sort_order` preserves pick order. `content_override jsonb` (0018) is that module's **own edited copy** of the question — null means render the original. It is why `saveModule` is upsert-then-prune rather than delete-then-insert: the old wholesale replace would have wiped every edit on each save. Written only by the `update-question` Edge Function, and deliberately **not** cleared by a paper re-import. |
+| `admin_users` / `is_admin()`   | write gating                                   | a plain allow-list table, not custom JWT claims — simplest thing that works for a handful of trusted admin accounts; see `0006_admin_users.sql`                                                                                                                                                                                                                                                                                                                                                               |
 
 Full DDL with per-decision comments lives in `supabase/migrations/*.sql` —
-read those before changing the schema, they explain *why*, not just *what*.
+read those before changing the schema, they explain _why_, not just _what_.
 
 ## Auth & RLS model
 
@@ -123,9 +123,9 @@ backend/
 
 js/supabase/               -- the browser's actual DB layer, NOT inside backend/:
   config.js                -- window.SUPABASE_URL / SUPABASE_ANON_KEY (safe to ship; RLS is the real boundary)
-  store.js                 -- plain-JS DB.* adapter, loaded by index.html/upload.html/modules.html
-  admin-gate.js            -- shared login-gate widget for upload.html (whole page) and
-                               modules.html (Builder tab only — Storefront stays public)
+  store.js                 -- plain-JS DB.* adapter, loaded by pages/index.html/pages/upload.html/pages/modules.html
+  admin-gate.js            -- shared login-gate widget for pages/upload.html (whole page) and
+                               pages/modules.html (Builder tab only — Storefront stays public)
 
 js/render/                 -- questions.content (JSON) -> HTML, browser only:
   escape.js                  shared escaping
@@ -162,7 +162,7 @@ figures -> question-images bucket -> { filename: url }
 Needs `SUPABASE_SERVICE_ROLE_KEY` (it bypasses RLS, which is why this is
 terminal-only and the key must never reach a browser).
 
-Or from the browser, which is what non-technical admins use: `upload.html`
+Or from the browser, which is what non-technical admins use: `pages/upload.html`
 signs in, uploads the figures to the bucket, POSTs the `.tex` to
 `parse-paper`, renders the returned JSON with `js/render/`, and only writes
 when the admin confirms. See `supabase/functions/parse-paper/README.md`.

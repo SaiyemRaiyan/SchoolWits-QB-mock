@@ -15,18 +15,22 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
     />
-    <link rel="icon" href="assets/img/logo.jpg" />
+    <link rel="icon" href="../assets/img/logo.jpg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = { corePlugins: { preflight: false } };
     </script>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../css/style.css" />
   </head>
   <body>
     <div class="app">
       <header class="console">
         <div class="console-brand">
-          <img class="brand-mark" src="assets/img/logo.jpg" alt="School Wits" />
+          <img
+            class="brand-mark"
+            src="../assets/img/logo.jpg"
+            alt="School Wits"
+          />
           <div class="brand-text">
             <span class="brand-name">School Wits</span>
             <span class="brand-sub">Question Bank</span>
@@ -283,22 +287,22 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase/config.js"></script>
-    <script src="js/supabase/store.js"></script>
-    <script src="js/nav.js"></script>
-    <script src="js/supabase/admin-gate.js"></script>
+    <script src="../js/supabase/config.js"></script>
+    <script src="../js/supabase/store.js"></script>
+    <script src="../js/nav.js"></script>
+    <script src="../js/supabase/admin-gate.js"></script>
     <!-- JSON -> HTML renderer. Load order matters: escape defines the helpers
      the others use, and question-renderer composes them. -->
-    <script src="js/katex-config.js"></script>
-    <script src="js/render/escape.js"></script>
-    <script src="js/render/block-renderer.js"></script>
-    <script src="js/render/part-renderer.js"></script>
-    <script src="js/render/options-renderer.js"></script>
-    <script src="js/render/mark-scheme-renderer.js"></script>
-    <script src="js/render/solution-renderer.js"></script>
-    <script src="js/render/question-renderer.js"></script>
+    <script src="../js/katex-config.js"></script>
+    <script src="../js/render/escape.js"></script>
+    <script src="../js/render/block-renderer.js"></script>
+    <script src="../js/render/part-renderer.js"></script>
+    <script src="../js/render/options-renderer.js"></script>
+    <script src="../js/render/mark-scheme-renderer.js"></script>
+    <script src="../js/render/solution-renderer.js"></script>
+    <script src="../js/render/question-renderer.js"></script>
     <!-- Admin editor. The Builder tab uses it for per-module question edits. -->
-    <script src="js/edit/edit-modal.js"></script>
-    <script src="js/modules.js"></script>
+    <script src="../js/edit/edit-modal.js"></script>
+    <script src="../js/modules.js"></script>
   </body>
 </html>

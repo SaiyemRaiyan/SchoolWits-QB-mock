@@ -15,7 +15,7 @@
 # file must be added here or it will not ship — which is the safe failure
 # direction.
 [build]
-  command = "rm -rf dist && mkdir -p dist && cp index.html home.html landing.html modules.html upload.html dist/ && cp -r assets css js dist/"
+  command = "rm -rf dist && mkdir -p dist/pages && cp landing.html dist/ && cp pages/home.html pages/index.html pages/modules.html pages/upload.html dist/pages/ && cp -r assets css js dist/"
   publish = "dist"
 
 # The pages are admin-gated in the UI, but that gate is a convenience: the
@@ -27,3 +27,8 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
+
+[[redirects]]
+  from = "/"
+  to = "/landing.html"
+  status = 200

@@ -77,11 +77,17 @@ describe('collectLeaves', () => {
     expect(paths).not.toContain('stem.2.html');
   });
 
-  it('does not expose marks, kind, topics, refs or image src', () => {
+  it('does not expose marks, kind, topics or refs', () => {
     const paths = collectLeaves(question()).map((l) => l.path.join('.'));
-    for (const forbidden of ['marks', 'kind', 'topics', 'parts.0.marks', 'parts.0.ref', 'stem.1.src']) {
+    for (const forbidden of ['marks', 'kind', 'topics', 'parts.0.marks', 'parts.0.ref']) {
       expect(paths).not.toContain(forbidden);
     }
+    expect(paths).toContain('stem.1.src');
+    expect(collectLeaves(question()).find((leaf) => leaf.path.join('.') === 'stem.1.src')).toMatchObject({
+      label: 'Stem · figure image',
+      kind: 'image',
+      value: 'https://x/f.png',
+    });
   });
 
   it('exposes MCQ option text', () => {
@@ -110,6 +116,26 @@ describe('applyEdits', () => {
     expect(after.parts[0].subparts[0].content[0].html).toBe('State the force.');
     expect(after.stem[0].html).toBe('A skydiver falls.');
     expect(after.marks).toBe(3);
+  });
+
+  it('replaces or clears a figure image', () => {
+    const leaves = collectLeaves(question());
+    const replacement = applyEdits(question(), [
+      { path: pathOf(leaves, 'Stem · figure image'), value: 'https://x/new.png' },
+    ]);
+    expect((replacement.content as any).stem[1].src).toBe('https://x/new.png');
+
+    const cleared = applyEdits(question(), [
+      { path: pathOf(leaves, 'Stem · figure image'), value: '' },
+    ]);
+    expect((cleared.content as any).stem[1].src).toBeNull();
+  });
+
+  it('rejects non-HTTPS figure image URLs', () => {
+    const leaves = collectLeaves(question());
+    expect(() => applyEdits(question(), [
+      { path: pathOf(leaves, 'Stem · figure image'), value: 'javascript:alert(1)' },
+    ])).toThrow('https:// URL');
   });
 
   it('does not mutate the input', () => {

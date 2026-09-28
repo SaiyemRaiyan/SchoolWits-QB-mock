@@ -65,7 +65,16 @@ window.SWEdit = (function () {
 
   function fieldHtml(leaf, index) {
     const sub = leaf.label.split(' · ').slice(1).join(' · ') || leaf.label;
-    const control = SHORT_KINDS.has(leaf.kind)
+    const control = leaf.kind === 'image'
+      ? `<div class="eq-image-control">
+          <input class="eq-input eq-image-url" type="url" data-i="${index}" value="${esc(leaf.value)}" placeholder="https://…" inputmode="url">
+          <label class="eq-file-btn" title="Choose a replacement image">
+            <span>Choose image</span>
+            <input class="eq-image-file" type="file" data-i="${index}" accept="image/png,image/jpeg,image/gif,image/webp">
+          </label>
+          <button class="eq-image-clear" type="button" data-clear-image="${index}">Clear</button>
+        </div>`
+      : SHORT_KINDS.has(leaf.kind)
       ? `<input class="eq-input" type="text" data-i="${index}" value="${esc(leaf.value)}">`
       : `<textarea class="eq-input" data-i="${index}" rows="3">${esc(leaf.value)}</textarea>`;
     const preview = PREVIEW_KINDS.has(leaf.kind)
@@ -155,6 +164,10 @@ window.SWEdit = (function () {
       return Array.from(backdrop.querySelectorAll('.eq-input'));
     }
 
+    function imageInput(index) {
+      return backdrop.querySelector(`.eq-image-url[data-i="${index}"]`);
+    }
+
     /** Only the fields whose value differs from what the server sent. */
     function changedEdits() {
       return inputs()
@@ -196,6 +209,33 @@ window.SWEdit = (function () {
       inputs().forEach((el) => {
         el.addEventListener('input', () => { refreshState(); updatePreview(el); });
         updatePreview(el);
+      });
+      backdrop.querySelectorAll('.eq-image-file').forEach((fileInput) => {
+        fileInput.addEventListener('change', async () => {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) return;
+          const index = Number(fileInput.dataset.i);
+          const urlInput = imageInput(index);
+          const button = fileInput.closest('.eq-file-btn');
+          button.classList.add('is-uploading');
+          button.querySelector('span').textContent = 'Uploading…';
+          try {
+            urlInput.value = await DB.uploadQuestionFigure(questionId, file);
+            refreshState();
+          } catch (err) {
+            status.textContent = err.message;
+          } finally {
+            button.classList.remove('is-uploading');
+            button.querySelector('span').textContent = 'Choose image';
+            fileInput.value = '';
+          }
+        });
+      });
+      backdrop.querySelectorAll('[data-clear-image]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const input = imageInput(Number(button.dataset.clearImage));
+          if (input) { input.value = ''; refreshState(); }
+        });
       });
       refreshState();
     }

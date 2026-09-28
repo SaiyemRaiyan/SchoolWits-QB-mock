@@ -310,6 +310,22 @@ const DB = (function(){
     return callEditFunction(body);
   }
 
+  async function uploadQuestionFigure(questionId, file){
+    if(!file || !/^image\/(png|jpeg|gif|webp)$/.test(file.type)) {
+      throw new Error('Choose a PNG, JPG, GIF, or WEBP image.');
+    }
+    const { data: { session } } = await client.auth.getSession();
+    if(!session) throw new Error('Your session expired — sign in again.');
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+    const path = `question-edits/${Number(questionId)}/${Date.now()}-${safeName}`;
+    const { error } = await client.storage.from('question-images').upload(path, file, {
+      upsert: false,
+      contentType: file.type
+    });
+    if(error) throw new Error(`Uploading the figure failed: ${error.message}`);
+    return client.storage.from('question-images').getPublicUrl(path).data.publicUrl;
+  }
+
   /* ---------------------------------------------------------- facets & search */
   async function getFacets(){
     // Only the columns the facets actually need. This used to call
@@ -743,7 +759,7 @@ const DB = (function(){
     getModuleQuestions, resetQuestionOverride, addModuleQuestion,
     isPurchased, markPurchased,
     setVideo,
-    getQuestionLeaves, saveQuestionEdits,
+    getQuestionLeaves, saveQuestionEdits, uploadQuestionFigure,
     signInWithGoogle, signOut, isAdmin, currentUser
   };
 

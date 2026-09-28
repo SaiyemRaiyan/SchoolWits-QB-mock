@@ -91,12 +91,17 @@ expressed in the request format at all.
 |---|---|
 | `marks` (question, part, mark-scheme row) | Part marks must sum to the question total and the parser warns when they do not (`marks-mismatch`). Editing one number in isolation breaks that silently. Fix the `.tex` and re-upload. |
 | `kind`, `topics`, `number`, `ref` | Filters and mark-scheme keying are built on these. |
-| `figure.src` / `file` | Points at a Storage object tracked in `paper_images`. |
+| `figure.file` | The original filename is a paper_images lookup key, not prose. |
 | `table` blocks | Pre-rendered HTML with structure inside it, not a sentence. |
 
 Everything else — stem and part text, figure captions, MCQ option text,
 mark-scheme answers, codes and guidance, worked-solution headings and
-bodies — is editable.
+bodies — is editable. `figure.src` is too, as an `image` leaf: the client
+uploads the replacement straight to the `question-images` bucket (same as
+`upload.html` does before a parse) and posts the resulting public URL as
+the edit value. This function never touches Storage itself — it only
+accepts an `https://` URL, or an empty value to clear the figure back to
+"not uploaded".
 
 ## Derived columns
 

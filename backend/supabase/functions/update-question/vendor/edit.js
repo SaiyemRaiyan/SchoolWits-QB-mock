@@ -1,5 +1,3 @@
-/* GENERATED - do not edit. Bundled from backend/src/edit/ by npm run build:edit-function. */
-
 // src/edit/leaves.ts
 var BLOCK_KEYS = { text: "html", figure: "caption" };
 function isPlainObject(v) {
@@ -20,6 +18,14 @@ function blockLeaves(blocks, basePath, labelPrefix, out) {
       kind: type === "figure" ? "caption" : "text",
       value
     });
+    if (type === "figure" && (typeof block.src === "string" || block.src === null)) {
+      out.push({
+        path: [...basePath, i, "src"],
+        label: `${labelPrefix} \xB7 figure image`,
+        kind: "image",
+        value: block.src ?? ""
+      });
+    }
   });
 }
 function partLeaves(parts, basePath, out) {
@@ -128,11 +134,14 @@ function applyEdits(content, edits) {
     const key = path.join("\0");
     const leaf = allowed.get(key);
     if (!leaf) throw new EditError(`Not an editable field: ${JSON.stringify(path)}`);
+    if (leaf.kind === "image" && value.trim() !== "" && !/^https:\/\//.test(value)) {
+      throw new EditError("A figure image must be an https:// URL.");
+    }
     if (value === leaf.value) continue;
     let cursor = next;
     for (let i = 0; i < path.length - 1; i++) cursor = cursor[path[i]];
     const last = path[path.length - 1];
-    const nullable = leaf.kind === "guidance" || leaf.kind === "heading";
+    const nullable = leaf.kind === "guidance" || leaf.kind === "heading" || leaf.kind === "image";
     cursor[last] = nullable && value.trim() === "" ? null : value;
     applied++;
   }

@@ -213,7 +213,7 @@
               data-edit-uid="${escAttr(q.uid)}"
               title="Edit this module\u2019s own copy \u2014 the paper in the bank is left alone"
             >Edit${overriddenUids.has(q.uid) ? ' \u270e' : ''}</button>
-            <button class="btn btn--ghost btn--sm" type="button" data-video-uid="${escAttr(q.uid)}">${q.videoId ? 'Update video' : 'Add video'}</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-video-uid="${escAttr(q.uid)}">${(q.videoUrl || q.videoId) ? 'Update video' : 'Add video'}</button>
           </div>
         </div>`).join('');
       els.pickList.querySelectorAll('input[type=checkbox]').forEach(cb => {
@@ -260,6 +260,7 @@
           if(!moduleId) return;
 
           SWEdit.open(q.pk, {
+            question: q,
             moduleId,
             onSaved: (content, info) => {
               // Keep the builder's copy in step so View shows the edit
@@ -269,22 +270,33 @@
               if(info && info.edited === false) overriddenUids.delete(uid);
               else overriddenUids.add(uid);
               renderPickList();
+            },
+            onVideoSaved: (updated) => {
+              // A video is a question-level column, so the builder's copy of
+              // the record is what changes — not the module's override.
+              const index = allQuestions.findIndex(item => item.uid === uid);
+              if(index >= 0) allQuestions[index] = updated;
+              renderPickList();
             }
           });
         });
       });
       els.pickList.querySelectorAll('button[data-video-uid]').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
           const uid = btn.dataset.videoUid;
           const q = allQuestions.find(item => item.uid === uid);
-          const url = prompt(`Paste a YouTube link for Question ${q?.id || ''}`, q?.videoId ? `https://youtu.be/${q.videoId}` : '');
-          if(!url) return;
-          const id = extractYouTubeId(url);
-          if(!id){ alert('Please use a valid YouTube URL or video ID.'); return; }
-          const updated = await DB.setVideo(uid, id);
-          const index = allQuestions.findIndex(item => item.uid === uid);
-          if(index >= 0) allQuestions[index] = updated;
-          renderPickList();
+          if(!q) return;
+          // Was a prompt() that only accepted a YouTube link. The modal
+          // offers both kinds, validates them, and needs no module id — a
+          // video belongs to the question, not to a module's copy of it.
+          SWEdit.open(q.pk, {
+            question: q,
+            onVideoSaved: (updated) => {
+              const index = allQuestions.findIndex(item => item.uid === uid);
+              if(index >= 0) allQuestions[index] = updated;
+              renderPickList();
+            }
+          });
         });
       });
     }
@@ -716,13 +728,8 @@
     });
   }
 
-  function extractYouTubeId(url){
-    if(!url) return null;
-    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{11})/);
-    if(m) return m[1];
-    if(/^[\w-]{11}$/.test(url.trim())) return url.trim();
-    return null;
-  }
+  // extractYouTubeId lived here for the video prompt(). That parsing now
+  // lives only in js/edit/edit-modal.js, with the code that writes it.
 
   function escHTML(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function escAttr(s){ return escHTML(s).replace(/"/g, '&quot;'); }

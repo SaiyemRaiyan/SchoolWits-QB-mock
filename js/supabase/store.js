@@ -94,6 +94,9 @@ const DB = (function(){
       // it with SWRender.QuestionRenderer at display time.
       content: row.content || null,
       videoId: row.video_id,
+      // Two ways to attach a video (migration 0019): a bare YouTube id, or
+      // a direct https link to a file. video_url wins when both are set.
+      videoUrl: row.video_url || '',
       createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
     };
   }
@@ -211,7 +214,8 @@ const DB = (function(){
   // content is parser output and is not editable here — allowing it would
   // let the page write something the parser never produced.
   const PATCH_KEY_TO_COLUMN = {
-    videoId: 'video_id'
+    videoId: 'video_id',
+    videoUrl: 'video_url'
   };
   function patchToRow(patch){
     const row = {};
@@ -240,6 +244,22 @@ const DB = (function(){
 
   async function setVideo(uid, videoId){
     return updateQuestion(uid, { videoId });
+  }
+
+  /**
+   * Attach a video as either a YouTube id or a direct https link, clearing
+   * whichever was not chosen.
+   *
+   * Both columns are written on every call, deliberately. The database
+   * allows both to be set at once (0019 gives video_url precedence rather
+   * than a mutual-exclusion constraint), so writing only the chosen field
+   * would leave the old value behind — invisible, until someone cleared the
+   * other one and a video nobody remembered attaching came back.
+   *
+   * Pass '' for both to detach the video entirely.
+   */
+  async function setVideoSource(uid, { videoId = '', videoUrl = '' } = {}){
+    return updateQuestion(uid, { videoId: videoId || '', videoUrl: videoUrl || '' });
   }
 
   /* ------------------------------------------------- question editing */
@@ -758,7 +778,7 @@ const DB = (function(){
     saveModule, getAllModules, getModule, deleteModule,
     getModuleQuestions, resetQuestionOverride, addModuleQuestion,
     isPurchased, markPurchased,
-    setVideo,
+    setVideo, setVideoSource,
     getQuestionLeaves, saveQuestionEdits, uploadQuestionFigure,
     signInWithGoogle, signOut, isAdmin, currentUser
   };

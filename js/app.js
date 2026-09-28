@@ -661,8 +661,11 @@
 
     const videoTab = Array.from(els.tabs).find(tab => tab.dataset.tab === 'video');
     if(videoTab){
-      videoTab.hidden = !q.videoId;
-      if(!q.videoId && document.querySelector('.tab.active')?.dataset.tab === 'video'){ setActiveTab('question'); }
+      // No video means no tab, for everyone. An admin loses nothing by
+      // this: attaching a video is done from the Edit modal's video
+      // section, so the tab is no longer the only way in.
+      videoTab.hidden = !hasAnyVideo(q);
+      if(videoTab.hidden && document.querySelector('.tab.active')?.dataset.tab === 'video'){ setActiveTab('question'); }
     }
 
     renderVideo(q);
@@ -688,12 +691,23 @@
    * question number, which is not unique across the bank.
    */
   function openEditor(q){
-    SWEdit.open(q.pk, (content) => {
-      // Re-render from what the database returned, and keep the in-memory
-      // result set in step so paging away and back does not show the old
-      // text from before the edit.
-      q.content = content;
-      renderQuestion();
+    SWEdit.open(q.pk, {
+      // The record, not just the id: the modal's video controls need the
+      // uid to write with and the current video to show.
+      question: q,
+      onSaved: (content) => {
+        // Re-render from what the database returned, and keep the in-memory
+        // result set in step so paging away and back does not show the old
+        // text from before the edit.
+        q.content = content;
+        renderQuestion();
+      },
+      onVideoSaved: (updated) => {
+        // A video change can add or remove the Video tab, so re-render the
+        // whole question rather than just the video area.
+        if(currentIndex >= 0) currentResults[currentIndex] = updated;
+        renderQuestion();
+      }
     });
   }
 
@@ -709,28 +723,33 @@
   // A video only ever appears if one has actually been attached to this
   // exact question (q.videoId, persisted in the DB record). Nothing is
   // shown otherwise — there is no fallback or placeholder video.
-  function extractYouTubeId(url){
-    if(!url) return null;
-    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{11})/);
-    if(m) return m[1];
-    if(/^[\w-]{11}$/.test(url.trim())) return url.trim();
-    return null;
+  // extractYouTubeId lived here too. This page only plays a video now;
+  // parsing a YouTube URL belongs with the code that writes the column,
+  // which is js/edit/edit-modal.js.
+
+  /** Is a video attached at all, by either route? */
+  function hasAnyVideo(q){
+    return !!(q && (q.videoUrl || q.videoId));
   }
 
   function renderVideo(q){
-    if(q.videoId){
+    if(hasAnyVideo(q)){
       // Students get the video; only an admin gets the control that
       // changes it. Previously "Change link" was drawn for everyone, which
       // meant a student could click a button that could only ever fail.
+      // video_url wins over video_id when both are set — the same
+      // precedence migration 0019 documents, so the page and the database
+      // agree on which one is "the" video.
+      const player = q.videoUrl
+        ? `<video src="${escAttr(q.videoUrl)}" title="Video explanation for Question ${q.id}" controls preload="metadata"></video>`
+        : `<iframe src="https://www.youtube.com/embed/${escAttr(q.videoId)}" title="Video explanation for Question ${q.id}" allowfullscreen loading="lazy"></iframe>`;
       els.videoArea.innerHTML = `
-        <div class="video-frame">
-          <iframe src="https://www.youtube.com/embed/${q.videoId}" title="Video explanation for Question ${q.id}" allowfullscreen loading="lazy"></iframe>
-        </div>
+        <div class="video-frame">${player}</div>
         ${canEdit ? `<div class="video-meta">
-          <span>Linked video: youtu.be/${q.videoId}</span>
-          <button id="changeVideoBtn" type="button">Change link</button>
+          <span>${escHTML(q.videoUrl ? 'Linked file' : 'Linked video: youtu.be/' + q.videoId)}</span>
+          <button id="changeVideoBtn" type="button">Change video</button>
         </div>` : ''}`;
-      if(canEdit) document.getElementById('changeVideoBtn').addEventListener('click', () => showVideoForm(q));
+      if(canEdit) document.getElementById('changeVideoBtn').addEventListener('click', () => openEditor(q));
     } else if(!canEdit){
       els.videoArea.innerHTML = `
         <div class="video-frame">
@@ -738,53 +757,27 @@
           <div class="video-empty-text">No video for Question ${q.id} yet.</div>
         </div>`;
     } else {
+      // Admin, nothing attached. The inline form here only ever accepted a
+      // YouTube link; attaching a video now happens in the edit modal,
+      // which offers both kinds and validates them the same way the
+      // database does.
       els.videoArea.innerHTML = `
         <div class="video-frame">
           <div class="playbtn">&#9658;</div>
-          <div class="video-empty-text">No video has been uploaded for Question ${q.id} yet.</div>
+          <div class="video-empty-text">No video for Question ${q.id} yet.</div>
         </div>
-        <form class="video-form" id="videoForm" autocomplete="off">
-          <input type="text" id="videoInput" placeholder="https://youtu.be/..." value="${q.videoId || ''}">
-          <button type="submit">Save link</button>
-        </form>`;
-      document.getElementById('videoForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const raw = document.getElementById('videoInput').value.trim();
-        const id = extractYouTubeId(raw);
-        if(id){
-          const updated = await DB.setVideo(q.uid, id);
-          currentResults[currentIndex] = updated;
-          renderVideo(updated);
-        } else {
-          document.getElementById('videoInput').style.borderColor = 'var(--marker)';
-        }
-      });
+        <div class="video-meta">
+          <span>Attach a YouTube link or a direct video URL.</span>
+          <button id="changeVideoBtn" type="button">Add video</button>
+        </div>`;
+      document.getElementById('changeVideoBtn').addEventListener('click', () => openEditor(q));
     }
   }
 
-  function showVideoForm(q){
-    els.videoArea.innerHTML = `
-      <div class="video-frame">
-        <div class="playbtn">&#9658;</div>
-        <div class="video-empty-text">No video has been uploaded for Question ${q.id} yet.</div>
-      </div>
-      <form class="video-form" id="videoForm" autocomplete="off">
-        <input type="text" id="videoInput" placeholder="https://youtu.be/..." value="${q.videoId || ''}">
-        <button type="submit">Save link</button>
-      </form>`;
-    document.getElementById('videoForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const raw = document.getElementById('videoInput').value.trim();
-      const id = extractYouTubeId(raw);
-      if(id){
-        const updated = await DB.setVideo(q.uid, id);
-        currentResults[currentIndex] = updated;
-        renderVideo(updated);
-      } else {
-        document.getElementById('videoInput').style.borderColor = 'var(--marker)';
-      }
-    });
-  }
+  // showVideoForm() lived here: a second copy of the YouTube-only inline
+  // form. Attaching a video is the edit modal's job now, so both it and the
+  // duplicate parsing it needed are gone.
+
 
   /* ---------------------------------------------------------- tabs */
   function setActiveTab(tabName){

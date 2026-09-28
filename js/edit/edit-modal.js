@@ -42,6 +42,19 @@ window.SWEdit = (function () {
   }
 
   /**
+   * Accept any YouTube URL shape, or a bare id, and return the 11-character
+   * id. questions.video_id's check constraint accepts nothing else, so this
+   * is the only thing that may be written to it.
+   */
+  function extractYouTubeId(url) {
+    if (!url) return null;
+    const m = String(url).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{11})/);
+    if (m) return m[1];
+    if (/^[\w-]{11}$/.test(String(url).trim())) return String(url).trim();
+    return null;
+  }
+
+  /**
    * Group leaves under a heading, preserving server order.
    *
    * The leaf label is "1(c)(ii) · body"; the part before the separator is
@@ -92,17 +105,67 @@ window.SWEdit = (function () {
   }
 
   /**
-   * open(questionId, onSaved)                     — edit the question in the bank
-   * open(questionId, { moduleId, onSaved })       — edit ONE module's copy
+   * The video controls, rendered as one more group at the end of the body.
    *
-   * The two-argument form is what js/app.js (Browse) calls and is kept as
-   * is. With a moduleId the edits land on module_questions.content_override
-   * and the paper in the bank is never written — see migration 0018.
+   * A video is NOT a leaf: it lives in its own columns on `questions`
+   * (video_id / video_url, migration 0019) rather than inside `content`.
+   * So it has its own Save button and is never module-scoped — editing a
+   * module's copy of a question does not give it its own video.
+   *
+   * Needs the question record for its `uid` (what updateQuestion keys off)
+   * and its current values; without one the section is not drawn at all
+   * rather than offering a save that could not work.
+   */
+  function videoSectionHtml(question, moduleId) {
+    if (!question) return '';
+    const kind = question.videoUrl ? 'url' : (question.videoId ? 'youtube' : 'none');
+    const radio = (value, label) =>
+      `<label class="eq-radio"><input type="radio" name="eqVideoKind" value="${value}"${kind === value ? ' checked' : ''}><span>${label}</span></label>`;
+    return `
+      <section class="eq-group eq-video-group">
+        <h3 class="eq-group-title">Video explanation</h3>
+        ${moduleId != null ? `
+          <p class="eq-video-warn">
+            <strong>Shared.</strong> Unlike the fields above, a video belongs
+            to the question itself — changing it here changes it in the bank
+            and in every other module using this question.
+          </p>` : ''}
+        <div class="eq-video-choice">
+          ${radio('none', 'No video')}
+          ${radio('youtube', 'YouTube')}
+          ${radio('url', 'Direct / bucket link')}
+        </div>
+        <div class="eq-field" data-video-field="youtube"${kind === 'youtube' ? '' : ' hidden'}>
+          <label class="eq-label"><span class="eq-label-text">YouTube link or ID</span></label>
+          <input class="eq-input" type="text" id="eqYouTube" value="${esc(question.videoId || '')}" placeholder="https://youtu.be/… or an 11-character ID">
+        </div>
+        <div class="eq-field" data-video-field="url"${kind === 'url' ? '' : ' hidden'}>
+          <label class="eq-label"><span class="eq-label-text">Direct video URL</span></label>
+          <input class="eq-input" type="url" id="eqVideoUrl" value="${esc(question.videoUrl || '')}" placeholder="https://…/video.mp4" inputmode="url">
+          <p class="hint">Must start with https:// — a Supabase Storage public URL, or any other host.</p>
+        </div>
+        <div class="eq-video-foot">
+          <button class="btn" type="button" id="eqVideoSave">Save video</button>
+          <span class="eq-status" id="eqVideoStatus"></span>
+        </div>
+      </section>`;
+  }
+
+  /**
+   * open(questionId, onSaved)                          — edit the question in the bank
+   * open(questionId, { question, moduleId, onSaved })  — edit ONE module's copy
+   *
+   * The two-argument form is what js/app.js (Browse) used to call and still
+   * works; it just gets no video controls, since those need the record.
+   * With a moduleId the edits land on module_questions.content_override and
+   * the paper in the bank is never written — see migration 0018.
    */
   function open(questionId, options) {
     const opts = typeof options === 'function' ? { onSaved: options } : (options || {});
     const moduleId = opts.moduleId != null ? opts.moduleId : null;
     const onSaved = opts.onSaved;
+    const onVideoSaved = opts.onVideoSaved;
+    let question = opts.question || null;
 
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop eq-backdrop';
@@ -240,6 +303,59 @@ window.SWEdit = (function () {
       refreshState();
     }
 
+    /** Show only the field that belongs to the chosen video kind. */
+    function syncVideoFields() {
+      const checked = backdrop.querySelector('input[name="eqVideoKind"]:checked');
+      const kind = checked ? checked.value : 'none';
+      backdrop.querySelectorAll('[data-video-field]').forEach((el) => {
+        el.hidden = el.dataset.videoField !== kind;
+      });
+    }
+
+    function wireVideo() {
+      const saveVideoBtn = backdrop.querySelector('#eqVideoSave');
+      if (!saveVideoBtn) return;   // no question record, no video controls
+      backdrop.querySelectorAll('input[name="eqVideoKind"]').forEach((radio) => {
+        radio.addEventListener('change', syncVideoFields);
+      });
+      saveVideoBtn.addEventListener('click', async () => {
+        const vStatus = backdrop.querySelector('#eqVideoStatus');
+        const checked = backdrop.querySelector('input[name="eqVideoKind"]:checked');
+        const kind = checked ? checked.value : 'none';
+        let payload;
+        if (kind === 'none') {
+          payload = { videoId: '', videoUrl: '' };
+        } else if (kind === 'youtube') {
+          const id = extractYouTubeId(backdrop.querySelector('#eqYouTube').value);
+          if (!id) {
+            vStatus.innerHTML = '<span class="eq-error">Not a valid YouTube URL or 11-character ID.</span>';
+            return;
+          }
+          payload = { videoId: id, videoUrl: '' };
+        } else {
+          const url = backdrop.querySelector('#eqVideoUrl').value.trim();
+          // Same rule as the column's check constraint, so a bad value is
+          // refused here rather than coming back as a Postgres error.
+          if (!/^https:\/\//.test(url)) {
+            vStatus.innerHTML = '<span class="eq-error">The video URL must start with https://</span>';
+            return;
+          }
+          payload = { videoId: '', videoUrl: url };
+        }
+        saveVideoBtn.disabled = true;
+        vStatus.textContent = 'Saving\u2026';
+        try {
+          question = await DB.setVideoSource(question.uid, payload);
+          vStatus.textContent = kind === 'none' ? 'Video removed.' : 'Video saved.';
+          if (typeof onVideoSaved === 'function') onVideoSaved(question);
+        } catch (err) {
+          vStatus.innerHTML = `<span class="eq-error">${esc(err.message)}</span>`;
+        } finally {
+          saveVideoBtn.disabled = false;
+        }
+      });
+    }
+
     function applyLoaded(res) {
       leaves = res.leaves || [];
       const edited = res.edited === true;
@@ -251,18 +367,29 @@ window.SWEdit = (function () {
       if (resetBtn) resetBtn.hidden = !edited;
     }
 
+    /**
+     * One render for the whole body, used on load and after a reset.
+     *
+     * This was duplicated before; the video section made a third copy
+     * likely, and a section that exists in two of three renders is exactly
+     * the kind of drift this file's header warns about.
+     */
+    function renderBody() {
+      const fields = leaves.length === 0
+        ? '<p class="hint">This question has no editable text fields.</p>'
+        : group(leaves).map((g) => `
+            <section class="eq-group">
+              <h3 class="eq-group-title">${esc(g.name)}</h3>
+              ${g.items.map((it) => fieldHtml(it.leaf, it.index)).join('')}
+            </section>`).join('');
+      body.innerHTML = fields + videoSectionHtml(question, moduleId);
+      wire();
+      wireVideo();
+    }
+
     DB.getQuestionLeaves(questionId, moduleId).then((res) => {
       applyLoaded(res);
-      if (leaves.length === 0) {
-        body.innerHTML = '<p class="hint">This question has no editable text fields.</p>';
-        return;
-      }
-      body.innerHTML = group(leaves).map((g) => `
-        <section class="eq-group">
-          <h3 class="eq-group-title">${esc(g.name)}</h3>
-          ${g.items.map((it) => fieldHtml(it.leaf, it.index)).join('')}
-        </section>`).join('');
-      wire();
+      renderBody();
     }).catch((err) => {
       body.innerHTML = `<p class="eq-error">${esc(err.message)}</p>`;
     });
@@ -282,12 +409,7 @@ window.SWEdit = (function () {
           // Redraw from the paper's version rather than closing, so it is
           // visible that the reset actually took.
           applyLoaded(res);
-          body.innerHTML = group(leaves).map((g) => `
-            <section class="eq-group">
-              <h3 class="eq-group-title">${esc(g.name)}</h3>
-              ${g.items.map((it) => fieldHtml(it.leaf, it.index)).join('')}
-            </section>`).join('');
-          wire();
+          renderBody();
           status.textContent = 'Reset to the original.';
           if (typeof onSaved === 'function') onSaved(res.content, { edited: false });
         } catch (err) {

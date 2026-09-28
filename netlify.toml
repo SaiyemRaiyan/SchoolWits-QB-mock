@@ -1,0 +1,29 @@
+# Netlify build.
+#
+# There is no bundler here on purpose — the pages are plain HTML loading
+# CDN <script> tags. So the "build" is a copy: it exists only to control
+# WHAT gets published.
+#
+# Publishing the repository root would serve all 69 files under backend/,
+# including every migration — that is the full schema, the RLS policies and
+# the admin model, readable by anyone. None of it is secret (real secrets
+# live in backend/.env, which is gitignored and never in the repo), but
+# handing out the exact policy definitions helps nobody but an attacker.
+# templates/ and samples/ are likewise internal.
+#
+# So dist/ is built from an explicit allow-list. A new top-level frontend
+# file must be added here or it will not ship — which is the safe failure
+# direction.
+[build]
+  command = "rm -rf dist && mkdir -p dist && cp index.html home.html landing.html modules.html upload.html dist/ && cp -r assets css js dist/"
+  publish = "dist"
+
+# The pages are admin-gated in the UI, but that gate is a convenience: the
+# real boundary is RLS (backend/supabase/migrations/0007+). These headers
+# are defence in depth for the static assets themselves.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"

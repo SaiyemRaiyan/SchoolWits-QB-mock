@@ -4021,3 +4021,55 @@ button:focus-visible,
   gap: 10px;
   margin-top: 10px;
 }
+
+/* ---------------------------------------------------------------------
+   Signed-in account + sign out, in the console header.
+
+   Injected by js/nav.js (renderAccount) rather than written into each
+   page's markup, so all four app pages get it from one place. It sits on
+   the dark console, so the colours follow .sitenav / .sidebar-toggle-btn
+   rather than the light-surface button styles.
+   --------------------------------------------------------------------- */
+.console-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;   /* push to the end of the header, past .console-center */
+  flex-shrink: 0;
+}
+
+.console-account__who {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: #9FB4CC;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console-account__out {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(224, 176, 74, .3);
+  padding: 7px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s, opacity .15s;
+}
+.console-account__out:hover {
+  background: rgba(255, 255, 255, .13);
+  border-color: var(--brass-light);
+}
+.console-account__out:disabled { opacity: .6; cursor: default; }
+
+/* The email is the first thing worth dropping on a narrow header — the
+   button still says who it acts on once it is the only thing left. */
+@media (max-width: 720px) {
+  .console-account__who { display: none; }
+  .console-account { margin-left: 0; }
+}

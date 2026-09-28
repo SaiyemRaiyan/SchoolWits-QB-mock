@@ -63,6 +63,72 @@ window.SWNav = (function () {
     html += link(appPage('index.html'), 'Browse', current === 'browse');
 
     nav.innerHTML = html;
+
+    renderAccount();
+  }
+
+  /**
+   * The signed-in account, and the way back out.
+   *
+   * Rendered from here rather than written into each page's header for the
+   * same reason the nav is: with no bundler, a shared <script> is how four
+   * static pages share one control. The container is created on demand, so
+   * no page markup has to change.
+   *
+   * Only drawn when someone is actually signed in. Signing IN happens at
+   * the admin gate on the pages that need it, so a permanent "Sign in"
+   * button here would be a second, competing entry point.
+   */
+  async function renderAccount() {
+    const host = document.querySelector('.console');
+    if (!host) return;
+
+    let box = document.getElementById('siteAccount');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'siteAccount';
+      box.className = 'console-account';
+      host.appendChild(box);
+    }
+
+    // Like the syllabus query above: a failure here must not leave the page
+    // without its nav, so it degrades to "no account shown".
+    let user = null;
+    try {
+      user = await DB.currentUser();
+    } catch (err) {
+      console.error('Nav: could not read the current user —', err);
+    }
+
+    if (!user) {
+      box.hidden = true;
+      box.innerHTML = '';
+      return;
+    }
+
+    const who = user.email || 'Signed in';
+    box.hidden = false;
+    box.innerHTML =
+      '<span class="console-account__who" title="' + escapeHtml(who) + '">' + escapeHtml(who) + '</span>'
+      + '<button class="console-account__out" type="button" id="siteSignOut">Sign out</button>';
+
+    document.getElementById('siteSignOut').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = 'Signing out…';
+      try {
+        await DB.signOut();
+        // Reload rather than re-render. Whether someone is an admin is read
+        // once at boot (canEdit in app.js, the gate in admin-gate.js), so
+        // redrawing this control alone would leave the Builder and Upload
+        // panels sitting there open until the next navigation.
+        location.reload();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Sign out';
+        console.error('Sign out failed —', err);
+      }
+    });
   }
 
   function escapeHtml(s) {

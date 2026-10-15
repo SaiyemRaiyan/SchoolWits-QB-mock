@@ -168,7 +168,7 @@
     els.fSubject.innerHTML = '<option value="">Any subject</option>' + subjects.map(x => {
       const name = syllabusSubjectName(x.code);
       if (!name) return '';
-      return `<option value="${escAttr(name)}">${escHTML(x.code)} &mdash; ${escHTML(x.title)}</option>`;
+      return `<option value="${escAttr(name)}">${escHTML(x.code)} &middot; ${escHTML(x.title)}</option>`;
     }).join('');
 
     if ([...els.fSubject.options].some(o => o.value === keep)) els.fSubject.value = keep;
@@ -238,7 +238,7 @@
     fillTopicCombo(allTopics);
     els.statStrip.innerHTML = facets.paperCount
       ? `<span><b>${facets.paperCount}</b> paper${facets.paperCount === 1 ? '' : 's'} indexed</span><span class="dot">&middot;</span><span><b>${facets.questionCount}</b> questions searchable</span>`
-      : `<span>No papers indexed yet &mdash; <a href="upload.html">upload a .tex file</a> to get started</span>`;
+      : `<span>No papers indexed yet. <a href="upload.html">Upload a .tex file</a> to get started</span>`;
   }
 
   /* ---------------------------------------------------------- topic combobox */
@@ -484,7 +484,7 @@
       <div class="pd-sessionhead">
         <div class="pd-sessionhead-code">${escHTML(heading)} &middot; ${escHTML(meta.subject)}</div>
         <div class="pd-sessionhead-title">${escHTML(title)}</div>
-        <div class="pd-sessionhead-sub">${questions.length} question${questions.length === 1 ? '' : 's'} &middot; ${totalMarks || '—'} total marks</div>
+        <div class="pd-sessionhead-sub">${questions.length} question${questions.length === 1 ? '' : 's'} &middot; ${totalMarks || '·'} total marks</div>
       </div>`;
 
     const qSections = questions.map((q, i) => {
@@ -495,7 +495,7 @@
             <span class="pd-qnum">Question ${q.id}</span>
             ${q.topic ? `<span class="pd-qtopic">${escHTML(q.topic)}</span>` : ''}
             <div class="pd-marks-panel">
-              <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
+              <span class="pd-qmarks">${escHTML(String(q.marks || '·'))} marks</span>
               ${renderMarksDistribution(q)}
             </div>
           </div>
@@ -513,7 +513,7 @@
           <div class="pd-qhead">
             <span class="pd-qnum">Question ${q.id}</span>
             <div class="pd-marks-panel">
-              <span class="pd-qmarks">${escHTML(String(q.marks || '—'))} marks</span>
+              <span class="pd-qmarks">${escHTML(String(q.marks || '·'))} marks</span>
             </div>
           </div>
           <table class="mstable">
@@ -591,7 +591,7 @@
       const btn = document.createElement('button');
       btn.className = 'qnav-pill' + (i === currentIndex ? ' active' : '');
       btn.title = (q.topic ? q.topic + ' · ' : '') + (q.marks ? q.marks + ' marks' : '');
-      btn.innerHTML = `<span class="pill-num">Q${q.id}</span><span class="pill-marks">${escHTML(String(q.marks || '—'))}</span>`;
+      btn.innerHTML = `<span class="pill-num">Q${q.id}</span><span class="pill-marks">${escHTML(String(q.marks || '·'))}</span>`;
       btn.addEventListener('click', () => {
         currentIndex = i;
         els.paperDoc.hidden = true;
@@ -640,7 +640,7 @@
 
     els.qTitle.textContent = `Question ${q.id}`;
     els.qSub.textContent = `${q.ref || DB.paperLabel(q) + ' · Q' + q.id}${topicLabel ? ' · Topic: ' + topicLabel : ''}`;
-    els.stampMarks.textContent = q.marks || '—';
+    els.stampMarks.textContent = q.marks || '·';
     // "1 marks" was wrong on every one-mark question, and the MCQ paper is
     // 40 of them. The <small> sits next to the number in the stamp.
     const unit = els.stampMarks.nextElementSibling;

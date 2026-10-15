@@ -60,7 +60,7 @@ window.SWRender = window.SWRender || {};
     _label(seg) {
       const ref = seg.ref ? ns.escapeHTML(seg.ref) : '';
       const heading = seg.heading || '';
-      if (ref && heading) return ref + ' — ' + heading;
+      if (ref && heading) return ref + ': ' + heading;
       return ref || heading;
     }
 

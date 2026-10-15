@@ -335,7 +335,7 @@ const DB = (function(){
       throw new Error('Choose a PNG, JPG, GIF, or WEBP image.');
     }
     const { data: { session } } = await client.auth.getSession();
-    if(!session) throw new Error('Your session expired — sign in again.');
+    if(!session) throw new Error('Your session expired. Sign in again.');
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
     const path = `question-edits/${Number(questionId)}/${Date.now()}-${safeName}`;
     const { error } = await client.storage.from('question-images').upload(path, file, {

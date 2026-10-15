@@ -148,7 +148,7 @@
       .sort((a, b) => b.year - a.year || String(a.paper).localeCompare(String(b.paper)));
     els.bPaper.innerHTML = '<option value="">Any paper</option>' + papers.map(p => {
       const n = allQuestions.filter(q => q.paperKey === p.paperKey).length;
-      return `<option value="${escAttr(p.paperKey)}">${escHTML(DB.paperLabel(p))} — ${n} question${n === 1 ? '' : 's'}</option>`;
+      return `<option value="${escAttr(p.paperKey)}">${escHTML(DB.paperLabel(p))} &middot; ${n} question${n === 1 ? '' : 's'}</option>`;
     }).join('');
     els.bPaper.value = activePaperKey;
   }
@@ -373,7 +373,7 @@
     const picked = selectedQuestions();
 
     if(!title){
-      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">Give the module a title first${reason ? ' — ' + escHTML(reason) : ''}.</span>`;
+      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">Give the module a title first${reason ? ': ' + escHTML(reason) : ''}.</span>`;
       els.modTitle.focus();
       els.modTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return null;
@@ -389,7 +389,7 @@
     // selections were carried across a subject change.
     const subjects = Array.from(new Set(picked.map(q => q.subject)));
     if(subjects.length > 1){
-      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">This pack mixes ${escHTML(subjects.join(' and '))}. A module covers one subject — untick the questions that don't belong.</span>`;
+      els.modSaveResult.innerHTML = `<span style="color:var(--marker-dark);">This pack mixes ${escHTML(subjects.join(' and '))}. A module covers one subject. Untick the questions that don't belong.</span>`;
       return null;
     }
 
@@ -429,7 +429,7 @@
       const id = await persistModule('the module has to exist before a question can be edited for it');
       if(!id) return null;
       els.modSaveResult.innerHTML =
-        `<span class="hint">Saved <strong>${escHTML(els.modTitle.value.trim())}</strong> so this edit has somewhere to live. Carry on — saving again updates it rather than creating another.</span>`;
+        `<span class="hint">Saved <strong>${escHTML(els.modTitle.value.trim())}</strong> so this edit has somewhere to live. Carry on. Saving again updates it rather than creating another.</span>`;
       await refreshBuiltList();
       await refreshStorefront();
       return id;
@@ -527,7 +527,7 @@
   async function refreshBuiltList(){
     const mods = await DB.getAllModules();
     if(mods.length === 0){
-      els.builtList.innerHTML = `<p class="hint">No modules yet — build your first one above.</p>`;
+      els.builtList.innerHTML = `<p class="hint">No modules yet. Build your first one above.</p>`;
       return;
     }
     els.builtList.innerHTML = mods.map(m => `
@@ -619,7 +619,7 @@
             <div class="lockicon">&#128274;</div>
             <h3>Unlock the full module</h3>
             <p>The first question is open above as a preview. Unlock all ${questions.length} for ৳${mod.price}.</p>
-            <button class="btn btn--primary" id="unlockBtn">Unlock — ৳${mod.price}</button>
+            <button class="btn btn--primary" id="unlockBtn">Unlock ৳${mod.price}</button>
           </div>`}
         </div>
       </div>`;
@@ -711,7 +711,7 @@
         <h3>Unlock "${escHTML(mod.title)}"</h3>
         <p class="modal-sub">One-time purchase. Unlocks all ${mod.questionUids.length} questions with full mark schemes and worked solutions, forever, on this device.</p>
         <div class="modal-price">৳${mod.price}</div>
-        <div class="modal-note">This is a demo checkout — no real payment is taken. Connect a real payment provider (SSLCommerz, Stripe, bKash) before selling for real; the purchase flag is currently stored only in this browser.</div>
+        <div class="modal-note">This is a demo checkout. No real payment is taken. Connect a real payment provider (SSLCommerz, Stripe, bKash) before selling for real; the purchase flag is currently stored only in this browser.</div>
         <div class="modal-actions">
           <button class="btn btn--ghost" id="checkoutCancel">Cancel</button>
           <button class="btn btn--primary" id="checkoutConfirm">Confirm demo purchase</button>

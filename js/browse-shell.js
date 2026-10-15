@@ -139,7 +139,7 @@ window.SWShell = (function () {
             <div class="card-head-right">
               <div class="marks-panel">
                 <div class="stamp" id="stamp">
-                  <span id="stampMarks">&mdash;</span><small>marks</small>
+                  <span id="stampMarks">&middot;</span><small>marks</small>
                 </div>
                 <div class="marks-dist" id="marksDist"></div>
               </div>
@@ -212,7 +212,7 @@ window.SWShell = (function () {
         </section>
 
         <div class="emptystate" id="emptyState" hidden>
-          <div class="emptystate-mark">&mdash;</div>
+          <div class="emptystate-mark">&middot;</div>
           <h2 id="emptyTitle">No questions match yet</h2>
           <p id="emptyText">
             Try widening a filter, or clear the search box. Nothing uploaded

@@ -127,7 +127,7 @@ window.SWEdit = (function () {
         ${moduleId != null ? `
           <p class="eq-video-warn">
             <strong>Shared.</strong> Unlike the fields above, a video belongs
-            to the question itself — changing it here changes it in the bank
+            to the question itself. Changing it here changes it in the bank
             and in every other module using this question.
           </p>` : ''}
         <div class="eq-video-choice">
@@ -183,7 +183,7 @@ window.SWEdit = (function () {
             <strong>Editing this module's own copy.</strong>
             The question in the bank, and every other module using it, stays
             as the paper has it. Change a value and the mark scheme and
-            worked solution below will need changing too — nothing can
+            worked solution below will need changing too, and nothing can
             recompute them.
           </div>` : ''}
         <div class="eq-body" id="eqBody"><p class="hint">Loading the editable fields…</p></div>

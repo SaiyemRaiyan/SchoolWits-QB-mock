@@ -149,7 +149,7 @@
     const ready = Boolean(els.subject.value && els.qual.value);
     els.searchBtn.disabled = !ready;
     els.hint.textContent = ready
-      ? 'Ready — opens the question bank filtered to your choice.'
+      ? 'Ready. Opens the question bank filtered to your choice.'
       : 'Pick a subject and curriculum to continue.';
     els.hint.classList.remove('is-error');
   }
@@ -194,7 +194,7 @@
       }
     } catch (err) {
       console.error('Landing: could not load syllabuses —', err);
-      els.hint.textContent = 'Could not load subjects — please refresh the page.';
+      els.hint.textContent = 'Could not load subjects. Please refresh the page.';
       els.hint.classList.add('is-error');
       els.subject.innerHTML = '<option value="">Unavailable</option>';
       els.qual.innerHTML = '<option value="">Unavailable</option>';

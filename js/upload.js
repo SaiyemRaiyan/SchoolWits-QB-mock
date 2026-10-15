@@ -68,7 +68,7 @@
    */
   async function callFunction(body) {
     const { data: { session } } = await DB.client.auth.getSession();
-    if (!session) throw new Error('Your session expired — sign in again.');
+    if (!session) throw new Error('Your session expired. Sign in again.');
 
     const res = await fetch(FUNCTION_URL, {
       method: 'POST',

@@ -2,13 +2,16 @@
    School Wits — browse shell
 
    The sidebar filters and the whole question-browsing body, in ONE
-   place, mounted by both pages that use it:
+   place, mounted by index.html.
 
-     home.html   the student portal  (read-only)
-     index.html  Browse              (admin, same UI + write controls)
+   There used to be two pages here: home.html (student, read-only) and
+   index.html (admin, same UI plus write controls). They were the same
+   file apart from a data-role attribute that forced canEdit to false, and
+   having both meant the nav offered two entries for one interface. One
+   page now serves both: a student is simply not an admin, so canEdit is
+   false for them and the write controls never draw.
 
-   Why it lives in JS rather than in each page's HTML: the two pages are
-   the same interface with different permissions, and this project has no
+   Why it lives in JS rather than in the page's HTML: this project has no
    build step or templating, so a shared <script> is the only way to keep a
    single copy. Duplicating this markup across two files would guarantee
    they drift.

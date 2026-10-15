@@ -42,9 +42,6 @@
 
         <div class="console-center">
           <nav class="sitenav" id="siteNav"></nav>
-          <nav class="sitenav sitenav--secondary">
-            <a href="modules.html">Modules</a><a href="upload.html">Upload</a>
-          </nav>
 
           <div class="searchbar">
             <svg
@@ -105,7 +102,7 @@
     <script src="../js/render/solution-renderer.js"></script>
     <script src="../js/render/question-renderer.js"></script>
     <script src="../js/browse-shell.js"></script>
-    <!-- Admin editor. Deliberately NOT loaded by home.html (student portal) -->
+    <!-- Admin editor. Only an admin can actually use it; the gate is RLS. -->
     <script src="../js/edit/edit-modal.js"></script>
     <script>
       SWShell.mount();

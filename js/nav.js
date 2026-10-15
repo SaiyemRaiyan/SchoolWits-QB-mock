@@ -31,39 +31,109 @@ window.SWNav = (function () {
 
   /** Deep link into the student portal, pre-filtered to one syllabus. */
   function browseHref(code) {
-    return appPage('home.html') + '?code=' + encodeURIComponent(code);
+    return appPage('index.html') + '?code=' + encodeURIComponent(code);
+  }
+
+  const link = (href, label, isActive) =>
+    '<a href="' + href + '"' + (isActive ? ' class="active"' : '') + '>' + escapeHtml(label) + '</a>';
+
+  /**
+   * The header's right-hand group: admin links, then the account control.
+   *
+   * Created once and reused. Admin tools sit next to the identity they
+   * belong to, so "an admin is signed in" and "this is what that unlocks"
+   * read as one fact rather than two unrelated rows.
+   */
+  function rightRail() {
+    const host = document.querySelector('.console');
+    if (!host) return null;
+    let rail = document.getElementById('siteRight');
+    if (!rail) {
+      rail = document.createElement('div');
+      rail.id = 'siteRight';
+      rail.className = 'console-right';
+      host.appendChild(rail);
+    }
+    return rail;
   }
 
   /**
-   * @param {string} current  'home' | 'browse' | 'upload' | 'modules' | a syllabus code
+   * The logo is the way home.
+   *
+   * "Home" used to be a nav item sitting next to "Browse", which read as
+   * two names for the same place. Wiring the brand mark instead is the
+   * convention every site already teaches, and it frees the nav to list
+   * only real destinations. Done here rather than by wrapping each page's
+   * markup in an <a>, because there is no templating.
+   */
+  function linkBrand() {
+    const brand = document.querySelector('.console-brand');
+    if (!brand || brand.dataset.linked === '1') return;
+    brand.dataset.linked = '1';
+    brand.classList.add('console-brand--link');
+    brand.setAttribute('role', 'link');
+    brand.setAttribute('tabindex', '0');
+    brand.setAttribute('title', 'School Wits home');
+    const go = () => { location.href = rootPage('landing.html'); };
+    brand.addEventListener('click', go);
+    brand.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+    });
+  }
+
+  /**
+   * Links only an admin can use.
+   *
+   * DRAWN only for admins rather than drawn-and-blocked. Upload is fully
+   * admin-gated, so offering it to a student promises a page that can only
+   * ever answer with a sign-in wall — a dead end dressed as a destination.
+   *
+   * This is presentation, never the boundary. RLS and each Edge Function's
+   * own is_admin() check are what actually refuse the work; hiding a link
+   * protects nothing, it just stops lying about what is available.
+   */
+  function renderAdminLinks(isAdmin, current) {
+    const rail = rightRail();
+    if (!rail) return;
+    let box = document.getElementById('siteAdminNav');
+    if (!box) {
+      box = document.createElement('nav');
+      box.id = 'siteAdminNav';
+      box.className = 'sitenav sitenav--admin';
+      rail.appendChild(box);
+    }
+    if (!isAdmin) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = link(appPage('upload.html'), 'Upload', current === 'upload');
+  }
+
+  /**
+   * @param {string} current  'browse' | 'modules' | 'upload'
    */
   async function render(current) {
     const nav = document.getElementById('siteNav');
     if (!nav) return;
 
-    // The nav must draw even if the query fails — an offline or erroring
-    // database should not leave the user with no way off the page.
-    let withPapers = [];
+    linkBrand();
+
+    // Public destinations. Browse and Modules both work signed out, so
+    // they are the same for everyone; what changes inside them is whether
+    // the write controls draw.
+    nav.innerHTML =
+      link(appPage('index.html'), 'Browse', current === 'browse')
+      + link(appPage('modules.html'), 'Modules', current === 'modules');
+
+    // The nav must draw even if this fails — an offline or erroring
+    // database should not leave someone with no way off the page. Failing
+    // closed (no admin links) is also the safer direction to be wrong in.
+    let isAdmin = false;
     try {
-      ({ withPapers } = await DB.getSyllabuses());
+      isAdmin = await DB.isAdmin();
     } catch (err) {
-      console.error('Nav: could not load syllabuses —', err);
+      console.error('Nav: could not check admin status —', err);
     }
 
-    const link = (href, label, isActive) =>
-      '<a href="' + href + '"' + (isActive ? ' class="active"' : '') + '>' + escapeHtml(label) + '</a>';
-
-    // Two entry points, one interface:
-    //   Home   the marketing/gateway page — subject/curriculum picker
-    //   Browse the same student/admin UI, with write controls for admins
-    // Subject links used to sit between them, one per syllabus. They were
-    // removed because both pages pick subject from their own dropdown, so
-    // the nav was restating a choice the page already offers.
-    let html = link(rootPage('landing.html'), 'Home', current === 'home');
-    html += link(appPage('index.html'), 'Browse', current === 'browse');
-
-    nav.innerHTML = html;
-
+    renderAdminLinks(isAdmin, current);
     renderAccount();
   }
 
@@ -80,7 +150,7 @@ window.SWNav = (function () {
    * button here would be a second, competing entry point.
    */
   async function renderAccount() {
-    const host = document.querySelector('.console');
+    const host = rightRail();
     if (!host) return;
 
     let box = document.getElementById('siteAccount');

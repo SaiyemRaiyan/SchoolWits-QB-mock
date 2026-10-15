@@ -4034,7 +4034,6 @@ button:focus-visible,
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;   /* push to the end of the header, past .console-center */
   flex-shrink: 0;
 }
 
@@ -4072,4 +4071,45 @@ button:focus-visible,
 @media (max-width: 720px) {
   .console-account__who { display: none; }
   .console-account { margin-left: 0; }
+}
+
+/* ---------------------------------------------------------------------
+   Header right rail: admin links + the account control.
+
+   Built by js/nav.js. Grouping admin tools beside the signed-in identity
+   is the whole point: what an admin can do extra reads as part of being
+   signed in, rather than as a second row of links that looked identical
+   to the public ones.
+   --------------------------------------------------------------------- */
+.console-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;   /* push the whole group past .console-center */
+  flex-shrink: 0;
+}
+
+/* A hairline marks where "everyone" ends and "admins only" begins. */
+.sitenav--admin {
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, .16);
+}
+
+/* Belt and braces: .tab once set `display: flex`, which beat the browser's
+   own [hidden] rule and left a "hidden" tab on screen. Nothing sets
+   display on these, but the admin links are hidden by that same property. */
+.sitenav a[hidden] { display: none; }
+
+/* The logo is now the way home (js/nav.js wires it), so it has to look
+   and behave like a control. */
+.console-brand--link { cursor: pointer; }
+.console-brand--link:focus-visible {
+  outline: 2px solid var(--brass-light);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 720px) {
+  .console-right { gap: 10px; margin-left: 0; }
+  .sitenav--admin { padding-left: 10px; }
 }

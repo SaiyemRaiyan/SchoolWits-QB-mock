@@ -82,7 +82,6 @@
   // refused by the database (anon lost INSERT/UPDATE/DELETE in migration
   // 0017, and RLS checks is_admin() behind that), so this is UX, never the
   // boundary.
-  const isStudentPortal = document.body.dataset.role === 'student';
   let canEdit = false;
 
   let currentResults = [];   // questions matching the active filters/search
@@ -207,8 +206,11 @@
   /* ---------------------------------------------------------- boot */
   async function boot(){
     await DB.open();
-    canEdit = isStudentPortal ? false : await DB.isAdmin();
-    SWNav.render(isStudentPortal ? 'home' : 'browse');
+    // One Browse page for everyone. A student simply isn't an admin, so
+    // canEdit is false for them and every write control stays hidden —
+    // there is no separate read-only copy of this page any more.
+    canEdit = await DB.isAdmin();
+    SWNav.render('browse');
     await refreshFilterOptions();
     await initSyllabusPicker();
     await refreshTopicsForSubject();
@@ -674,10 +676,9 @@
     els.prevBtn.disabled = currentIndex === 0;
     els.nextBtn.disabled = currentIndex === currentResults.length - 1;
 
-    // Editing is admin-only. canEdit is already false on the student portal
-    // (isStudentPortal short-circuits it), so Home never shows this. The
-    // real boundary is the Edge Function's own is_admin() check plus RLS —
-    // this only decides whether to draw the button.
+    // Editing is admin-only. The real boundary is the Edge Function's own
+    // is_admin() check plus RLS; this only decides whether to draw the
+    // button, so a student never sees it.
     if(els.editQBtn){
       els.editQBtn.hidden = !canEdit;
       els.editQBtn.onclick = canEdit ? () => openEditor(q) : null;

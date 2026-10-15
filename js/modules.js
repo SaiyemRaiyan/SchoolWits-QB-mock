@@ -80,6 +80,7 @@
     await DB.open();
     SWNav.render('modules');
     wireModeTabs();
+    await gateBuilderTab();
     await refreshBuilder();
     await refreshStorefront();
   }
@@ -93,6 +94,29 @@
       els.viewStorefront.hidden = mode !== 'storefront';
       els.viewBuilder.hidden = mode !== 'builder';
     }));
+  }
+
+  /**
+   * Hide the Builder tab from anyone who cannot use it.
+   *
+   * The tab stays (Storefront and Builder are two views of the same data,
+   * which is what a tab row is for), but a student clicking it only ever
+   * reached the sign-in gate — a visible control that can do nothing. The
+   * gate itself stays exactly as it is; this just stops advertising it.
+   *
+   * Presentation only. The Builder writes through RLS-protected tables,
+   * so hiding the tab grants nobody anything.
+   */
+  async function gateBuilderTab(){
+    const tab = Array.from(els.modeTabs).find(a => a.dataset.mode === 'builder');
+    if(!tab) return;
+    let admin = false;
+    try{
+      admin = await DB.isAdmin();
+    } catch(err){
+      console.error('Modules: could not check admin status', err);
+    }
+    tab.hidden = !admin;
   }
 
   /* ================================================================ BUILDER */

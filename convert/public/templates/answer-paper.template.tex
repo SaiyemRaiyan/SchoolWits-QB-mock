@@ -1,0 +1,218 @@
+% =====================================================================
+% School Wits — ANSWER PAPER (QA) template
+%
+% Every QP file has exactly one QA partner. They are matched by the
+% \examq header, which MUST be byte-identical in both files — same
+% paper-id, same number, same topic string, same marks.
+%
+% Each question here contributes two things:
+%   1. \begin{mstab}  — the official mark scheme grid
+%   2. \begin{ansbox} — the worked solution / model answer
+%
+% See README.md in this folder for the JSON shape these map to.
+% =====================================================================
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage[most]{tcolorbox}
+
+\geometry{margin=2.5cm}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+\setlength{\cftbeforesecskip}{6pt}
+
+% ===== Pastel colours, one per question =====
+% A question whose colour is undefined is a LaTeX compile error, so this
+% runs to q24 — Maths D 4024/22 has 24 questions. The palette repeats from
+% q10; only adjacent questions need to look different.
+\definecolor{q1color}{HTML}{D6EAF8} % pastel blue
+\definecolor{q2color}{HTML}{D5F5E3} % pastel green
+\definecolor{q3color}{HTML}{FDEBD0} % pastel orange
+\definecolor{q4color}{HTML}{F9E79F} % pastel yellow
+\definecolor{q5color}{HTML}{E8DAEF} % pastel purple
+\definecolor{q6color}{HTML}{FADBD8} % pastel red/pink
+\definecolor{q7color}{HTML}{D1F2EB} % pastel teal
+\definecolor{q8color}{HTML}{FCF3CF} % pastel cream
+\definecolor{q9color}{HTML}{EBDEF0} % pastel lavender
+\definecolor{q10color}{HTML}{D6EAF8}
+\definecolor{q11color}{HTML}{D5F5E3}
+\definecolor{q12color}{HTML}{FDEBD0}
+\definecolor{q13color}{HTML}{F9E79F}
+\definecolor{q14color}{HTML}{E8DAEF}
+\definecolor{q15color}{HTML}{FADBD8}
+\definecolor{q16color}{HTML}{D1F2EB}
+\definecolor{q17color}{HTML}{FCF3CF}
+\definecolor{q18color}{HTML}{EBDEF0}
+\definecolor{q19color}{HTML}{D6EAF8}
+\definecolor{q20color}{HTML}{D5F5E3}
+\definecolor{q21color}{HTML}{FDEBD0}
+\definecolor{q22color}{HTML}{F9E79F}
+\definecolor{q23color}{HTML}{E8DAEF}
+\definecolor{q24color}{HTML}{FADBD8}
+
+% ===== Subject shorthands used in ANSWER papers =====
+% Add Maths mark schemes use these; question papers never do. Anything
+% added here must ALSO be taught to KaTeX in js/app.js's KATEX_MACROS, or
+% it renders as raw source in the browser.
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\dydx}{\dfrac{\mathrm{d}y}{\mathrm{d}x}}
+\newcommand{\ncr}[2]{{}^{#1}\mathrm{C}_{#2}}
+\newcommand{\npr}[2]{{}^{#1}\mathrm{P}_{#2}}
+\newcommand{\cosec}{\operatorname{cosec}}
+
+% ===== Mark-scheme table =====
+%
+% PICK ONE OF THE TWO DEFINITIONS BELOW AND DELETE THE OTHER.
+% The choice decides how many "&" separated cells each row has, which is
+% exactly what the JSON parser counts. Mixing them inside one file, or
+% writing 4-cell rows under the 3-column definition, breaks extraction.
+%
+% Grouped Question labels use NEGATIVE \multirow placed on the LAST row
+% of each group, so the label draws on top of the cell tint (this avoids
+% a multirow/columncolor clipping bug — that is why the row order looks
+% "upside down": blank label first, real label last).
+
+% ---- OPTION A: 3 columns — Question | Answer | Marks -----------------
+% Used by: Physics 5054/11, Physics 5054/21
+\newenvironment{mstab}[1]{%
+  {\color{#1!75!black}\nobreak Mark Scheme}\par\nopagebreak\smallskip
+  \arrayrulecolor{#1!70!black}%
+  \renewcommand{\arraystretch}{1.3}%
+  \tabularx{\textwidth}{%
+    |>{\columncolor{#1!12}\raggedright\arraybackslash}p{1.9cm}|%
+     >{\columncolor{#1!12}}X|%
+     >{\columncolor{#1!12}\centering\arraybackslash}p{1.1cm}|}%
+  \hline
+  \rowcolor{#1!45} Question & Answer & Marks \\ \hline
+}{%
+  \endtabularx
+  \arrayrulecolor{black}%
+  \par\medskip
+}
+
+% ---- OPTION B: 4 columns — Question | Answer | Marks | Partial Marks -
+% Used by: Add Maths 4037/11, 4037/21, Maths D 4024/12, 4024/22
+% The optional first argument renames the 4th column (e.g. "Guidance").
+%
+% \newenvironment{mstab}[2][Partial Marks]{%
+%   {\color{#2!75!black}\nobreak Mark Scheme}\par\nopagebreak\smallskip
+%   \arrayrulecolor{#2!70!black}%
+%   \renewcommand{\arraystretch}{1.3}%
+%   \tabularx{\textwidth}{%
+%     |>{\columncolor{#2!12}\raggedright\arraybackslash}p{1.9cm}|%
+%      >{\columncolor{#2!12}}X|%
+%      >{\columncolor{#2!12}\centering\arraybackslash}p{1.1cm}|%
+%      >{\columncolor{#2!12}}p{4.2cm}|}%
+%   \hline
+%   \rowcolor{#2!45} Question & Answer & Marks & #1 \\ \hline
+% }{%
+%   \endtabularx
+%   \arrayrulecolor{black}%
+%   \par\medskip
+% }
+
+% ===== Alternative-method banner =====
+% \altrow{qNcolor}{Alternative} — a full-width heading inside an mstab
+% introducing a second way of earning the SAME part's marks. It supplies
+% its own row break, so it takes no trailing \\ in the source. Its rows are
+% conventionally coded in parentheses, e.g. \textbf{(M1)}.
+%
+% Use the 4-column form below with Option B; change {4} to {3} for Option A.
+\newcommand{\altrow}[2]{\multicolumn{4}{|l|}{\cellcolor{#1!30}\textbf{#2}} \\ \hline}
+
+% ===== Worked-solution box =====
+\newtcolorbox{ansbox}[1]{
+  colback=#1!8,
+  colbacktitle=#1!30,
+  colframe=#1!70!black,
+  coltitle=black,
+  fonttitle=\normalfont,
+  title=Worked Solution,
+  boxrule=0.6pt,
+  arc=2mm,
+  left=4pt, right=4pt, top=4pt, bottom=4pt,
+  breakable
+}
+
+\newcommand{\topiclabel}[1]{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}
+
+% Per-question head — same command, same four arguments, same rendered
+% line as the question paper. This is the join key between the two files.
+\newcommand{\examq}[4]{\section[#1 - Q#2]{#1 - Q#2 - #3 - #4}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Cambridge O Level Physics 5054/21}}\\[6pt]
+  {\large May/June 2025 -- Mark Scheme \& Model Answers}
+\end{center}
+
+\bigskip
+
+%%%%%%%%%%%%%%%%%%%
+% Must match the QP's \examq for Q1 character for character.
+\examq{5054/21/M/J/25}{1}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics}{9}
+%%%%%%%%%%%%%%%%%%%
+
+\begin{mstab}{q1color}
+% A part worth 2 marks = 2 rows sharing one label. The label sits on the
+% LAST row via \multirow{-2}, and the rows above it start with an empty
+% first cell. \cline{2-3} separates rows inside a group (use \cline{2-4}
+% under the 4-column definition); \hline closes the group.
+ & curve upwards (at start) with decreasing gradient labelled A & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(a)} & horizontal line labelled B & B1 \\ \hline
+% A single-mark part is one row with the label inline. \newline inside a
+% cell separates alternative acceptable answers.
+1(b) & gradient / slope decreases \newline or \newline increase in speed for same time less at later times & B1 \\ \hline
+% Subparts use the (letter)(roman) form, no space: 1(c)(i)
+1(c)(i) & air resistance / drag & B1 \\ \hline
+ & air resistance / upwards force increases (with increased speed) & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(c)(ii)} & air resistance / upwards force equals / balances weight & B1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+% Part headings inside the box are plain text followed by \\[4pt].
+% They are NOT \section or \item — the parser splits on the (a) / (c)(i)
+% prefix at the start of a line.
+(a) Speed--Time Graph\\[4pt]
+Draw a curve that starts at the origin, rises steeply at first and then bends
+over with a steadily decreasing gradient, finally levelling off into a
+horizontal straight line.
+
+\vspace{4pt}
+(b) How the Graph Shows the Acceleration Decreasing\\[4pt]
+The gradient of a speed--time graph equals the acceleration. As time increases
+the curve becomes less steep, so the acceleration decreases.
+
+\vspace{4pt}
+(c)(i) The Other Vertical Force\\[4pt]
+Air resistance (drag).
+
+\vspace{4pt}
+(c)(ii) Why the Resultant Vertical Force Becomes Zero\\[4pt]
+As the skydiver speeds up, the air resistance acting upwards increases until it
+balances her weight, leaving no resultant vertical force.
+\[ R = \sqrt{400^{2} + 100^{2}} = \boxed{410\ \text{N}} \]
+\end{ansbox}
+
+%%%%%%%%%%%%%%%%%%%
+% An MCQ answer: no mark scheme table, just the worked solution.
+% (This is how Physics 5054/11 is written — 40 ansbox, 0 mstab.)
+\examq{5054/11/M/J/25}{2}{Momentum (Dynamics)}{1}
+%%%%%%%%%%%%%%%%%%%
+
+\begin{ansbox}{q2color}
+\textbf{Answer: A}\\[4pt]
+Momentum is mass $\times$ velocity, so its unit is kg\,m\,/\,s.
+\end{ansbox}
+
+\end{document}

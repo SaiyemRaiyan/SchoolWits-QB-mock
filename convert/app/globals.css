@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-fraunces);
+  --font-serif: var(--font-fraunces);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* School Wits palette. Flat colours only, no gradients. */
+  --sw-ink: #0F1E35;
+  --sw-ink-deep: #07111F;
+  --sw-ink-soft: #1A3058;
+  --sw-brass: #C4922A;
+  --sw-brass-light: #E0B04A;
+  --sw-brass-dark: #9A7218;
+  --sw-marker: #C0392B;
+  --sw-teal: #2DD4BF;
+
+  /* shadcn semantics, defined in terms of the palette above. */
+  --background: #F4F7FB;
+  --foreground: #121C2E;
+  --card: #FFFFFF;
+  --card-foreground: #121C2E;
+  --popover: #FFFFFF;
+  --popover-foreground: #121C2E;
+  --primary: var(--sw-brass);
+  --primary-foreground: #FFFFFF;
+  --secondary: #E8EFF8;
+  --secondary-foreground: #121C2E;
+  --muted: #EDF2FA;
+  --muted-foreground: #4E5D72;
+  --accent: #EDF2FA;
+  --accent-foreground: #121C2E;
+  --destructive: var(--sw-marker);
+  --border: #C8D4E4;
+  --input: #C8D4E4;
+  --ring: var(--sw-brass);
+  --chart-1: #2F6FB3;
+  --chart-2: #1D8A5C;
+  --chart-3: #B9762A;
+  --chart-4: #8B4FB0;
+  --chart-5: #C0392B;
+  --radius: 0.75rem;
+  /* No dark theme in this app, so never let the browser pick one. */
+  color-scheme: light;
+
+  /* The filter rail is dark, so it keeps its own token set. */
+  --sidebar: var(--sw-ink);
+  --sidebar-foreground: #D8E2F0;
+  --sidebar-primary: var(--sw-brass);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--sw-ink-soft);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255, 255, 255, 0.10);
+  --sidebar-ring: var(--sw-brass);
+}
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

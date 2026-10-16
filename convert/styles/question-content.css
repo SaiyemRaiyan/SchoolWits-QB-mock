@@ -1,0 +1,244 @@
+/* Styles for the HTML lib/render emits. It produces class names, not Tailwind,
+   so these rules are the only way to reach inside that markup. Flat colours. */
+
+.question-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--foreground);
+  overflow-wrap: break-word;
+}
+
+/* A figure with no uploaded image still renders an <img>; the note below it
+   says so, and a broken-image icon on top of that is just noise. */
+.question-body .qfig img[src=""] {
+  display: none;
+}
+
+/* Display math and wide tables scroll inside the question rather than
+   widening the page. */
+.question-body .katex-display,
+.worked-solution .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.question-body table {
+  max-width: 100%;
+}
+
+.question-body > p:first-child {
+  margin-top: 0;
+  font-weight: 600;
+  color: var(--sw-ink);
+}
+
+.question-body p {
+  margin: 0 0 14px;
+}
+
+.question-body b,
+.question-body strong {
+  color: var(--sw-ink);
+  font-weight: 600;
+}
+
+/* Parts: one bordered block each, accent colour set inline by the renderer. */
+.question-body .qpart {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px 18px 16px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--paccent, var(--sw-ink-soft));
+  border-radius: var(--radius-md);
+}
+
+.question-body .qpart--sub {
+  margin: 10px 0 10px 2px;
+  padding: 12px 14px 12px 12px;
+  border-left-width: 3px;
+  background: var(--muted);
+}
+
+.question-body .pmark {
+  flex-shrink: 0;
+  min-width: 26px;
+  padding-top: 2px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--paccent, var(--sw-brass-dark));
+}
+
+.question-body .qpart > div {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding-right: 52px;
+}
+
+.question-body .qpart--choice > div {
+  padding-right: 0;
+}
+
+/* Marks badge, pinned top right of its part. */
+.question-body .marktag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 38px;
+  padding: 4px 8px 3px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--sw-marker);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--paccent, var(--sw-marker));
+  border-radius: 0 6px 6px 6px;
+}
+
+.question-body .marktag::after {
+  content: "mark";
+  margin-top: 2px;
+  font-size: 6.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Multiple choice: two columns on anything wider than a phone. */
+.question-body .mcq-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px 16px;
+  margin: 16px 0;
+}
+
+@media (min-width: 640px) {
+  .question-body .mcq-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.question-body .qpart--choice {
+  align-items: flex-start;
+  margin: 0;
+  padding: 10px 14px;
+}
+
+.question-body .mcq-note {
+  color: var(--muted-foreground);
+  font-size: 13.5px;
+}
+
+/* Figures. A missing src is normal, so it reads as a note rather than an error. */
+.question-body .qfig {
+  display: block;
+  margin: 14px 0 16px;
+  padding: 16px;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.question-body .qfig img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 4px;
+}
+
+.question-body .qfig figcaption {
+  margin-top: 10px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--muted-foreground);
+}
+
+.question-body .qfig[data-missing="1"] {
+  border-style: dashed;
+  background: var(--muted);
+}
+
+.question-body .imgmissing {
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--sw-marker);
+}
+
+/* Data tables inside a question body. */
+.question-body table.datatable {
+  width: 100%;
+  max-width: 420px;
+  margin: 14px 0;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.question-body table.datatable th {
+  padding: 10px 13px;
+  text-align: left;
+  background: var(--sw-ink);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.question-body table.datatable td {
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.question-body .mathblock {
+  margin: 10px 0 16px;
+  overflow-x: auto;
+}
+
+/* Worked solution segments. */
+.worked-solution .worked-solution-part + .worked-solution-part {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.worked-solution .worked-solution-head {
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sw-ink);
+}
+
+.worked-solution .worked-solution-correct {
+  margin: 0 0 14px;
+  color: var(--sw-brass-dark);
+}
+
+.worked-solution p {
+  margin: 0 0 12px;
+  line-height: 1.75;
+}
+
+/* Guidance from the 4-column papers, shown under the expected answer. */
+.ms-guidance {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--muted-foreground);
+}

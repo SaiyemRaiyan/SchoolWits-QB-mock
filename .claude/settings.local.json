@@ -4,5 +4,8 @@
       "Bash(cd /Users/dev/workspace-890f9c35 && ls -la)",
       "Read(//Users/dev/**)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "supabase"
+  ]
 }

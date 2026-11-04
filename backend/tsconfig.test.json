@@ -4,7 +4,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "rootDir": "."
+    "rootDir": "..",
+    // tests/render/ reaches into the Next app's renderer, which imports its
+    // types through the app's own "@/" alias.
+    "paths": { "@/*": ["../*"] }
   },
   "include": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts", "vitest.config.ts"]
 }

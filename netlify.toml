@@ -1,34 +1,19 @@
 # Netlify build.
 #
-# There is no bundler here on purpose — the pages are plain HTML loading
-# CDN <script> tags. So the "build" is a copy: it exists only to control
-# WHAT gets published.
-#
-# Publishing the repository root would serve all 69 files under backend/,
-# including every migration — that is the full schema, the RLS policies and
-# the admin model, readable by anyone. None of it is secret (real secrets
-# live in backend/.env, which is gitignored and never in the repo), but
-# handing out the exact policy definitions helps nobody but an attacker.
-# templates/ and samples/ are likewise internal.
-#
-# So dist/ is built from an explicit allow-list. A new top-level frontend
-# file must be added here or it will not ship — which is the safe failure
-# direction.
+# `next build` with output: "export" writes plain static files to out/, so
+# there is no serverless runtime to configure and no environment variables
+# to set — the publishable Supabase key is committed in config/supabase.ts
+# and RLS is the real boundary.
 [build]
-  command = "rm -rf dist && mkdir -p dist/pages && cp landing.html dist/ && cp pages/home.html pages/index.html pages/modules.html pages/upload.html dist/pages/ && cp -r assets css js dist/"
-  publish = "dist"
+  command = "npm run build"
+  publish = "out"
 
-# The pages are admin-gated in the UI, but that gate is a convenience: the
-# real boundary is RLS (backend/supabase/migrations/0007+). These headers
-# are defence in depth for the static assets themselves.
+[build.environment]
+  NODE_VERSION = "22"
+
 [[headers]]
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
-
-[[redirects]]
-  from = "/"
-  to = "/landing.html"
-  status = 200

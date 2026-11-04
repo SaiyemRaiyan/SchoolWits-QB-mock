@@ -1,26 +1,28 @@
 # backend/ — Supabase data layer
 
 This folder is the Supabase (Postgres + Storage + Auth) backend for School
-Wits QB, replacing the browser-only IndexedDB store described in the root
-`README.md`. It's a standalone npm + TypeScript project.
+Wits QB. It's a standalone npm + TypeScript project, separate from the Next
+app at the repo root.
 
-**The frontend pages do NOT import anything from this folder.** They're
-plain `<script>`-tag HTML with no build step (a deliberate constraint —
-see `CLAUDE.md` at the repo root), so `backend/src/db.ts` — which needs a
-bundler to run in a browser — couldn't be shared with them directly.
-Instead, `js/supabase/store.js` is a **separate, plain-JS mirror** of the
-same `DB.*` API, loaded via CDN `<script>` tags, that `pages/index.html`/
-`pages/upload.html`/`pages/modules.html` actually use. `backend/src/db.ts` remains the
-Node-oriented version for admin/ops scripts (seeding `admin_users`, bulk
-imports) run from a terminal, not a browser. **Keep both in sync by hand**
-when the schema changes — there's no shared code path between them, that's
-the accepted tradeoff for not introducing a bundler.
+**The app does NOT import anything from this folder**, with one deliberate
+exception noted below. `backend/src/db.ts` is the Node-oriented copy of the
+`DB.*` API, for admin/ops scripts (seeding `admin_users`, bulk imports) run
+from a terminal. The app has its own data layer in `lib/supabase/`, split by
+domain. **Keep the two in sync by hand** when the schema changes — there is
+no shared code path, which is the accepted tradeoff for keeping the app's
+bundle free of Node-oriented code.
 
-That sync burden is now much smaller than it was: `store.js` is **read-only
-for question content**. Questions are written by `scripts/import-paper.ts`
-(and later the Edge Function), never by the browser, so there is no
-`addQuestions` in `store.js` to keep aligned. What the browser still writes
-is videos and modules, which are user actions rather than ingest.
+That sync burden is small: `lib/supabase/` is **read-only for question
+content**. Questions are written by `scripts/import-paper.ts` and by the
+`parse-paper` / `update-question` Edge Functions, never by a plain table
+write from the browser. What the app still writes directly is videos and
+modules, which are user actions rather than ingest.
+
+The exception: `tests/render/renderer.test.ts` imports `lib/render/` from
+the app, because the parser here and the renderer there are two halves of
+one pipeline and only a joint test catches a change on one side breaking the
+other. `lib/render/` has no imports of its own, which is what keeps that
+cheap.
 
 ## The parser rewrite happened
 
@@ -33,18 +35,19 @@ That changed which direction everything flows:
 ```
 .tex  --[ src/latex, Node/Deno only ]-->  JSON
 JSON  --[ scripts/import-paper.ts    ]-->  Postgres (questions.content)
-JSON  --[ js/render/, browser only   ]-->  HTML on the page
+JSON  --[ lib/render/, browser only  ]-->  HTML on the page
 ```
 
 **The parser never runs in a browser and the renderer never runs in Node.**
 That is what keeps them from being two copies of the same thing: `src/latex`
-knows LaTeX and emits only inline formatting tags; `js/render` knows CSS
+knows LaTeX and emits only inline formatting tags; `lib/render` knows CSS
 classes and emits only structure. They meet at the JSON contract in
-`src/latex/types.ts` and nowhere else.
+`src/latex/types.ts`, mirrored for the renderer in `lib/render/types.ts`,
+and nowhere else.
 
 `src/latex/` has **zero dependencies and zero `node:` imports**, which is
 deliberate — it is what lets the same files run unmodified inside a Supabase
-Edge Function (Deno) once the browser upload path is rebuilt against it.
+Edge Function (Deno), which is how the browser upload path reaches them.
 Only `scripts/` and `tests/integration/` touch `node:fs`; keep it that way.
 
 Images work the way the old notes anticipated, just keyed differently:
@@ -109,33 +112,31 @@ backend/
   src/
     latex/                -- the .tex -> JSON parser. NO dependencies, NO node:
                              imports, so it also runs in a Deno Edge Function.
-                             types.ts is the JSON contract js/render/ reads.
+                             types.ts is the JSON contract lib/render/ reads.
     types/database.ts    -- generated; run `npm run gen:types` after any schema change
     client.ts             -- createSupabaseClient() (anon) / createServiceRoleClient() (admin scripts only)
     db.ts                  -- SchoolWitsDB class — the DB.* API surface, typed (Node-only, see above)
   scripts/
     import-paper.ts       -- npm run import: figures -> bucket, parse, write rows
     parse-paper.ts        -- npm run parse: report + JSON, writes nothing
-    preview.ts            -- npm run preview: self-contained HTML of a parsed paper
-  tests/                  -- vitest; latex/ unit specs, render/ drives js/render/,
+  tests/                  -- vitest; latex/ unit specs, render/ drives lib/render/,
                              integration/ parses the six real papers in place
   .env.example
 
-js/supabase/               -- the browser's actual DB layer, NOT inside backend/:
-  config.js                -- window.SUPABASE_URL / SUPABASE_ANON_KEY (safe to ship; RLS is the real boundary)
-  store.js                 -- plain-JS DB.* adapter, loaded by pages/index.html/pages/upload.html/pages/modules.html
-  admin-gate.js            -- shared login-gate widget for pages/upload.html (whole page) and
-                               pages/modules.html (Builder tab only — Storefront stays public)
+../lib/supabase/           -- the app's data layer, NOT inside backend/:
+  client.ts                -- the one supabase-js client
+  mappers.ts               -- snake_case rows -> camelCase records
+  papers/questions/modules/facets/syllabuses/auth/edit/parse-paper.ts
+  index.ts                 -- the single import point: "@/lib/supabase"
 
-js/render/                 -- questions.content (JSON) -> HTML, browser only:
-  escape.js                  shared escaping
-  block-renderer.js          text / figure / table blocks
-  part-renderer.js           the parts+subparts tree
-  options-renderer.js        MCQ options (records which of the four .tex
-                               encodings the source used)
-  mark-scheme-renderer.js    rows -> the shape app.js/modules.js draw
-  solution-renderer.js       worked-solution segments -> worked-solution markup
-  question-renderer.js       the facade the pages actually call
+../config/supabase.ts      -- the URL + publishable key (safe to ship; RLS is
+                              the real boundary), committed so a deploy needs
+                              no environment variables
+
+../lib/render/             -- questions.content (JSON) -> HTML, browser only:
+  types.ts                   the parser contract this half reads
+  escape/blocks/parts/options/mark-scheme/solution.ts
+  index.ts                   the facade the components call
 ```
 
 ## Ingest
@@ -162,9 +163,9 @@ figures -> question-images bucket -> { filename: url }
 Needs `SUPABASE_SERVICE_ROLE_KEY` (it bypasses RLS, which is why this is
 terminal-only and the key must never reach a browser).
 
-Or from the browser, which is what non-technical admins use: `pages/upload.html`
+Or from the browser, which is what non-technical admins use: `/upload`
 signs in, uploads the figures to the bucket, POSTs the `.tex` to
-`parse-paper`, renders the returned JSON with `js/render/`, and only writes
+`parse-paper`, renders the returned JSON with `lib/render/`, and only writes
 when the admin confirms. See `supabase/functions/parse-paper/README.md`.
 
 Both paths run the same parser. The browser one never parses anything

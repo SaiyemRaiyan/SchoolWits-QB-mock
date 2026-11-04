@@ -1,54 +1,64 @@
 # CLAUDE.md
 
 Guidance for working in this repo. See `README.md` first for the product
-description (pages, data model, `.tex` upload format).
+description (routes, the `.tex` format, how to run it).
 
-## Structure
+## Two projects in one repo
 
-- `pages/home.html`, `pages/index.html`, `pages/modules.html`,
-  `pages/upload.html`, and root-level `landing.html` — frontend pages,
-  each with matching logic in `js/` (`app.js`, `modules.js`). Data lives in
-  Supabase Postgres, via `js/supabase/store.js` (a plain-JS `DB.*` adapter
-  loaded by CDN `<script>` tag — no bundler). `upload.html` is fully
-  admin-gated; `modules.html` gates only its Builder tab — the Storefront
-  stays public.
-- `js/render/` — turns a question's stored `content` JSON into HTML. Plain
-  JS classes, one per concern, loaded as `<script>` tags. The pages call
-  `SWRender.QuestionRenderer`'s three methods (`toQuestionHtml`,
-  `toMarkSchemeRows`, `toWorkedSolutionHtml`) and nothing else.
-- **The `.tex` parser is no longer in the browser.** `js/latex.js` has been
-  deleted, along with `js/compose.js`, `js/store.js` and `js/seed-data.js`.
-  Parsing happens in `backend/src/latex/` and runs in Node (the `npm run
-import` CLI) and Deno (the `parse-paper` Edge Function). `js/upload.js`
-  was rewritten against that function: it uploads figures, POSTs the
-  `.tex`, and renders the reply — it never parses anything itself.
-- `templates/` — the canonical `.tex` templates every paper is written
-  against, plus a spec of the format and an audit of where the real papers
-  deviate from it. Read this before touching the parser.
-- `samples/` — older `.tex` templates from the previous parser's dialect.
-- `backend/` — the Supabase (Postgres/Storage/Auth) schema, migrations, and
-  a Node-only TypeScript mirror of the DB API for admin/ops scripts. See
-  `backend/CLAUDE.md` for the schema, RLS model, why `js/supabase/store.js`
-  exists as a separate copy instead of importing from here, and what's
-  deliberately out of scope (pricing/purchases, image bucket wiring,
-  parser changes). Read that file before touching anything under
-  `backend/` or `js/supabase/`.
-- `.mcp.json` — points Claude Code's Supabase MCP server at the live
-  project backing `backend/`.
+- **The app** at the repo root: Next.js App Router, TypeScript, Tailwind v4,
+  shadcn (base-nova preset, so the primitives are **Base UI**, not Radix —
+  `render` props rather than `asChild`, and `Menu.GroupLabel` must sit inside
+  a `Menu.Group`). Builds as `output: "export"`, so **no route may depend on
+  a server at request time**. Data loads client-side.
+- **`backend/`** — its own npm project: Postgres schema and migrations, the
+  `.tex` parser, the Edge Functions, and ops scripts. It has its own
+  `package.json`, `tsconfig`, and test suite. Read `backend/CLAUDE.md` before
+  touching anything in it.
+
+They are excluded from each other's tooling (`tsconfig.json` and
+`eslint.config.mjs` at the root ignore `backend/`), with one deliberate
+exception: `backend/tests/render/` imports `lib/render/` so the parser and
+the renderer are tested against each other.
 
 ## Working conventions
 
 - **Parser and renderer are one pipeline cut in half, not two copies.**
   `backend/src/latex/` knows LaTeX and emits only inline formatting tags;
-  `js/render/` knows CSS classes and emits only structure. Neither does the
-  other's job, and they share no code — they meet at the JSON contract in
-  `backend/src/latex/types.ts`. If you find yourself parsing LaTeX in
-  `js/render/` or hardcoding a CSS class in `backend/src/latex/`, that is
-  the mistake.
-- `backend/src/latex/` must stay **dependency-free with no `node:`
-  imports**, so the same files can run inside a Deno Edge Function. Node
-  built-ins belong in `backend/scripts/` and the integration tests only.
-- Comments in `backend/` explain _why_, not _what_ — this project is being
-  built collaboratively with someone still learning the stack, so lean
-  toward slightly more explanatory comments there than usual, especially
-  around anything that deviates from the obvious/naive approach.
+  `lib/render/` knows CSS classes and emits only structure. They share no
+  code and meet at the JSON contract in `lib/render/types.ts`. Parsing LaTeX
+  in `lib/render/`, or hardcoding a CSS class in `backend/src/latex/`, is the
+  mistake.
+- **`lib/render/` has no imports outside itself.** That is what lets the
+  backend's test suite pull it in without dragging the app along. Keep it
+  that way.
+- **The parser never runs in the browser.** Upload POSTs the `.tex` to the
+  `parse-paper` Edge Function, and committing re-parses server-side rather
+  than posting back the preview JSON, so the database can only ever hold
+  parser output.
+- **Question editing posts `{path, value}` edits, never a content tree.** The
+  `update-question` function returns the leaf list and validates against it,
+  so the client never decides what is editable. See `backend/src/edit/leaves.ts`.
+- **RLS is the security boundary.** Every UI gate (`useAuth().admin`,
+  `AdminGate`) is presentation. Writes carry the signed-in admin's own token,
+  never the anon key.
+- `backend/src/latex/` must stay **dependency-free with no `node:` imports**,
+  so the same files run inside a Deno Edge Function.
+
+## Styling
+
+- School Wits colours live in `app/globals.css` as `--sw-*`, with the shadcn
+  semantic tokens defined in terms of them. Change the token, not the
+  component, when a colour is wrong in several places at once.
+- `styles/question-content.css` styles the HTML `lib/render/` emits. Tailwind
+  cannot reach inside `dangerouslySetInnerHTML`, so that file is the only way
+  to style a question body.
+- `styles/landing.css` is the landing page's own stylesheet, carried over from
+  the static site. It must not style `<body>` or anything outside `.landing-*`:
+  page CSS stays in the document after a client-side navigation and will leak.
+
+## Checks
+
+```bash
+npm run lint && npx tsc --noEmit && npm run build   # the app
+cd backend && npm run typecheck && npm test          # the parser, 196 tests
+```

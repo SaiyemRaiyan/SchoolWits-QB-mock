@@ -1,38 +1,30 @@
 /**
- * Tests for the browser renderer in js/render/.
+ * Tests for the renderer in lib/render/.
  *
- * Those files are plain JS loaded via <script> tags (the frontend has no
- * build step), so they are evaluated here in a vm context with a fake
- * `window` — the same trick the old tests/latex-parser.test.js used. This
- * keeps the renderer under the same `npm test` as the parser despite living
- * outside backend/ and being untyped.
+ * It lives in the Next app rather than in backend/, but it is the other half
+ * of one pipeline: the parser here emits JSON, the renderer there turns it
+ * into HTML. Testing them together is the only way to catch a change on one
+ * side that breaks the other, so the import reaches across.
+ *
+ * The renderer used to be plain <script>-tag JS evaluated in a vm sandbox.
+ * It is TypeScript modules now, so it is imported directly.
  */
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import vm from 'node:vm';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { mergePaper, parseAnswerPaper, parseQuestionPaper } from '../../src/latex/index.js';
 import type { ParsedPaper, Question } from '../../src/latex/types.js';
+import {
+  renderQuestionHtml,
+  renderWorkedSolution,
+  toMarkSchemeRows,
+} from '../../../lib/render/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPO = join(here, '..', '..', '..');
 
-// Load order matters — escape defines helpers the others use, and the
-// facade composes them, so it must come last.
-const FILES = [
-  'escape.js',
-  'block-renderer.js',
-  'part-renderer.js',
-  'options-renderer.js',
-  'mark-scheme-renderer.js',
-  'solution-renderer.js',
-  'question-renderer.js',
-];
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let SWRender: any;
 let physics: ParsedPaper;
 let mcq: ParsedPaper;
 
@@ -45,35 +37,16 @@ function loadPaper(dir: string, qp: string, qa: string): ParsedPaper {
 }
 
 beforeAll(() => {
-  const sandbox: Record<string, unknown> = { window: {} };
-  vm.createContext(sandbox);
-  for (const file of FILES) {
-    vm.runInContext(readFileSync(join(REPO, 'js', 'render', file), 'utf8'), sandbox, {
-      filename: file,
-    });
-  }
-  SWRender = (sandbox.window as any).SWRender;
-
   physics = loadPaper('Physics MJ25 21', 'Physics S25QP21.tex', 'Physics S25QA21.tex');
   mcq = loadPaper('Physics MJ25 11', 'Physics S25QP11.tex', 'Physics S25QA11.tex');
 });
 
 const q1 = () => physics.questions[0];
-const renderer = (opts?: unknown) => new SWRender.QuestionRenderer(opts ?? {});
-
-describe('the renderer loads as the browser would', () => {
-  it('exposes every class on one namespace', () => {
-    for (const name of [
-      'BlockRenderer',
-      'PartRenderer',
-      'OptionsRenderer',
-      'MarkSchemeRenderer',
-      'SolutionRenderer',
-      'QuestionRenderer',
-    ]) {
-      expect(typeof SWRender[name], name).toBe('function');
-    }
-  });
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const renderer = (opts: { showGuidance?: boolean; showAlternatives?: boolean } = {}) => ({
+  toQuestionHtml: (q: any) => renderQuestionHtml(q),
+  toMarkSchemeRows: (q: any) => toMarkSchemeRows(q, opts),
+  toWorkedSolutionHtml: (q: any) => renderWorkedSolution(q),
 });
 
 describe('toQuestionHtml', () => {
@@ -152,14 +125,14 @@ describe('toMarkSchemeRows', () => {
     // split of it, so rendering both printed Y twice.
     const row = renderer()
       .toMarkSchemeRows(q1())
-      .find((r: { part: string }) => r.part === '1(b)');
+      .find((r: { part: string }) => r.part === '1(b)')!;
     expect(row.answer).not.toContain('ms-alternatives');
   });
 
   it('can still show alternatives when a view opts in', () => {
     const row = renderer({ showAlternatives: true })
       .toMarkSchemeRows(q1())
-      .find((r: { part: string }) => r.part === '1(b)');
+      .find((r: { part: string }) => r.part === '1(b)')!;
     expect(row.answer).toContain('ms-alternatives');
   });
 });

@@ -6,8 +6,10 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
-    // Integration tests read the real .tex papers from OUTSIDE backend/ (see
-    // tests/integration/), so the root has to be the repo, not backend/.
-    root: '.',
+    // Pinned, not '.': the Next app at the repo root has its own package.json
+    // now, and Vite would otherwise walk up and resolve the workspace there,
+    // where vitest is not installed. Tests reach outside backend/ via absolute
+    // paths built from import.meta.url, which this does not affect.
+    root: import.meta.dirname,
   },
 });

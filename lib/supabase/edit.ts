@@ -12,10 +12,10 @@
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase";
 
 import { supabase } from "./client";
+import { assertUploadableFigure, BUCKET } from "./storage";
 import { questionRowToRecord, type Question, type QuestionContent } from "./mappers";
 
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/update-question`;
-const BUCKET = "question-images";
 
 export type LeafKind =
   | "text"
@@ -148,9 +148,7 @@ export async function setVideoSource(
 }
 
 export async function uploadQuestionFigure(questionId: number, file: File): Promise<string> {
-  if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) {
-    throw new Error("Choose a PNG, JPG, GIF, or WEBP image.");
-  }
+  assertUploadableFigure(file);
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
   const path = `question-edits/${questionId}/${Date.now()}-${safeName}`;
   const { error } = await supabase.storage

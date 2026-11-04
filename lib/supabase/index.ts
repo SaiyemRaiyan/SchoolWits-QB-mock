@@ -80,3 +80,10 @@ export {
   type Leaf,
   type LeafKind,
 } from "./edit";
+export {
+  assertUploadableFigure,
+  BUCKET,
+  FIGURE_ACCEPT,
+  FIGURE_TYPES,
+  MAX_FIGURE_BYTES,
+} from "./storage";

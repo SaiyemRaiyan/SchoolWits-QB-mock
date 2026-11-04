@@ -8,10 +8,10 @@
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase";
 
 import { supabase } from "./client";
+import { assertUploadableFigure, BUCKET } from "./storage";
 import type { QuestionContent } from "./mappers";
 
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/parse-paper`;
-const BUCKET = "question-images";
 
 export type ParsedPaper = {
   paperId: string;
@@ -87,6 +87,10 @@ export async function uploadFigures(
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
     .toLowerCase();
+
+  // Checked up front: failing on figure 7 of 9 leaves the first six
+  // uploaded and the admin guessing which one the bucket refused.
+  names.forEach((name) => assertUploadableFigure(files[name]));
 
   const urls: Record<string, string> = {};
   for (let i = 0; i < names.length; i++) {

@@ -15,7 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import {
+  assertUploadableFigure,
   deletePaper,
+  FIGURE_ACCEPT,
   getAllPapers,
   invalidateReferenceData,
   parsePaper,
@@ -120,11 +122,20 @@ function UploadWorkspace() {
   function addFigures(files: FileList) {
     const next = { ...figures };
     const urls = { ...figureUrls };
-    for (const file of Array.from(files)) {
-      next[file.name] = file;
-      // Re-dropping a file must re-upload it, not keep the stale URL.
-      delete urls[file.name];
+    try {
+      for (const file of Array.from(files)) {
+        // Rejected here rather than mid-upload, so a bad file never joins
+        // the set and the message names which one it was.
+        assertUploadableFigure(file);
+        next[file.name] = file;
+        // Re-dropping a file must re-upload it, not keep the stale URL.
+        delete urls[file.name];
+      }
+    } catch (err) {
+      setError((err as Error).message);
+      return;
     }
+    setError("");
     setFigures(next);
     setFigureUrls(urls);
     void preview({ qp, qa, figures: next });
@@ -202,7 +213,7 @@ function UploadWorkspace() {
               id="figures"
               title="Drop figure images here"
               hint="matched to \qfig{} by filename"
-              accept="image/*"
+              accept={FIGURE_ACCEPT}
               multiple
               icon={<ImageIcon className="size-5" />}
               onFiles={addFigures}

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRenderedMath } from "@/hooks/use-rendered-math";
-import { uploadQuestionFigure, type Leaf } from "@/lib/supabase";
+import { FIGURE_ACCEPT, uploadQuestionFigure, type Leaf } from "@/lib/supabase";
 
 // Short fields get an input; prose gets a textarea.
 const SHORT_KINDS = new Set(["code", "caption", "heading"]);
@@ -105,7 +105,7 @@ function ImageField({
       <input
         ref={file}
         type="file"
-        accept="image/png,image/jpeg,image/gif,image/webp"
+        accept={FIGURE_ACCEPT}
         className="hidden"
         onChange={async (e) => {
           const chosen = e.target.files?.[0];

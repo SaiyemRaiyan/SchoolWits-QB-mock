@@ -8,6 +8,6 @@
  * parse-paper does.
  */
 
-export { collectLeaves, applyEdits, EditError } from './leaves.js';
-export type { Leaf, Edit, PathSegment } from './leaves.js';
+export { collectLeaves, applyEdits, addFigure, listFigureContainers, EditError } from './leaves.js';
+export type { Leaf, Edit, FigureContainer, PathSegment } from './leaves.js';
 export { flattenQuestion } from '../latex/flatten.js';

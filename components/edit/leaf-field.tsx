@@ -71,7 +71,22 @@ function ImageField({
   const [error, setError] = useState("");
 
   return (
-    <div className="grid gap-1.5">
+    <div className="grid gap-2">
+      {value ? (
+        // A plain <img>: this is an admin preview in a dialog, not content,
+        // so next/image's loader and sizing rules buy nothing here.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={value}
+          alt=""
+          className="max-h-40 w-auto rounded-md border bg-muted object-contain p-1"
+        />
+      ) : (
+        <p className="rounded-md border border-dashed px-3 py-6 text-center text-xs text-muted-foreground">
+          No image yet. Upload one, or paste an https:// URL.
+        </p>
+      )}
+
       <div className="flex min-w-0 gap-2">
         <Input
           id={id}
@@ -83,7 +98,7 @@ function ImageField({
         <Button variant="outline" disabled={busy} onClick={() => file.current?.click()}>
           {busy ? "Uploading…" : "Choose image"}
         </Button>
-        <Button variant="ghost" onClick={() => onChange("")}>
+        <Button variant="ghost" disabled={!value} onClick={() => onChange("")}>
           Clear
         </Button>
       </div>

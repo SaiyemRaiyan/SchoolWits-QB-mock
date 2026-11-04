@@ -37,11 +37,15 @@ export type Leaf = {
   value: string;
 };
 
+/** A place a figure may be added, as the server derived it. */
+export type FigureContainer = { path: (string | number)[]; label: string };
+
 export type EditResponse = {
   id: number;
   ref: string | null;
   moduleId?: number;
   leaves: Leaf[];
+  figureContainers?: FigureContainer[];
   content?: QuestionContent;
   applied?: number;
   saved?: boolean;
@@ -87,6 +91,23 @@ export function saveQuestionEdits(
   moduleId?: number | null,
 ) {
   return callEditFunction(moduleId != null ? { id, edits, moduleId } : { id, edits });
+}
+
+/**
+ * Append an empty figure, then edit its image like any other leaf.
+ *
+ * The container must be one the server offered in `figureContainers`: this
+ * is the only call that adds to the content tree, and it still does not
+ * carry the block, only where it goes.
+ */
+export function addQuestionFigure(
+  id: number,
+  container: (string | number)[],
+  moduleId?: number | null,
+) {
+  const body: Record<string, unknown> = { id, addFigure: { container } };
+  if (moduleId != null) body.moduleId = moduleId;
+  return callEditFunction(body);
 }
 
 /** Drop a module's edited copy, so it renders the paper's version again. */

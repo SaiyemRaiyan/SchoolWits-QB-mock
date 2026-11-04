@@ -26,7 +26,10 @@ function renderFigure(block: Extract<ContentBlock, { type: "figure" }>): string 
 
   let out = `<figure class="qfig"${missing}>`;
   out += `<img src="${escapeAttr(src)}" alt="${escapeAttr(caption || file)}">`;
-  if (!src) out += `<div class="imgmissing">${MISSING_IMAGE_LABEL}: ${escapeHTML(file)}</div>`;
+  if (!src) {
+    const note = file ? `${MISSING_IMAGE_LABEL}: ${escapeHTML(file)}` : MISSING_IMAGE_LABEL;
+    out += `<div class="imgmissing">${note}</div>`;
+  }
   if (caption) out += `<figcaption>${caption}</figcaption>`;
   return `${out}</figure>`;
 }

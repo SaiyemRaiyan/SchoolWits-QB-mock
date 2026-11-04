@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applyEdits, collectLeaves, EditError } from '../../src/edit/leaves.js';
+import {
+  addFigure,
+  applyEdits,
+  collectLeaves,
+  EditError,
+  listFigureContainers,
+} from '../../src/edit/leaves.js';
 
 /** A miniature of the real shape: stem, a part with a subpart, and answers. */
 function question() {
@@ -274,5 +280,52 @@ describe('applyEdits on a module copy', () => {
     expect(() => applyEdits(override, [{ path: ['parts', 5, 'content', 0, 'html'], value: 'x' }]))
       .toThrow(EditError);
     expect(() => applyEdits(override, [{ path: ['marks'], value: '99' }])).toThrow(EditError);
+  });
+});
+
+describe('listFigureContainers', () => {
+  it('offers the stem and every part that holds blocks', () => {
+    const labels = listFigureContainers(question()).map((c) => c.label);
+    expect(labels).toContain('Stem');
+    expect(labels).toContain('1(a)');
+    expect(labels).toContain('1(a)(i)');
+  });
+
+  it('offers nothing for a question with no block containers', () => {
+    expect(listFigureContainers({ kind: 'mcq' })).toEqual([]);
+  });
+});
+
+describe('addFigure', () => {
+  it('appends an empty figure the parser would recognise', () => {
+    const { content, index } = addFigure(question(), ['stem']);
+    const stem = (content as any).stem;
+    expect(index).toBe(stem.length - 1);
+    expect(stem[index]).toEqual({ type: 'figure', file: '', caption: '', src: null });
+  });
+
+  it('makes the new figure editable, image and caption both', () => {
+    const { content } = addFigure(question(), ['parts', 0, 'content']);
+    const labels = collectLeaves(content).map((l) => l.label);
+    expect(labels).toContain('1(a) · figure image');
+    expect(labels).toContain('1(a) · figure caption');
+  });
+
+  it('leaves the original untouched', () => {
+    const original = question();
+    addFigure(original, ['stem']);
+    expect(original.stem).toHaveLength(3);
+  });
+
+  it('refuses a container the document does not offer', () => {
+    expect(() => addFigure(question(), ['answer', 'markScheme'])).toThrow(EditError);
+    expect(() => addFigure(question(), ['parts', 9, 'content'])).toThrow(EditError);
+    expect(() => addFigure(question(), 'stem' as unknown)).toThrow(EditError);
+  });
+
+  it('refuses to grow a container without limit', () => {
+    const q = question();
+    q.stem = Array.from({ length: 50 }, () => ({ type: 'text', html: 'x' })) as never;
+    expect(() => addFigure(q, ['stem'])).toThrow(EditError);
   });
 });

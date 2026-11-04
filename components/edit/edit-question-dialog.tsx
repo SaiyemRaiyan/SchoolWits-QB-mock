@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  addQuestionFigure,
   getQuestionLeaves,
   resetQuestionOverride,
   saveQuestionEdits,
@@ -32,6 +33,7 @@ import {
   type QuestionContent,
 } from "@/lib/supabase";
 
+import { AddFigure } from "./add-figure";
 import { LeafField } from "./leaf-field";
 import { VideoSection } from "./video-section";
 
@@ -109,6 +111,23 @@ function EditForm({
     }
   }
 
+  async function add(container: (string | number)[]) {
+    setBusy(true);
+    setStatus("Adding a figure…");
+    setError("");
+    try {
+      const res = await addQuestionFigure(question.pk, container, moduleId);
+      apply(res);
+      setStatus("Figure added. Upload an image into it below.");
+      if (res.content) onSaved?.(res.content, { edited: res.edited === true });
+    } catch (err) {
+      setStatus("");
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function reset() {
     setBusy(true);
     setStatus("Resetting…");
@@ -169,6 +188,14 @@ function EditForm({
             ))}
           </section>
         ))}
+
+        {loaded && (
+          <AddFigure
+            containers={loaded.figureContainers ?? []}
+            busy={busy}
+            onAdd={(container) => void add(container)}
+          />
+        )}
 
         {loaded && (
           <VideoSection

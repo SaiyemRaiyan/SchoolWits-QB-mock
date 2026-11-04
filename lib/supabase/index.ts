@@ -68,6 +68,7 @@ export {
   type ParseWarning,
 } from "./parse-paper";
 export {
+  addQuestionFigure,
   extractYouTubeId,
   getQuestionLeaves,
   resetQuestionOverride,
@@ -75,6 +76,7 @@ export {
   setVideoSource,
   uploadQuestionFigure,
   type EditResponse,
+  type FigureContainer,
   type Leaf,
   type LeafKind,
 } from "./edit";

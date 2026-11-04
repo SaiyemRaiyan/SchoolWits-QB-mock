@@ -147,3 +147,21 @@ npm run deploy:edit-function     # bundles src/edit/ then deploys
 ```
 
 `vendor/edit.js` is generated — edit `src/edit/`, never that file.
+
+## Adding a figure
+
+```
+{ id, addFigure: { container } }
+{ id, moduleId, addFigure: { container } }
+```
+
+`container` must be one of the paths `listFigureContainers()` derived from
+the stored content, which the other request forms return as
+`figureContainers`. This is the only request that adds to the content tree,
+and it still does not carry the block: the server appends a fixed
+`{ type: 'figure', file: '', caption: '', src: null }`, and the image and
+caption are then ordinary leaves, edited like any other field.
+
+The rule the rest of this endpoint keeps is therefore intact — a client
+never posts a content tree, and cannot create structure by inventing a
+path. It names a place the document already offers.

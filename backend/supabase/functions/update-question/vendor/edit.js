@@ -1,3 +1,5 @@
+/* GENERATED - do not edit. Bundled from backend/src/edit/ by npm run build:edit-function. */
+
 // src/edit/leaves.ts
 var BLOCK_KEYS = { text: "html", figure: "caption" };
 function isPlainObject(v) {
@@ -113,6 +115,39 @@ function collectLeaves(content) {
   }
   return out;
 }
+function listFigureContainers(content) {
+  const out = [];
+  if (!isPlainObject(content)) return out;
+  if (Array.isArray(content.stem)) out.push({ path: ["stem"], label: "Stem" });
+  const walk = (parts, basePath) => {
+    if (!Array.isArray(parts)) return;
+    parts.forEach((part, i) => {
+      if (!isPlainObject(part)) return;
+      const ref = typeof part.ref === "string" && part.ref ? part.ref : `part ${i + 1}`;
+      if (Array.isArray(part.content)) {
+        out.push({ path: [...basePath, i, "content"], label: ref });
+      }
+      walk(part.subparts, [...basePath, i, "subparts"]);
+    });
+  };
+  walk(content.parts, ["parts"]);
+  return out;
+}
+function addFigure(content, containerPath) {
+  if (!Array.isArray(containerPath)) throw new EditError("addFigure needs a container path.");
+  const key = containerPath.join(" ");
+  const allowed = listFigureContainers(content).find((c) => c.path.join(" ") === key);
+  if (!allowed) {
+    throw new EditError(`Not a place a figure can be added: ${JSON.stringify(containerPath)}`);
+  }
+  const next = structuredClone(content);
+  let cursor = next;
+  for (const segment of allowed.path) cursor = cursor[segment];
+  if (!Array.isArray(cursor)) throw new EditError("That container is not a block list.");
+  if (cursor.length >= 50) throw new EditError("That container already holds 50 blocks.");
+  cursor.push({ type: "figure", file: "", caption: "", src: null });
+  return { content: next, path: allowed.path, index: cursor.length - 1 };
+}
 var EditError = class extends Error {
 };
 var MAX_VALUE_LENGTH = 2e4;
@@ -181,7 +216,9 @@ function flattenQuestion(q) {
 }
 export {
   EditError,
+  addFigure,
   applyEdits,
   collectLeaves,
-  flattenQuestion
+  flattenQuestion,
+  listFigureContainers
 };

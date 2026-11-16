@@ -16,7 +16,8 @@ import { parseMarks, parsePaperId, splitQuestions, splitTopics } from './blocks.
 import { parseStructure } from './structure.js';
 import { parseOptions } from './options.js';
 import { findSourcePdf } from './clip.js';
-import { detectGarbledText, detectLayoutDialect } from './guard.js';
+import { detectGarbledText, isLayoutDialect, positionedMaths, unreadableMaths } from './guard.js';
+import { parseLayoutQuestion } from './layout.js';
 import { extractMarkScheme } from './markscheme.js';
 import { extractCorrectOption, extractSolution } from './solutions.js';
 import type { ImageMap, Options, ParsedPaper, Question, Warning } from './types.js';
@@ -84,8 +85,21 @@ export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPa
 
   // First pass: structure only. Classification needs to see the whole paper
   // before it can tell a figure-only MCQ from a 1-mark diagram question.
+  // Papers written as a copy of the official page need their own reader.
+  const layout = isLayoutDialect(body);
+  const positioned: number[] = [];
+  const unreadable: number[] = [];
+  const unknown = new Set<string>();
+
   const drafts = blocks.map((block) => {
     const marks = parseMarks(block.marksRaw);
+    if (layout) {
+      const q = parseLayoutQuestion(block.body, block.number, images);
+      if (q.unreadable) unreadable.push(block.number);
+      else if (q.positioned) positioned.push(block.number);
+      q.unknown.forEach((name) => unknown.add(name));
+      return { block, marks, stem: q.stem, parts: q.parts, options: q.parts.length === 0 ? q.options : null };
+    }
     const { stem, parts } = parseStructure(block.body, block.number, images);
     return {
       block,
@@ -140,7 +154,12 @@ export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPa
 
   // Last, so a file in another format is named as such rather than being
   // mistaken for a paper with a few odd questions.
-  for (const problem of [detectLayoutDialect(body), detectGarbledText(questions)]) {
+  const problems = [
+    positionedMaths(positioned),
+    detectGarbledText(questions),
+    unreadableMaths(unreadable, [...unknown]),
+  ];
+  for (const problem of problems) {
     if (problem) warnings.unshift(problem);
   }
 

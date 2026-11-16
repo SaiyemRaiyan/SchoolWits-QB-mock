@@ -25,10 +25,22 @@ A car of mass 900\,kg accelerates at $2.5\,\mathrm{m/s^2}$. \qfig[0.4\linewidth]
 \end{document}`;
 
 describe('the garbage guard', () => {
-  it('blocks a file written in the page-layout dialect', () => {
-    const { warnings } = parseQuestionPaper(LAYOUT);
-    expect(warnings[0].code).toBe('unsupported-layout');
-    expect(warnings.some(isBlocking)).toBe(true);
+  it('blocks a layout file whose maths is drawn from symbol images', () => {
+    const tex = String.raw`\begin{document}
+\examq{4037/12/M/J/16}{1}{Sets}{2}
+\row{26.0}{94.97}{Use set notation to complete the two statements below.}
+\freerow{26.01}{%
+  \at{94.97}{0.00}{{\itshape Y} ............... {\itshape X}}%
+  \at{265.39}{-0.46}{\swglyph{3}{265.39bp 637.96bp 321.88bp 195.69bp}}%
+  \at{532.26}{0.00}{\swmark{[2]}}}
+\row{26.0}{94.97}{More text.}
+\row{26.0}{94.97}{More text.}
+\row{26.0}{94.97}{More text.}
+\end{document}`;
+    const { warnings } = parseQuestionPaper(tex);
+    const blocking = warnings.filter(isBlocking);
+    expect(blocking.map((w) => w.code)).toEqual(['unsupported-layout']);
+    expect(blocking[0].message).toContain('Q1');
   });
 
   it('blocks text with leaked TeX lengths even without the known commands', () => {

@@ -21,16 +21,38 @@ const LAYOUT_COMMAND = /\\(?:mcq|stem|choice|optrow|freerow|row|dotline|dotgrid|
 // A handful could be coincidence; a layout file has hundreds.
 const LAYOUT_THRESHOLD = 5;
 
-/** Flags a file written in the page-layout dialect rather than the documented one. */
-export function detectLayoutDialect(body: string): Warning | null {
-  const hits = body.match(LAYOUT_COMMAND)?.length ?? 0;
-  if (hits < LAYOUT_THRESHOLD) return null;
+/** Is this file written in the page-layout dialect? See layout.ts. */
+export function isLayoutDialect(body: string): boolean {
+  return (body.match(LAYOUT_COMMAND)?.length ?? 0) >= LAYOUT_THRESHOLD;
+}
+
+const list = (numbers: number[]) =>
+  numbers.slice(0, 10).map((n) => `Q${n}`).join(', ') + (numbers.length > 10 ? ', …' : '');
+
+/** Layout questions whose maths is drawn from images or paths: not readable. */
+export function unreadableMaths(numbers: number[], unknown: string[]): Warning | null {
+  if (numbers.length === 0 && unknown.length === 0) return null;
+  const why = [
+    numbers.length
+      ? `${numbers.length} question${numbers.length === 1 ? '' : 's'} (${list(numbers)}) contain ` +
+        'maths drawn from symbol images or paths, which cannot be read as an equation'
+      : '',
+    unknown.length ? `commands the parser does not know (${unknown.slice(0, 8).map((c) => `\\${c}`).join(', ')})` : '',
+  ].filter(Boolean);
   return {
     code: 'unsupported-layout',
+    message: `This paper cannot be saved: ${why.join('; and ')}.`,
+  };
+}
+
+/** Layout questions rebuilt from positioned pieces: readable, but check them. */
+export function positionedMaths(numbers: number[]): Warning | null {
+  if (numbers.length === 0) return null;
+  return {
+    code: 'positioned-maths',
     message:
-      `This file positions its text on the page (${hits} commands such as \\mcq, \\row, \\at) ` +
-      'instead of using the documented question format, so the text cannot be read reliably. ' +
-      'It cannot be saved. See templates/README.md for the format the site accepts.',
+      `${list(numbers)}: a line was rebuilt from pieces placed on the page (fractions, options in a row). ` +
+      'Check these against the paper before saving.',
   };
 }
 

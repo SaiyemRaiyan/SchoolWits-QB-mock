@@ -166,7 +166,9 @@ export type WarningCode =
   | 'topic-mismatch'
   /** Blocking: the file is in another format and must not be saved. */
   | 'unsupported-layout'
-  | 'garbled-text';
+  | 'garbled-text'
+  /** Not blocking: a layout line was rebuilt by position and wants a look. */
+  | 'positioned-maths';
 
 export interface Warning {
   code: WarningCode;

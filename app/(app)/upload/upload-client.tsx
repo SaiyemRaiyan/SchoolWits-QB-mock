@@ -331,7 +331,7 @@ function UploadWorkspace() {
             <PaperMeta paper={result?.paper ?? null} subject={subject} onSubject={setSubject} />
           </Step>
 
-          {result && <WarningsList warnings={result.warnings} />}
+          {result && <WarningsList warnings={result.warnings} blocked={result.blocked} />}
 
           {result && (
             <Step number={3} title="Save to the bank">
@@ -340,7 +340,7 @@ function UploadWorkspace() {
                 {qa ? "" : " · no answers file yet"}
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={() => void save()} disabled={Boolean(status) || needsPdf}>
+                <Button onClick={() => void save()} disabled={Boolean(status) || needsPdf || Boolean(result.blocked)}>
                   {status === "Saving…" ? "Saving…" : "Save to bank"}
                 </Button>
                 {saved && (

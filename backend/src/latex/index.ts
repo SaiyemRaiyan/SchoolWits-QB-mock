@@ -16,6 +16,7 @@ import { parseMarks, parsePaperId, splitQuestions, splitTopics } from './blocks.
 import { parseStructure } from './structure.js';
 import { parseOptions } from './options.js';
 import { findSourcePdf } from './clip.js';
+import { detectGarbledText, detectLayoutDialect } from './guard.js';
 import { extractMarkScheme } from './markscheme.js';
 import { extractCorrectOption, extractSolution } from './solutions.js';
 import type { ImageMap, Options, ParsedPaper, Question, Warning } from './types.js';
@@ -30,6 +31,7 @@ export { inlineToHtml } from './inline.js';
 export { toBlocks, resolveImage } from './content.js';
 export { clipKey, findSourcePdf, parseClipOptions } from './clip.js';
 export type { FigureClip } from './clip.js';
+export { isBlocking } from './guard.js';
 export { flattenQuestion } from './flatten.js';
 
 /**
@@ -135,6 +137,12 @@ export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPa
       answer: null,
     };
   });
+
+  // Last, so a file in another format is named as such rather than being
+  // mistaken for a paper with a few odd questions.
+  for (const problem of [detectLayoutDialect(body), detectGarbledText(questions)]) {
+    if (problem) warnings.unshift(problem);
+  }
 
   const sourcePdf = findSourcePdf(tex);
   return { paper, questions, warnings, ...(sourcePdf ? { sourcePdf } : null) };

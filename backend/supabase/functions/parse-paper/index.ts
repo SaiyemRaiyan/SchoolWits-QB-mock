@@ -31,6 +31,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   flattenQuestion,
+  isBlocking,
   mergePaper,
   parseAnswerPaper,
   parseQuestionPaper,
@@ -114,7 +115,23 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  if (!commit) return json({ ...parsed, committed: false });
+  // A file in a format the parser does not understand still "parses": the
+  // unknown commands vanish and their measurements are left as text. Saving
+  // that is how a garbled paper once reached the live site, so it is refused
+  // here, on the server, not just greyed out in the browser.
+  const blocked = parsed.warnings.some(isBlocking);
+
+  if (!commit) return json({ ...parsed, blocked, committed: false });
+
+  if (blocked) {
+    return json(
+      {
+        error: parsed.warnings.filter(isBlocking).map((w) => w.message).join(' '),
+        warnings: parsed.warnings,
+      },
+      422,
+    );
+  }
 
   // ---- commit -------------------------------------------------------------
   // Writes go through the caller's own client, so the admin-only RLS policies

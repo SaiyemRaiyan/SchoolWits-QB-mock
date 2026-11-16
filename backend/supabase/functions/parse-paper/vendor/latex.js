@@ -748,6 +748,44 @@ function parseOptions(body) {
   return null;
 }
 
+// src/latex/guard.ts
+var BLOCKING = ["unsupported-layout", "garbled-text"];
+function isBlocking(warning) {
+  return BLOCKING.includes(warning.code);
+}
+var LAYOUT_COMMAND = /\\(?:mcq|stem|choice|optrow|freerow|row|dotline|dotgrid|at|lab)\s*\{/g;
+var LAYOUT_THRESHOLD = 5;
+function detectLayoutDialect(body) {
+  const hits = body.match(LAYOUT_COMMAND)?.length ?? 0;
+  if (hits < LAYOUT_THRESHOLD) return null;
+  return {
+    code: "unsupported-layout",
+    message: `This file positions its text on the page (${hits} commands such as \\mcq, \\row, \\at) instead of using the documented question format, so the text cannot be read reliably. It cannot be saved. See templates/README.md for the format the site accepts.`
+  };
+}
+function visibleText(html) {
+  return html.replace(/\$\$[\s\S]*?\$\$|\$[^$]*\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]/g, " ").replace(/<[^>]+>/g, " ");
+}
+var LEAKED_LENGTH = /\d(?:\.\d+)?bp\b/;
+function blocksText(blocks) {
+  return blocks.map((b) => b.type === "figure" ? b.caption : b.html).join(" ");
+}
+function partsText(parts) {
+  return parts.map((p) => `${blocksText(p.content)} ${partsText(p.subparts)}`).join(" ");
+}
+function detectGarbledText(questions) {
+  const bad = questions.filter((q) => {
+    const options = q.options?.items.map((o) => o.content).join(" ") ?? "";
+    return LEAKED_LENGTH.test(visibleText(`${blocksText(q.stem)} ${partsText(q.parts)} ${options}`));
+  }).map((q) => q.number);
+  if (bad.length === 0) return null;
+  const shown = bad.slice(0, 8).map((n) => `Q${n}`).join(", ");
+  return {
+    code: "garbled-text",
+    message: `${bad.length} question${bad.length === 1 ? "" : "s"} (${shown}${bad.length > 8 ? ", \u2026" : ""}) contain layout measurements such as "4.91bp" where text should be. The file is not in a format the parser understands, so it cannot be saved.`
+  };
+}
+
 // src/latex/markscheme.ts
 function stripRowDecoration(row) {
   return row.replace(/\\hline/g, "").replace(/\\cline\{[^}]*\}/g, "").replace(/\\rowcolor\{[^}]*\}/g, "").replace(/\\arrayrulecolor\{[^}]*\}/g, "").trim();
@@ -990,6 +1028,9 @@ function parseQuestionPaper(tex, images = {}) {
       answer: null
     };
   });
+  for (const problem of [detectLayoutDialect(body), detectGarbledText(questions)]) {
+    if (problem) warnings.unshift(problem);
+  }
   const sourcePdf = findSourcePdf(tex);
   return { paper, questions, warnings, ...sourcePdf ? { sourcePdf } : null };
 }
@@ -1056,6 +1097,7 @@ export {
   findSourcePdf,
   flattenQuestion,
   inlineToHtml,
+  isBlocking,
   mergePaper,
   parseAnsbox,
   parseAnswerPaper,

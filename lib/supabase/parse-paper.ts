@@ -34,6 +34,8 @@ export type ParseResult = {
   paper: ParsedPaper | null;
   questions: ParsedQuestion[];
   warnings: ParseWarning[];
+  /** The server will refuse to save this parse; the warnings say why. */
+  blocked?: boolean;
   /** The PDF the figures are clipped from, when the .tex names one. */
   sourcePdf?: string;
   questionCount?: number;

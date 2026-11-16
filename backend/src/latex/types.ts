@@ -163,7 +163,10 @@ export type WarningCode =
   | 'unmatched-question'
   | 'missing-image'
   | 'mcq-options-unparseable'
-  | 'topic-mismatch';
+  | 'topic-mismatch'
+  /** Blocking: the file is in another format and must not be saved. */
+  | 'unsupported-layout'
+  | 'garbled-text';
 
 export interface Warning {
   code: WarningCode;

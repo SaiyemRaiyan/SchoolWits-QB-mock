@@ -2,18 +2,21 @@ import { AlertTriangle } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import type { ParseWarning } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 
 /** Warnings are shown, never suppressed: a marks mismatch is far cheaper to
     fix before saving than after. */
-export function WarningsList({ warnings }: { warnings: ParseWarning[] }) {
+export function WarningsList({ warnings, blocked }: { warnings: ParseWarning[]; blocked?: boolean }) {
   if (!warnings.length) return null;
 
   return (
-    <Card className="gap-0 border-primary/40 py-0">
+    <Card className={cn("gap-0 py-0", blocked ? "border-destructive" : "border-primary/40")}>
       <CardContent className="grid gap-2 p-5">
         <h2 className="flex items-center gap-2 font-serif text-lg font-semibold">
-          <AlertTriangle className="size-4 text-primary" />
-          {warnings.length} thing{warnings.length === 1 ? "" : "s"} to check
+          <AlertTriangle className={cn("size-4", blocked ? "text-destructive" : "text-primary")} />
+          {blocked
+            ? "This file cannot be saved"
+            : `${warnings.length} thing${warnings.length === 1 ? "" : "s"} to check`}
         </h2>
         <ul className="grid gap-1.5 text-sm">
           {warnings.map((w, i) => (

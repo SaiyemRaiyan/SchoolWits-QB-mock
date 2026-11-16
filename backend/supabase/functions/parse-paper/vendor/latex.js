@@ -445,6 +445,53 @@ function inlineToHtml(src) {
   return restoreMath(out, slots);
 }
 
+// src/latex/clip.ts
+var TO_BP = {
+  bp: 1,
+  pt: 72 / 72.27,
+  in: 72,
+  mm: 72 / 25.4,
+  cm: 72 / 2.54
+};
+function toBp(raw) {
+  const m = /^(-?\d*\.?\d+)\s*([a-z]{2})?$/.exec(raw.trim());
+  if (!m) return null;
+  const factor = m[2] ? TO_BP[m[2]] : 1;
+  if (factor === void 0) return null;
+  return Number(m[1]) * factor;
+}
+function parseClipOptions(optional) {
+  if (!optional) return null;
+  let page = null;
+  let trim = null;
+  for (const piece of optional.split(",")) {
+    const eq = piece.indexOf("=");
+    if (eq === -1) continue;
+    const key = piece.slice(0, eq).trim();
+    const value = piece.slice(eq + 1).trim().replace(/^\{|\}$/g, "");
+    if (key === "page") {
+      const n = Number(value);
+      if (Number.isInteger(n) && n >= 1) page = n;
+    } else if (key === "trim") {
+      const dims = value.split(/\s+/).filter(Boolean).map(toBp);
+      if (dims.length === 4 && dims.every((d) => d !== null)) trim = dims;
+    }
+  }
+  if (page === null && trim === null) return null;
+  const [left, bottom, right, top] = trim ?? [0, 0, 0, 0];
+  return { page: page ?? 1, left, bottom, right, top };
+}
+function clipKey(clip) {
+  const n = (v) => v.toFixed(2).replace(".", "_");
+  return `p${clip.page}-${n(clip.left)}-${n(clip.bottom)}-${n(clip.right)}-${n(clip.top)}.png`;
+}
+function findSourcePdf(tex) {
+  const named = /\\(?:re)?newcommand\{?\\srcpdf\}?\{([^}]+)\}/.exec(tex);
+  if (named) return named[1].trim();
+  const used = /\\(?:includegraphics|qfig)\s*(?:\[[^\]]*\])?\s*\{([^}]+\.pdf)\}/i.exec(tex);
+  return used ? used[1].trim() : null;
+}
+
 // src/latex/content.ts
 function resolveImage(file, images) {
   const want = file.trim().toLowerCase();
@@ -473,34 +520,32 @@ function tabularToHtml(body) {
 function paragraphs(raw) {
   return raw.split(/\n\s*\n/).map((p) => inlineToHtml(p)).filter((html) => html.length > 0).map((html) => ({ type: "text", html }));
 }
+function figureBlock(arg, optional, caption, images) {
+  const clip = parseClipOptions(optional);
+  const file = clip ? clipKey(clip) : arg.trim();
+  return {
+    type: "figure",
+    file,
+    src: resolveImage(file, images),
+    caption,
+    width: clip ? null : optional,
+    ...clip ? { clip } : null
+  };
+}
 function toBlocks(raw, images = {}) {
   const spans = [];
   for (const call of findCommand(raw, "qfig", 2, true)) {
-    const file = call.args[0].trim();
     spans.push({
       start: call.start,
       end: call.end,
-      block: {
-        type: "figure",
-        file,
-        src: resolveImage(file, images),
-        caption: inlineToHtml(call.args[1] ?? ""),
-        width: call.optional
-      }
+      block: figureBlock(call.args[0], call.optional, inlineToHtml(call.args[1] ?? ""), images)
     });
   }
   for (const call of findCommand(raw, "includegraphics", 1, true)) {
-    const file = call.args[0].trim();
     spans.push({
       start: call.start,
       end: call.end,
-      block: {
-        type: "figure",
-        file,
-        src: resolveImage(file, images),
-        caption: "",
-        width: call.optional
-      }
+      block: figureBlock(call.args[0], call.optional, "", images)
     });
   }
   for (const env of findEnvironments(raw, "tabular")) {
@@ -945,7 +990,8 @@ function parseQuestionPaper(tex, images = {}) {
       answer: null
     };
   });
-  return { paper, questions, warnings };
+  const sourcePdf = findSourcePdf(tex);
+  return { paper, questions, warnings, ...sourcePdf ? { sourcePdf } : null };
 }
 function parseAnswerPaper(tex, images = {}) {
   const { preamble, body } = splitDocument(tex);
@@ -995,17 +1041,25 @@ function mergePaper(qp, qa) {
       });
     }
   }
-  return { paper: qp.paper ?? qa.paper, questions, warnings };
+  return {
+    paper: qp.paper ?? qa.paper,
+    questions,
+    warnings,
+    ...qp.sourcePdf ? { sourcePdf: qp.sourcePdf } : null
+  };
 }
 export {
+  clipKey,
   extractAnswerSpace,
   extractMarkScheme,
   extractSolution,
+  findSourcePdf,
   flattenQuestion,
   inlineToHtml,
   mergePaper,
   parseAnsbox,
   parseAnswerPaper,
+  parseClipOptions,
   parseCorrectOption,
   parseLabelCell,
   parseMstab,

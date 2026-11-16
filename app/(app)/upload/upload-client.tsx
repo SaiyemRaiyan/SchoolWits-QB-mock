@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, FileText, ImageIcon } from "lucide-react";
+import { CheckCircle2, FileText, FileType, ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -14,6 +14,8 @@ import { WarningsList } from "@/components/upload/warnings-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { closePdf, cropToFile, openPdf } from "@/lib/pdf/clip";
+import { collectFigureClips } from "@/lib/pdf/collect-clips";
 import {
   assertUploadableFigure,
   deletePaper,
@@ -36,6 +38,15 @@ const SUBJECT_BY_CODE: Record<string, string> = {
 
 type TexFile = { name: string; text: string };
 
+type PreviewInput = {
+  qp: TexFile | null;
+  qa: TexFile | null;
+  figures: Record<string, File>;
+  pdf: File | null;
+  /** Overrides the uploaded-URL map, for when a new PDF makes old crops stale. */
+  urls?: Record<string, string>;
+};
+
 export function UploadClient() {
   const { admin, loading } = useAuth();
   if (loading) return <Shell>Checking your account…</Shell>;
@@ -54,6 +65,7 @@ function UploadWorkspace() {
   const [qa, setQa] = useState<TexFile | null>(null);
   const [figures, setFigures] = useState<Record<string, File>>({});
   const [figureUrls, setFigureUrls] = useState<Record<string, string>>({});
+  const [sourcePdf, setSourcePdf] = useState<File | null>(null);
   const [subject, setSubject] = useState("");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [status, setStatus] = useState("");
@@ -69,25 +81,42 @@ function UploadWorkspace() {
   /**
    * Parse, then upload any pending figures and parse again. Figures need the
    * paper id for their storage prefix, and that only exists once the \examq
-   * header has been read, so the first pass is what produces it.
+   * header has been read, so the first pass is what produces it. It is also
+   * what reports which rectangles to cut out of the source PDF.
    */
   const preview = useCallback(
-    async (next: { qp: TexFile | null; qa: TexFile | null; figures: Record<string, File> }) => {
+    async (next: PreviewInput) => {
       if (!next.qp) return;
       setStatus("Parsing…");
       setError("");
       setSaved(null);
 
       try {
-        let urls = figureUrls;
+        let urls = next.urls ?? figureUrls;
         let parsed = await parsePaper({ qpTex: next.qp.text, qaTex: next.qa?.text, images: urls });
 
-        const pending = Object.keys(next.figures).filter((n) => !urls[n]);
+        // Clipped figures become ordinary PNG files here, named by the
+        // parser, so everything after this point treats them like any other.
+        const clips = collectFigureClips(parsed.questions).filter((c) => !urls[c.file]);
+        const files = { ...next.figures };
+        if (clips.length && next.pdf) {
+          const source = await openPdf(next.pdf);
+          try {
+            for (let i = 0; i < clips.length; i++) {
+              setStatus(`Cutting figures… ${i + 1}/${clips.length}`);
+              files[clips[i].file] = await cropToFile(source, clips[i].clip, clips[i].file);
+            }
+          } finally {
+            closePdf(source);
+          }
+        }
+
+        const pending = Object.keys(files).filter((n) => !urls[n]);
         if (pending.length && parsed.paper) {
           setStatus(`Uploading ${pending.length} figure${pending.length === 1 ? "" : "s"}…`);
           urls = {
             ...urls,
-            ...(await uploadFigures(parsed.paper.paperId, next.figures, pending, (done, total) =>
+            ...(await uploadFigures(parsed.paper.paperId, files, pending, (done, total) =>
               setStatus(`Uploading figures… ${done}/${total}`),
             )),
           };
@@ -116,7 +145,23 @@ function UploadWorkspace() {
     const next = which === "qp" ? { qp: value, qa } : { qp, qa: value };
     if (which === "qp") setQp(value);
     else setQa(value);
-    void preview({ ...next, figures });
+    void preview({ ...next, figures, pdf: sourcePdf });
+  }
+
+  function addPdf(files: FileList) {
+    const file = files[0];
+    if (!file) return;
+    if (file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
+      setError(`${file.name}: choose the question paper as a PDF.`);
+      return;
+    }
+    // Crops cut from the previous PDF are stale, so they are cut again.
+    const urls = { ...figureUrls };
+    for (const { file: name } of collectFigureClips(result?.questions ?? [])) delete urls[name];
+    setError("");
+    setSourcePdf(file);
+    setFigureUrls(urls);
+    void preview({ qp, qa, figures, pdf: file, urls });
   }
 
   function addFigures(files: FileList) {
@@ -138,7 +183,7 @@ function UploadWorkspace() {
     setError("");
     setFigures(next);
     setFigureUrls(urls);
-    void preview({ qp, qa, figures: next });
+    void preview({ qp, qa, figures: next, pdf: sourcePdf, urls });
   }
 
   async function save() {
@@ -165,6 +210,10 @@ function UploadWorkspace() {
   }
 
   const figureNames = Object.keys(figures).sort();
+  // Figures the .tex clips from the source PDF that have not been cut yet.
+  const uncut = collectFigureClips(result?.questions ?? []).filter((c) => !figureUrls[c.file]);
+  const needsPdf = uncut.length > 0 && !sourcePdf;
+  const pdfName = result?.sourcePdf;
   const totalMarks = result?.questions.reduce((sum, q) => sum + (q.marks || 0), 0) ?? 0;
 
   return (
@@ -173,7 +222,8 @@ function UploadWorkspace() {
         <h1 className="font-serif text-3xl font-bold">Upload a paper from .tex</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Two files build one paper: a Questions file and an Answers file, matched by question
-          number. Add any figures too. Nothing is saved until you confirm the preview.
+          number. Add the source paper PDF, or any figure images, too. Nothing is saved until you
+          confirm the preview.
         </p>
       </header>
 
@@ -182,7 +232,7 @@ function UploadWorkspace() {
           <Step
             number={1}
             title="Add the files"
-            hint="Figures upload first so the parser can resolve \qfig{} to a real URL."
+            hint="Figures are cut from the source PDF, or matched by filename, and uploaded before the final parse."
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-2">
@@ -209,10 +259,37 @@ function UploadWorkspace() {
               </div>
             </div>
 
+            <div className="grid gap-2">
+              <Dropzone
+                id="source-pdf"
+                title="Drop the source paper PDF"
+                hint="figures are cut from this"
+                accept="application/pdf,.pdf"
+                icon={<FileType className="size-5" />}
+                onFiles={addPdf}
+              />
+              {sourcePdf && (
+                <FilePill name={sourcePdf.name} note={`${Math.round(sourcePdf.size / 1024)} KB`} />
+              )}
+              {needsPdf && (
+                <p className="text-sm text-destructive">
+                  This paper cuts {uncut.length} figure{uncut.length === 1 ? "" : "s"} out of{" "}
+                  {pdfName ? <span className="font-mono">{pdfName}</span> : "the original question paper"}
+                  . Drop that PDF to continue.
+                </p>
+              )}
+              {sourcePdf && pdfName && sourcePdf.name !== pdfName && (
+                <p className="text-xs text-muted-foreground">
+                  The .tex refers to <span className="font-mono">{pdfName}</span>. If the figures
+                  look wrong, check this is the same paper.
+                </p>
+              )}
+            </div>
+
             <Dropzone
               id="figures"
               title="Drop figure images here"
-              hint="matched to \qfig{} by filename"
+              hint="older papers: matched to \qfig{} by filename"
               accept={FIGURE_ACCEPT}
               multiple
               icon={<ImageIcon className="size-5" />}
@@ -263,7 +340,7 @@ function UploadWorkspace() {
                 {qa ? "" : " · no answers file yet"}
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={() => void save()} disabled={Boolean(status)}>
+                <Button onClick={() => void save()} disabled={Boolean(status) || needsPdf}>
                   {status === "Saving…" ? "Saving…" : "Save to bank"}
                 </Button>
                 {saved && (

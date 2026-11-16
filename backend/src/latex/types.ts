@@ -31,6 +31,8 @@ export interface PaperMeta {
   year: string;
 }
 
+import type { FigureClip } from './clip.js';
+
 export type QuestionKind = 'structured' | 'mcq';
 
 /**
@@ -52,7 +54,11 @@ export type Block =
       src: string | null;
       caption: string;
       /** The optional \qfig argument, e.g. "0.42\\linewidth". */
-      width: string | null;
+      width: string | null;      /**
+       * Set when the figure is a region of the source PDF rather than a
+       * file of its own; `file` is then clipKey(clip). See clip.ts.
+       */
+      clip?: FigureClip;
     }
   | { type: 'table'; html: string };
 
@@ -167,6 +173,8 @@ export interface Warning {
 
 export interface ParsedPaper {
   paper: PaperMeta | null;
+  /** The PDF the figures are clipped from, when the .tex names one. */
+  sourcePdf?: string;
   questions: Question[];
   warnings: Warning[];
 }

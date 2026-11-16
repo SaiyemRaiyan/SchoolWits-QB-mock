@@ -12,6 +12,7 @@
 
 import { findCommand, findEnvironments, splitRows, splitTopLevel } from './scan.js';
 import { inlineToHtml } from './inline.js';
+import { clipKey, parseClipOptions } from './clip.js';
 import type { Block, ImageMap } from './types.js';
 
 /**
@@ -89,6 +90,28 @@ function paragraphs(raw: string): Block[] {
 }
 
 /**
+ * One figure block. A clip from the source PDF is named after its rectangle
+ * rather than the PDF, so it resolves through the same image map as a file.
+ */
+function figureBlock(
+  arg: string,
+  optional: string | null,
+  caption: string,
+  images: ImageMap,
+): Block {
+  const clip = parseClipOptions(optional);
+  const file = clip ? clipKey(clip) : arg.trim();
+  return {
+    type: 'figure',
+    file,
+    src: resolveImage(file, images),
+    caption,
+    width: clip ? null : optional,
+    ...(clip ? { clip } : null),
+  };
+}
+
+/**
  * Convert a raw LaTeX run into blocks.
  *
  * `images` may be empty; figures then carry `src: null`, which is a normal
@@ -98,33 +121,19 @@ export function toBlocks(raw: string, images: ImageMap = {}): Block[] {
   const spans: Span[] = [];
 
   for (const call of findCommand(raw, 'qfig', 2, true)) {
-    const file = call.args[0].trim();
     spans.push({
       start: call.start,
       end: call.end,
-      block: {
-        type: 'figure',
-        file,
-        src: resolveImage(file, images),
-        caption: inlineToHtml(call.args[1] ?? ''),
-        width: call.optional,
-      },
+      block: figureBlock(call.args[0], call.optional, inlineToHtml(call.args[1] ?? ''), images),
     });
   }
 
   // \includegraphics is the composer's (Quick Add) spelling of the same idea.
   for (const call of findCommand(raw, 'includegraphics', 1, true)) {
-    const file = call.args[0].trim();
     spans.push({
       start: call.start,
       end: call.end,
-      block: {
-        type: 'figure',
-        file,
-        src: resolveImage(file, images),
-        caption: '',
-        width: call.optional,
-      },
+      block: figureBlock(call.args[0], call.optional, '', images),
     });
   }
 

@@ -25,8 +25,18 @@ export type QuestionContent = {
 
 export type ContentBlock =
   | { type: "text"; html?: string }
-  | { type: "figure"; file?: string; caption?: string; src?: string }
+  | {
+      type: "figure";
+      file?: string;
+      caption?: string;
+      src?: string;
+      /** Set when the figure is a region of the source PDF; `file` names the crop. */
+      clip?: FigureClip;
+    }
   | { type: "table"; html?: string };
+
+/** Trim in bp from each edge of a 1-based page. See backend/src/latex/clip.ts. */
+export type FigureClip = { page: number; left: number; bottom: number; right: number; top: number };
 
 export type QuestionPart = {
   label: string;

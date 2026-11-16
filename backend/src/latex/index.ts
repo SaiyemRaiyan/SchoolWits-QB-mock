@@ -15,6 +15,7 @@ import { detectMstabColumns, normalizeWhitespace, splitDocument, stripLayoutNois
 import { parseMarks, parsePaperId, splitQuestions, splitTopics } from './blocks.js';
 import { parseStructure } from './structure.js';
 import { parseOptions } from './options.js';
+import { findSourcePdf } from './clip.js';
 import { extractMarkScheme } from './markscheme.js';
 import { extractCorrectOption, extractSolution } from './solutions.js';
 import type { ImageMap, Options, ParsedPaper, Question, Warning } from './types.js';
@@ -27,6 +28,8 @@ export { parseAnsbox, extractSolution, parseCorrectOption } from './solutions.js
 export { parseOptions } from './options.js';
 export { inlineToHtml } from './inline.js';
 export { toBlocks, resolveImage } from './content.js';
+export { clipKey, findSourcePdf, parseClipOptions } from './clip.js';
+export type { FigureClip } from './clip.js';
 export { flattenQuestion } from './flatten.js';
 
 /**
@@ -133,7 +136,8 @@ export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPa
     };
   });
 
-  return { paper, questions, warnings };
+  const sourcePdf = findSourcePdf(tex);
+  return { paper, questions, warnings, ...(sourcePdf ? { sourcePdf } : null) };
 }
 
 export interface ParsedAnswers {
@@ -205,5 +209,10 @@ export function mergePaper(qp: ParsedPaper, qa: ParsedAnswers): ParsedPaper {
     }
   }
 
-  return { paper: qp.paper ?? qa.paper, questions, warnings };
+  return {
+    paper: qp.paper ?? qa.paper,
+    questions,
+    warnings,
+    ...(qp.sourcePdf ? { sourcePdf: qp.sourcePdf } : null),
+  };
 }

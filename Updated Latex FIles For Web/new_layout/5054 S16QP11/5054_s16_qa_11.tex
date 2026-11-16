@@ -1,0 +1,638 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath}\usepackage{amssymb}\usepackage[table]{xcolor}
+\usepackage{tabularx}\usepackage{multirow}\usepackage{geometry}
+\usepackage{enumitem}\usepackage{parskip}\usepackage{titlesec}
+\usepackage{tocloft}\usepackage[most]{tcolorbox}
+\usepackage{tikz}\usepackage{pgfplots}\pgfplotsset{compat=1.18}\usetikzlibrary{arrows.meta,calc,positioning,shapes.geometric,patterns}
+\geometry{margin=2.5cm}
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+\setlength{\cftbeforesecskip}{6pt}
+\definecolor{q1color}{HTML}{D6EAF8}\definecolor{q2color}{HTML}{D5F5E3}
+\definecolor{q3color}{HTML}{FDEBD0}\definecolor{q4color}{HTML}{F9E79F}
+\definecolor{q5color}{HTML}{E8DAEF}\definecolor{q6color}{HTML}{FADBD8}
+\definecolor{q7color}{HTML}{D1F2EB}\definecolor{q8color}{HTML}{FCF3CF}
+\definecolor{q9color}{HTML}{EBDEF0}\definecolor{q10color}{HTML}{F5EEF8}
+\newenvironment{mstab}[1]{%
+  {\color{#1!75!black}\nobreak Mark Scheme}\par\nopagebreak\smallskip
+  \arrayrulecolor{#1!70!black}\renewcommand{\arraystretch}{1.3}%
+  \tabularx{\textwidth}{|>{\columncolor{#1!12}\raggedright\arraybackslash}p{1.9cm}|>{\columncolor{#1!12}}X|>{\columncolor{#1!12}\centering\arraybackslash}p{1.1cm}|}%
+  \hline\rowcolor{#1!45} Question & Answer & Marks \\ \hline}{%
+  \endtabularx\arrayrulecolor{black}\par\medskip}
+\newtcolorbox{ansbox}[1]{colback=#1!8,colbacktitle=#1!30,colframe=#1!70!black,coltitle=black,fonttitle=\normalfont,title=Worked Solution,boxrule=0.6pt,arc=2mm,left=4pt,right=4pt,top=4pt,bottom=4pt,breakable}
+\newcommand{\topiclabel}[1]{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}
+\newcommand{\examq}[4]{\section[#1 - Q#2]{#1 - Q#2 - #3 - #4}}
+\begin{document}
+\begin{center}
+  {\LARGE \textbf{Cambridge O Level Physics 5054/11/M/J/16}}\\[6pt]
+  {\large May/June 2016 -- Multiple Choice: Answers \& Solutions}
+\end{center}
+\bigskip
+
+%=================================================================
+\examq{5054/11/M/J/16}{1}{Physical Quantities and Measurements}{1}
+
+\begin{mstab}{q1color}
+1 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+Two vectors are added by the \emph{head-to-tail} (triangle) rule: slide the second arrow so that its tail sits on the head of the first, and the resultant $R$ is then the single arrow drawn from the tail of the first to the head of the second. Equivalently, draw the two vectors from a common point and complete the parallelogram -- $R$ is the diagonal starting at that common point.
+
+The resultant must therefore \emph{close} the triangle, running from the start of the chain to its finish, and its arrowhead must point the same way round the triangle as neither of the two originals. Diagrams in which $R$ is drawn as the third side but with its arrow reversed, or in which $R$ is drawn parallel to one of the original vectors, do not satisfy this. Only diagram D has $R$ drawn from the tail of the first vector to the head of the second.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{2}{Physical Quantities and Measurements}{1}
+
+\begin{mstab}{q2color}
+2 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+A vector has both magnitude \emph{and} direction; a scalar has magnitude only. Energy of every kind (chemical, gravitational potential, kinetic), work, power, mass and extension are all scalars, so any set containing one of them can be ruled out at once.
+
+That removes B (chemical energy, mass, power), C (gravitational potential energy, extension) and D (kinetic energy, work). The remaining set -- acceleration, displacement, velocity -- consists entirely of vectors, since each needs a direction to be fully specified.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{3}{Physical Quantities and Measurements}{1}
+
+\begin{mstab}{q3color}
+3 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+The circumference is the distance \emph{all the way round} the curved surface of the ball, so the instrument must be able to follow that curve and read the length directly.
+
+A tape is flexible: it can be wrapped round the ball and the circumference read straight off the scale. A rule is rigid and can only measure a straight line, so it would give the diameter at best, not the circumference. Calipers and a micrometer are also designed to grip a body across its width -- they measure the \emph{diameter}. (A diameter can of course be converted to a circumference using $C = \pi d$, but that is a calculation, not a reading; the question asks which instrument \emph{gives a reading that is} the circumference.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{4}{Motion or Kinematics}{1}
+
+\begin{mstab}{q4color}
+4 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+On a speed--time graph the \emph{gradient} is the acceleration.
+
+Between $10\,\mathrm{s}$ and $20\,\mathrm{s}$ the graph is a horizontal line at $15\,\mathrm{m/s}$: the speed is not changing at all. A horizontal line has zero gradient, so the acceleration in that interval is zero.
+
+(Up to $10\,\mathrm{s}$ the line slopes upwards, so the car \emph{was} accelerating there -- but the question asks only about the interval from $10\,\mathrm{s}$ to $20\,\mathrm{s}$, where the car travels at constant speed.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{5}{Forces or Dynamics}{1}
+
+\begin{mstab}{q5color}
+5 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q5color}
+First find the \emph{resultant} force on the sledge. The man pulls forwards with $60\,\mathrm{N}$ and friction opposes the motion with $20\,\mathrm{N}$, so
+\[ F = 60 - 20 = 40\,\mathrm{N}. \]
+Now apply Newton's second law, $F = ma$:
+\[ a = \frac{F}{m} = \frac{40}{25} = 1.6\,\mathrm{m/s^2}. \]
+(Using the $60\,\mathrm{N}$ pull on its own, without subtracting the friction, gives the wrong answer $2.4\,\mathrm{m/s^2}$.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{6}{Forces or Dynamics}{1}
+
+\begin{mstab}{q6color}
+6 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+A body moving in a circle is continually changing the \emph{direction} of its velocity, so it is accelerating even though its speed is constant. By $F = ma$ the resultant force points the same way as that acceleration.
+
+For circular motion the acceleration -- and hence the resultant force -- is directed towards the \emph{centre} of the circle. It is the sideways (centripetal) push of the road on the tyres that provides it.
+
+So the arrow required is the one pointing from the car towards the centre of the circle turned by the car, which is arrow B. An arrow along the direction of motion (tangential) would speed the car up, and an arrow pointing outwards from the centre would push the car off the bend -- neither is the resultant force here.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{7}{Mass Weight and Density}{1}
+
+\begin{mstab}{q7color}
+7 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q7color}
+A newton meter is a spring balance. It is stretched by the gravitational pull on the brick, so what it responds to -- and what its scale is marked in -- is \emph{force}, measured in newtons. It therefore measures \textbf{weight}.
+
+A beam balance compares the brick against known masses on the other arm. Because both sides are pulled by the same gravitational field, the comparison is unaffected by the value of $g$, and the reading is in kilograms. It therefore measures \textbf{mass}.
+
+So: newton meter $\rightarrow$ weight, beam balance $\rightarrow$ mass.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{8}{Forces or Dynamics \textperiodcentered\ Deformation}{1}
+
+\begin{mstab}{q8color}
+8 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+Work through what a force can and cannot do.
+
+A force can change the \emph{velocity} of a body (Newton's second law, $F = ma$). A force can change the \emph{shape} of a body -- it can stretch, compress or bend it. A force can also change the \emph{volume} of a body, for example by compressing a gas or squeezing a sponge.
+
+What a force cannot change is the \emph{mass}: mass is the quantity of matter in the body and is unaltered by pushing or pulling it. Any list containing mass is therefore wrong, which rules out A, B and C, leaving shape, velocity, volume.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{9}{Turning Effect of Forces}{1}
+
+\begin{mstab}{q9color}
+9 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+The beam is in equilibrium, so take moments about the pivot at the right-hand end (the force from the pivot itself then has no moment, because its distance from the pivot is zero).
+
+From the diagram, the $60\,\mathrm{N}$ upward force acts a distance $20 + 30 = 50\,\mathrm{cm}$ from the pivot, and the weight of the uniform beam acts through its centre of mass, $30\,\mathrm{cm}$ from the pivot.
+
+Principle of moments -- sum of anticlockwise moments $=$ sum of clockwise moments:
+\[ 60 \times 50 = W \times 30 \]
+\[ 3000 = 30\,W \quad\Rightarrow\quad W = \frac{3000}{30} = 100\,\mathrm{N}. \]
+(Note that the distances may be left in centimetres here, since the same unit appears on both sides of the equation and cancels.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{10}{Turning Effect of Forces}{1}
+
+\begin{mstab}{q1color}
+10 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+A body topples once it is tilted far enough for the vertical line through its centre of mass to fall \emph{outside} its base. Two things therefore make a lamp stable: a \textbf{low} centre of mass and a \textbf{wide} base. Both increase the angle through which the lamp must be tipped before the line of action of its weight leaves the base.
+
+Comparing the four lamps, the most stable is the one that combines the widest base with the centre of mass M marked lowest down -- lamp A. The lamps with M high up on a narrow stand need only a small tilt before the weight acts outside the base, so they topple most easily.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{11}{Work Energy and Power}{1}
+
+\begin{mstab}{q2color}
+11 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+The change in gravitational potential energy is $\Delta E_p = mgh$, and since the \emph{weight} $W = mg$ is given directly,
+\[ \Delta E_p = W \times h = 250 \times 7.0 = 1750\,\mathrm{J}. \]
+Energy is conserved. The potential energy lost is shared between the kinetic energy gained and the work done against friction (which is transferred to thermal energy), so
+\[ E_k = \Delta E_p - W_{\text{friction}} = 1750 - 1300 = 450\,\mathrm{J}. \]
+So the change in gravitational potential energy is $1750\,\mathrm{J}$ and the final kinetic energy is $450\,\mathrm{J}$.
+
+(The figures $17\,500$ come from multiplying by $g = 10\,\mathrm{N/kg}$ as well, which double-counts: $250\,\mathrm{N}$ is already a weight, not a mass.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{12}{Work Energy and Power}{1}
+
+\begin{mstab}{q3color}
+12 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+A renewable energy resource is one that is replenished as fast as it is used, so it will not run out. A non-renewable resource exists in a fixed stock that is being permanently depleted.
+
+A solar panel and a wind turbine draw on sunlight and wind, both continuously renewed by the Sun. A geothermal system draws on heat from the Earth's interior, which is replenished by radioactive decay deep in the Earth. All three are renewable.
+
+A nuclear power station burns a fuel -- uranium -- which has to be mined and which is not replaced. It is therefore the one that uses a \textbf{non-renewable} energy resource.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{13}{Work Energy and Power \textperiodcentered\ The Nuclear Atom \textperiodcentered\ The Stars \& Universe}{1}
+
+\begin{mstab}{q4color}
+13 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+The Sun's core is at an enormous temperature and pressure, so hydrogen nuclei are forced close enough together to join and form helium. Joining light nuclei into a heavier one is \textbf{nuclear fusion}, and the small loss of mass in the process is released as energy.
+
+The alternatives fail: burning is a chemical reaction needing oxygen, and could not release anything like the Sun's output; nuclear fission is the \emph{splitting} of heavy nuclei such as uranium, which is what happens in a nuclear power station on Earth, not in a star; and radiation is how the energy \emph{travels} to us once it has been produced, not the process that produces it.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{14}{Work Energy and Power}{1}
+
+\begin{mstab}{q5color}
+14 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q5color}
+Work done $= $ force $\times$ distance moved \emph{in the direction of the force}. The $300\,\mathrm{N}$ force is applied along the ramp, and from X to Y the box moves $5.0\,\mathrm{m}$ along that ramp, so those two are already in the same direction:
+\[ W = F \times d = 300 \times 5.0 = 1500\,\mathrm{J}. \]
+The $4.0\,\mathrm{m}$ and $3.0\,\mathrm{m}$ are the vertical and horizontal sides of the triangle. They are there to show that the slope length is $5.0\,\mathrm{m}$ (by Pythagoras) and to tempt you into using the wrong distance -- $300 \times 4.0 = 1200\,\mathrm{J}$ and $300 \times 3.0 = 900\,\mathrm{J}$ are both offered as wrong options. The vertical height would only be used with the \emph{weight} of the box, which is not given.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{15}{Pressure}{1}
+
+\begin{mstab}{q6color}
+15 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+The pressure due to a liquid is
+\[ p = \rho g h, \]
+where $h$ is the \emph{depth below the free surface}. All four beakers hold the same liquid, so $\rho$ is the same and $g$ is the same; the pressure therefore depends on the depth alone.
+
+It does not depend on the width or shape of the beaker, nor on how much liquid is present -- only on how far down the point lies. The greatest pressure is therefore at the point with the greatest depth below the surface of its liquid, which is point C.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{16}{Kinetic Model of Matter \textperiodcentered\ Pressure}{1}
+
+\begin{mstab}{q7color}
+16 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q7color}
+Work in units of ``atmospheres'', using the information that $10\,\mathrm{m}$ of water gives a pressure equal to one atmosphere.
+
+At the \emph{surface} the bubble feels atmospheric pressure only:
+\[ p_1 = 1\ \text{atm}, \qquad V_1 = 6.0\,\mathrm{cm^3}. \]
+At the \emph{bottom}, $20\,\mathrm{m}$ down, the bubble feels atmospheric pressure \emph{plus} the pressure of $20\,\mathrm{m}$ of water, and $20\,\mathrm{m}$ of water is worth $2$ atmospheres:
+\[ p_2 = 1 + 2 = 3\ \text{atm}. \]
+The temperature is unchanged, so Boyle's law applies:
+\[ p_1V_1 = p_2V_2 \quad\Rightarrow\quad V_2 = \frac{p_1V_1}{p_2} = \frac{1 \times 6.0}{3} = 2.0\,\mathrm{cm^3}. \]
+The bubble is squeezed smallest where the pressure is greatest, at the bottom -- so the answer must be less than $6.0\,\mathrm{cm^3}$, which rules out the two larger options immediately.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{17}{Kinetic Model of Matter}{1}
+
+\begin{mstab}{q8color}
+17 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+Heating a gas increases the average kinetic energy of its molecules, and since $E_k = \tfrac{1}{2}mv^2$ with the molecular mass fixed, that means the molecules \textbf{move faster}.
+
+The other options misdescribe what happens. Moving faster means the molecules reach the walls more often, so they collide \emph{more} frequently, not less (which is part of why the pressure rises). Individual molecules do not expand -- it is the gas as a whole that would expand if it could. And the container has a \emph{fixed volume}, so the molecules cannot spread out: their average separation is unchanged.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{18}{Transfer of Thermal Energy \textperiodcentered\ Electromagnetic Spectrum}{1}
+
+\begin{mstab}{q9color}
+18 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+Thermal radiation is infra-red radiation -- part of the electromagnetic spectrum. Every electromagnetic wave travels through a vacuum at the speed of light, $3.0 \times 10^{8}\,\mathrm{m/s}$, so statement A is correct. (It is also why thermal radiation is the only one of the three transfer processes that can cross empty space, bringing energy from the Sun to the Earth.)
+
+The others are wrong: electromagnetic waves are \emph{transverse}, not longitudinal; thermal radiation is infra-red, which lies on the long-wavelength side of visible light, not ultra-violet; and \emph{black}, dull surfaces are the best emitters (and absorbers), while white, shiny surfaces are the poorest.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{19}{General Wave Properties}{1}
+
+\begin{mstab}{q1color}
+19 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+A wavefront is a line (or surface) joining all the points of the wave that are vibrating \emph{in phase} -- that is, at the same point in their cycle at the same instant. For a transverse wave such as a water wave, the points at the top of a crest are all in phase, so a wavefront is the line joining all the points on the same crest. That is option A.
+
+The other options describe different things: the displacement of a wave is shown by the height of the graph at a point, not by a wavefront; the energy content is related to the amplitude; and the leading edge of the disturbance is simply the first wavefront to arrive, not the definition of a wavefront itself.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{20}{General Wave Properties \textperiodcentered\ Sound}{1}
+
+\begin{mstab}{q2color}
+20 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+The wavelength of any wave is the distance between two \emph{successive} points that are in phase -- for a longitudinal wave on a spring, the distance from the centre of one compression to the centre of the next compression, or from one rarefaction to the next.
+
+Looking along the spring, the coils bunch together at the compressions and spread out at the rarefactions. Reading off the marked positions, Y and Z are corresponding points of two \emph{neighbouring} identical features, so the gap between them is exactly one wavelength.
+
+The others do not work: W and X are only part of a cycle apart (half a wavelength, from a compression to the next rarefaction), X and Z likewise, and W and Z span \emph{two} complete cycles, so they are two wavelengths apart.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{21}{Light (Reflection/Refraction/Lenses)}{1}
+
+\begin{mstab}{q3color}
+21 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+Both the angle of incidence and the angle of reflection are measured between the ray and the \textbf{normal} -- the line drawn at right angles to the mirror surface at the point where the ray strikes it. They are never measured from the mirror surface itself.
+
+The law of reflection then states that the angle of incidence equals the angle of reflection, $i = r$, with the incident and reflected rays on opposite sides of the normal.
+
+The correct diagram is therefore the one in which $i$ and $r$ are both marked from the normal, one on each side of it, and are drawn equal -- diagram C. Diagrams that mark either angle between the ray and the mirror surface are labelling the \emph{complement} of the true angle, so they are wrong however the rays are drawn.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{22}{Light (Reflection/Refraction/Lenses)}{1}
+
+\begin{mstab}{q4color}
+22 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+A parallel beam travelling along the principal axis is brought to a focus by a converging lens at the \emph{principal focus}. The \textbf{focal length} is defined as the distance from the \emph{centre of the lens} to that principal focus, measured along the principal axis.
+
+So the length required runs from the lens itself to the point where the rays meet -- length B. Lengths measured from somewhere other than the centre of the lens, or that run from the lens to a point beyond the focus, do not give the focal length; nor does the distance between the two principal foci, one on each side, which is twice the focal length.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{23}{Light (Reflection/Refraction/Lenses)}{1}
+
+\begin{mstab}{q5color}
+23 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q5color}
+\textbf{Angle of refraction.} The $57^{\circ}$ is marked from the normal, so it is the angle of incidence in air. Snell's law for light entering the glass gives
+\[ n = \frac{\sin i}{\sin r} \quad\Rightarrow\quad \sin r = \frac{\sin i}{n} = \frac{\sin 57^{\circ}}{1.5} = \frac{0.839}{1.5} = 0.559, \]
+\[ r = \sin^{-1}(0.559) = 34^{\circ}. \]
+The ray bends \emph{towards} the normal on entering the denser medium, so $r < i$, as found.
+
+\textbf{Critical angle.} The critical angle $c$ for the glass--air boundary satisfies
+\[ \sin c = \frac{1}{n} = \frac{1}{1.5} = 0.667 \quad\Rightarrow\quad c = \sin^{-1}(0.667) = 42^{\circ}. \]
+So the angle of refraction is $34^{\circ}$ and the critical angle is $42^{\circ}$.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{24}{Electromagnetic Spectrum}{1}
+
+\begin{mstab}{q6color}
+24 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+Microwaves are used for satellite links precisely because they pass up and down through the atmosphere with very little absorption or scattering, so the signal reaches the satellite and returns without significant loss of energy. Statement B is correct.
+
+The others are wrong. Microwaves have a \emph{shorter} wavelength (and higher frequency) than radio waves -- they sit between radio waves and infra-red in the spectrum. All electromagnetic waves travel at the same speed, $3.0 \times 10^{8}\,\mathrm{m/s}$, in a vacuum, so microwaves do not outrun radio waves. And although microwaves do deliver some energy, warming the satellite is not their purpose and would be a waste of signal power, not a useful effect.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{25}{Electromagnetic Spectrum}{1}
+
+\begin{mstab}{q7color}
+25 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q7color}
+Gamma-rays sit at the extreme short-wavelength, high-frequency end of the electromagnetic spectrum, so they carry the most energy and are the most strongly ionising. A carefully aimed beam can therefore destroy cells it is focused on, which is the basis of radiotherapy -- \textbf{killing cancerous cells}.
+
+The other uses belong to other parts of the spectrum: fluorescent tubes work by ultra-violet from the discharge striking a phosphor coating, and sunbeds deliberately produce ultra-violet. Pre-natal scanning uses \emph{ultrasound}, not an electromagnetic wave at all -- precisely because ionising radiation such as gamma-rays or X-rays would damage the developing baby.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{26}{Sound}{1}
+
+\begin{mstab}{q8color}
+26 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+Two separate links are needed.
+
+Loudness is governed by the \textbf{amplitude} of the wave: a quieter sound means a smaller amplitude, so the amplitude is \emph{lower}.
+
+Pitch is governed by the \textbf{frequency}: a higher frequency gives a higher-pitched note. The pitch of the note is unaffected, so the frequency must stay the \emph{same}.
+
+Amplitude lower, frequency same -- option B.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{27}{Simple Magnetism and Magnetic Fields}{1}
+
+\begin{mstab}{q9color}
+27 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+A plotting compass is a tiny magnet that is free to turn, so it lines up along the magnetic field at its position, with its \textbf{north} pole pointing in the direction of the field. By convention the field lines of a bar magnet leave the N pole, curve round outside the magnet, and enter the S pole. (The Earth's field is to be ignored, so the bar magnet's field is the only one acting.)
+
+So the method is: at each of the four positions, work out which way the field line runs, then check whether that matches the way the given needle is pointing. Beside the magnet the field lines run back along its length towards the S pole, while off each end they point straight out of the N pole and straight into the S pole.
+
+The only position where the field direction matches the orientation of the compass shown is position C.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{28}{Electric Charge}{1}
+
+\begin{mstab}{q1color}
+28 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+The ball is uncharged overall, but its metallic paint is a conductor, so the electrons in it are free to move. The positively charged rod attracts those electrons, which drift to the side of the ball \emph{nearest} the rod.
+
+That near side therefore becomes \textbf{negatively} charged, and the far side, left short of electrons, becomes \textbf{positively} charged. This is charging by \emph{induction}: the two induced charges are equal in size, so the ball is still neutral overall -- which immediately rules out the diagrams showing the ball entirely negative or entirely positive.
+
+The correct diagram is therefore the one with negative charge on the surface facing the rod and positive charge on the opposite surface -- diagram D. (The ball is then attracted to the rod, because the nearer, opposite charge is pulled more strongly than the further, like charge is pushed.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{29}{Electrical Quantities}{1}
+
+\begin{mstab}{q2color}
+29 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+Charge is current $\times$ time, with the time in \emph{seconds}:
+\[ t = 4.0 \times 60 = 240\,\mathrm{s} \]
+\[ Q = It = 2.0 \times 240 = 480\,\mathrm{C}. \]
+(Using $t = 4.0$ as though the time were four seconds gives the wrong answer $8.0\,\mathrm{C}$, and dividing instead of multiplying gives $30\,\mathrm{C}$ -- both are offered as distractors.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{30}{Electrical Quantities}{1}
+
+\begin{mstab}{q3color}
+30 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+The potential difference between two points is the work done (energy transferred) per unit charge passing between them:
+\[ V = \frac{W}{Q} \quad\Rightarrow\quad 1\,\mathrm{V} = \frac{1\,\mathrm{J}}{1\,\mathrm{C}}. \]
+So one volt is \textbf{one joule per coulomb}.
+
+The others are the wrong combinations: one coulomb per ampere is a second (from $Q = It$), one coulomb per joule is the reciprocal of a volt, and one joule per ampere is a weber (a magnetic flux), none of which is a potential difference.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{31}{Electric Circuits}{1}
+
+\begin{mstab}{q4color}
+31 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+The lamps are identical, so the brightest lamp is simply the one carrying the \emph{largest current} (its power is $P = I^2R$ with the same $R$ each time). The current through the lamp is set by the e.m.f.\ driving it and the total resistance in its path:
+\[ I = \frac{\text{e.m.f.}}{R_{\text{total}}}. \]
+So the current is increased by raising the e.m.f.\ -- cells in \emph{series} add their e.m.f.s, whereas identical cells in \emph{parallel} give only the e.m.f.\ of one cell -- and by lowering the resistance in series with the lamp, since two identical resistors in \emph{parallel} have half the resistance of one, while in \emph{series} they have twice.
+
+The circuit that combines the greatest driving e.m.f.\ with the least resistance in the lamp's path, and so gives the largest current, is circuit C.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{32}{Electrical Quantities}{1}
+
+\begin{mstab}{q5color}
+32 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q5color}
+\textbf{Which has the greater resistance?} The graph has voltage on the vertical axis and current on the horizontal axis, so its gradient is
+\[ \frac{V}{I} = R. \]
+The \emph{steeper} line therefore belongs to the wire of greater resistance. That is wire P.
+
+\textbf{Which has the larger area?} For a wire of given material and length,
+\[ R = \frac{\rho L}{A} \quad\Rightarrow\quad R \propto \frac{1}{A}. \]
+The two wires are the same material and the same length, so the one with the \emph{greater} resistance must be the \emph{thinner} one. P has the greater resistance, so P has the smaller cross-sectional area and \textbf{Q} has the larger cross-sectional area.
+
+Greater resistance P, larger cross-sectional area Q.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{33}{Practical Electricity / Electrical Safety}{1}
+
+\begin{mstab}{q6color}
+33 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q6color}
+Both the switch and the fuse must be in the \textbf{live} wire.
+
+If the fuse were in the neutral wire it would still blow in a fault, but the lamp would stay connected to the live wire afterwards -- so anyone touching it could receive a shock. The same argument applies to the switch: with the switch in the neutral wire, turning it off would leave the lamp at live potential even though it was not lit.
+
+So the correctly wired circuit is the one with the switch and the fuse both in the line running from the live terminal to the lamp, and the lamp's other terminal connected straight to neutral -- circuit C. (Being in series, the order of the switch and the fuse within the live wire does not matter electrically.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{34}{Electrical Quantities}{1}
+
+\begin{mstab}{q7color}
+34 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q7color}
+A meter is used most precisely when the readings fill a good part of its scale, so the ranges should be matched to each other through $V = IR$ with $R \approx 5\,\Omega$.
+
+Test each pair by asking what current flows when the voltmeter is reading full scale:
+\begin{itemize}[nosep,leftmargin=*]
+  \item $0$--$2\,\mathrm{V}$: $I = 2/5 = 0.4\,\mathrm{A}$, which almost fills a $0$--$0.5\,\mathrm{A}$ ammeter, but is only a fifth of a $0$--$2\,\mathrm{A}$ ammeter.
+  \item $0$--$5\,\mathrm{V}$: $I = 5/5 = 1\,\mathrm{A}$, only a fifth of a $0$--$5\,\mathrm{A}$ ammeter.
+  \item $0$--$10\,\mathrm{V}$: $I = 10/5 = 2\,\mathrm{A}$, under half of a $0$--$5\,\mathrm{A}$ ammeter.
+\end{itemize}
+Only the first combination has \emph{both} meters reading near the top of their scales at the same time, so the most suitable ranges are $0$--$2\,\mathrm{V}$ and $0$--$0.5\,\mathrm{A}$.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{35}{Electro Magnetism / Electromagnetic Induction}{1}
+
+\begin{mstab}{q8color}
+35 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q8color}
+In a d.c.\ motor the forces on the two sides of the coil, given by $F = BIL$, produce a turning effect. Once the coil has rotated through half a turn, the side that was on the left is now on the right, so the \emph{same} current direction would push the coil back the way it came and the motor would simply oscillate.
+
+The split-ring commutator prevents this. Each half of the coil connects to its own half-ring, and as the coil passes through the vertical position the brushes slide from one half-ring onto the other, swapping the connections and so reversing the current in the coil. The forces then stay in the sense that keeps the coil turning the same way.
+
+That swap happens once each time the coil turns through $180^{\circ}$ -- that is, \textbf{every half turn}.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{36}{Electric Circuits}{1}
+
+\begin{mstab}{q9color}
+36 & A & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q9color}
+The component that conducts in one direction only is the \textbf{diode}. It has a very low resistance when forward biased, so current passes freely, and a very high resistance when reverse biased, so almost no current passes -- which is what makes it useful for rectifying an a.c.\ supply.
+
+Its circuit symbol is a triangle pointing at a straight bar, the triangle showing the direction of conventional current that is allowed through. That is symbol A.
+
+The other symbols are components that conduct equally well either way: a fixed resistor, a variable resistor (or rheostat) and a thermistor or light-dependent resistor all have a resistance that is the same whichever way round the current flows, even though a thermistor's or LDR's value changes with temperature or light.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{37}{Electric Circuits}{1}
+
+\begin{mstab}{q1color}
+37 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q1color}
+In a potential divider the supply voltage is shared between the two components in proportion to their resistances:
+\[ V_{\text{LDR}} = 6.0 \times \frac{R_{\text{LDR}}}{R_{\text{LDR}} + R_{\text{thermistor}}}. \]
+For $V$ to be as \emph{small} as possible, the LDR must take as small a share as possible: $R_{\text{LDR}}$ must be small and $R_{\text{thermistor}}$ must be large.
+
+Now use how each component behaves:
+\begin{itemize}[nosep,leftmargin=*]
+  \item An LDR has a \emph{low} resistance in bright light and a high resistance in the dark. So the conditions must be \textbf{light}.
+  \item A thermistor has a \emph{high} resistance when cold and a low resistance when hot. So the conditions must be \textbf{cold}.
+\end{itemize}
+Cold and light gives the smallest voltage across the LDR -- option B. (Hot and dark would do the opposite and give the largest $V$.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{38}{Radioactivity}{1}
+
+\begin{mstab}{q2color}
+38 & B & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q2color}
+\textbf{Beta-particles} are fast-moving electrons, emitted from the nucleus when a neutron changes into a proton. They carry a charge of $-e$ and have the very small mass of an electron, which is why they are far more penetrating than alpha-particles but are deflected in the opposite direction by a magnetic or electric field.
+
+The others are not electrons: an alpha-particle is a helium nucleus, $^{4}_{2}\mathrm{He}$, made of two protons and two neutrons; and gamma-rays and X-rays are both high-frequency electromagnetic waves, with no mass and no charge at all.
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{39}{Radioactivity}{1}
+
+\begin{mstab}{q3color}
+39 & D & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q3color}
+The half-life is the time for the count rate to fall to \emph{half} its value, and here it is one day. The question asks for the count rate in the \emph{past}, so work \emph{backwards} -- which means \textbf{doubling} for each half-life, not halving.
+
+Two days ago is two half-lives before now, so:
+\[ \text{two days ago} \xrightarrow{\ \times\frac{1}{2}\ } \text{one day ago} \xrightarrow{\ \times\frac{1}{2}\ } \text{now} \]
+\[ 40\,000 \rightarrow 20\,000 \rightarrow 10\,000\ \text{counts per minute.} \]
+Checking forwards confirms it: $40\,000 \times \tfrac{1}{2} \times \tfrac{1}{2} = 10\,000$ counts per minute, as given. So the count rate two days ago was $40\,000$ counts per minute.
+
+(The wrong options $2500$ and $5000$ come from halving instead of doubling -- that is, working forwards in time by mistake.)
+\end{ansbox}
+
+%=================================================================
+\examq{5054/11/M/J/16}{40}{The Nuclear Atom}{1}
+
+\begin{mstab}{q4color}
+40 & C & 1 \\ \hline
+\end{mstab}
+
+\begin{ansbox}{q4color}
+In the notation $^{A}_{Z}\mathrm{X}$ the \emph{lower} number is the proton number $Z$ and the \emph{upper} number is the nucleon number $A$, the total of protons and neutrons. For $^{15}_{7}\mathrm{N}$:
+\[ Z = 7, \qquad A = 15. \]
+So the number of protons is
+\[ Z = 7, \]
+and the number of neutrons is
+\[ A - Z = 15 - 7 = 8. \]
+The nucleus contains \textbf{7 protons and 8 neutrons}.
+
+The wrong options come from the two standard slips: reading the lower number as the neutron number, and treating the upper number $15$ as a count of protons or neutrons on its own rather than as their total.
+\end{ansbox}
+
+\end{document}

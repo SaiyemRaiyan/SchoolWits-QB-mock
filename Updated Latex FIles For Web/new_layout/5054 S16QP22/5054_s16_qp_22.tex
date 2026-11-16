@@ -1,0 +1,911 @@
+% =====================================================================
+%  School Wits - Cambridge O Level Physics 5054
+%  Paper 2 (Theory), 5054/22/M/J/16
+%
+%  Keep 5054_s16_qp_22.pdf and 3-01.png beside this file (upload both to Overleaf). Nothing else is
+%  needed: the diagrams, tables and stacked fractions are clipped out of the
+%  official PDF by pdflatex itself, at the exact size and position they have
+%  in the original.
+%
+%  Build modes - uncomment one line inside the document:
+%     \swwbtrue     the printed workbook head
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[paperwidth=595.276bp, paperheight=841.89bp,
+            left=49.6bp, right=46.376bp,
+            top=62.56bp, textheight=734bp,
+            head=42.4bp, headsep=7bp, footskip=22bp]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}\renewcommand{\familydefault}{\sfdefault}
+% Word sets the paper's Arial with neither ligatures nor pair kerning, so both
+% are switched off here: "fl" stays two letters and "Tr" is not tucked in.
+% Nimbus Sans then has Arial's advances exactly, letter for letter.
+\usepackage[protrusion=false,expansion=false,kerning=false,spacing=false,tracking=false]{microtype}
+\DisableLigatures{encoding = *, family = *}
+\usepackage{amsmath}\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{calc}
+\definecolor{swrule}{gray}{0.62}
+
+% The paper sets its body at 11bp on a 13bp baseline.  The class would reset
+% both at \begin{document}, so \normalsize itself is pinned to the measurement.
+\makeatletter
+\renewcommand\normalsize{\@setfontsize\normalsize{11bp}{13bp}%
+  \abovedisplayskip\z@ \belowdisplayskip\z@
+  \abovedisplayshortskip\z@ \belowdisplayshortskip\z@}
+\makeatother
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\linespread{1}\normalbaselineskip=13bp \baselineskip=13bp
+\lineskiplimit=-\maxdimen \lineskip=0pt
+\makeatletter\def\@listi{\leftmargin\leftmargini}\makeatother
+\setlength{\topskip}{10.04bp}
+% A page that opens lower than the standard first baseline needs its offset
+% as non-discardable space: TeX throws away ordinary glue at the top.
+
+\clubpenalty=10000 \widowpenalty=10000
+\hyphenpenalty=10000 \exhyphenpenalty=10000 \tolerance=4000 \emergencystretch=0pt
+%  The paper's word space, measured: 3.058bp, stretching by up to
+%  2.85bp and shrinking by up to 1.72bp to justify a line.
+\frenchspacing
+\spaceskip=3.058bp plus 2.85bp minus 1.72bp
+\xspaceskip=3.058bp plus 2.85bp minus 1.72bp
+\hbadness=10000
+% a line the paper fills to a hair past the measure is not worth a warning
+\hfuzz=1bp
+
+% ---- symbols, set the way the paper sets them ------------------------
+\newcommand{\ftsize}{\fontsize{8bp}{9bp}\selectfont}
+\newcommand{\ohms}{{\usefont{U}{psy}{m}{n}W}}
+\newcommand{\dg}{{\usefont{U}{psy}{m}{n}\char"B0\relax}}
+\newcommand{\degC}{\dg C}
+\newcommand{\x}{\ensuremath{\times}}
+% super- and subscripts as the paper sets them: 8.25bp, 3.86bp up or 3.84bp
+% down, taking no height so a line holding one keeps its place
+\newcommand{\pow}[1]{\raisebox{3.86bp}[0pt][0pt]{\fontsize{8.25bp}{8.25bp}\selectfont #1}}
+\newcommand{\sub}[1]{\raisebox{-3.84bp}[0pt][0pt]{\fontsize{8.25bp}{8.25bp}\selectfont #1}}
+%  a nuclide symbol: mass number above, proton number below, as the paper sets it
+% a nuclide symbol: the two numbers centred over one another.  The paper's
+% own offsets and size come in the optional argument, up/down/size in bp,
+% because they differ from paper to paper: \stack[3.86/3.84/8.25]{X}{Y}
+\makeatletter
+\newcommand{\stack}[3][5.34/2.66/8]{\sw@stack#1\relax{#2}{#3}}
+\def\sw@stack#1/#2/#3\relax#4#5{\begingroup\fontsize{#3bp}{#3bp}\selectfont
+  \setbox0=\hbox{#4}\setbox2=\hbox{#5}%
+  \dimen0=\ifdim\wd0>\wd2 \wd0\else\wd2\fi
+  \rlap{\raisebox{#1bp}[0pt][0pt]{\hbox to\dimen0{\hss\box0\hss}}}%
+  \raisebox{-#2bp}[0pt][0pt]{\hbox to\dimen0{\hss\box2\hss}}\endgroup}
+\makeatother
+% a few characters the paper sets in another font - Times New Roman for Roman
+% numerals - set in that font's free clone at the paper's size: \swf{ptm}{12.00}{VII}
+\newcommand{\swf}[3]{{\fontfamily{#1}\fontsize{#2bp}{#2bp}\selectfont #3}}
+%  the paper's thin space inside units, measured: 1.53bp (LaTeX's own is 1.83bp)
+\AtBeginDocument{\renewcommand{\,}{\ifmmode\mskip\thinmuskip\else\kern1.53bp\relax\fi}}
+
+% =====================================================================
+%  TOPIC COLOURS — one definition, read by the chip and by the website
+% =====================================================================
+\definecolor{swDefault}{HTML}{D8DDE4}
+\definecolor{tpMeasure}{HTML}{D44949}
+\definecolor{tpMotion}{HTML}{49A6D4}
+\definecolor{tpForces}{HTML}{D4C249}
+\definecolor{tpMass}{HTML}{9A49D4}
+\definecolor{tpMoments}{HTML}{49D449}
+\definecolor{tpMomentum}{HTML}{D4498F}
+\definecolor{tpDeform}{HTML}{D48F49}
+\definecolor{tpWork}{HTML}{4978D4}
+\definecolor{tpPressure}{HTML}{8FD449}
+\definecolor{tpKinetic}{HTML}{D449D4}
+\definecolor{tpThermalProp}{HTML}{49D4A6}
+\definecolor{tpThermalTx}{HTML}{D46C49}
+\definecolor{tpWaves}{HTML}{6049D4}
+\definecolor{tpLight}{HTML}{C9D449}
+\definecolor{tpEMS}{HTML}{49C9D4}
+\definecolor{tpSound}{HTML}{D4496C}
+\definecolor{tpMagnet}{HTML}{49D478}
+\definecolor{tpCharge}{HTML}{D4AB49}
+\definecolor{tpEQuant}{HTML}{4955D4}
+\definecolor{tpCircuits}{HTML}{D449BD}
+\definecolor{tpPracElec}{HTML}{A12B2B}
+\definecolor{tpEMag}{HTML}{2B7AA1}
+\definecolor{tpScope}{HTML}{A1912B}
+\definecolor{tpNuclear}{HTML}{702BA1}
+\definecolor{tpRadio}{HTML}{2BA12B}
+\definecolor{tpEarth}{HTML}{A12B66}
+\definecolor{tpStars}{HTML}{A1662B}
+
+\makeatletter
+\newcommand{\sw@key}[1]{sw@tc@\expandafter\zap@space\detokenize{#1} \@empty}
+\newcommand{\deftopic}[2]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@deftopic\expandafter{\sw@tmp}{#2}}
+\newcommand{\sw@deftopic}[2]{%
+  \expandafter\xdef\csname\sw@key{#1}\endcsname{#2}}
+\makeatother
+
+\deftopic{Physical Quantities and Measurements}{tpMeasure}
+\deftopic{Motion or Kinematics}{tpMotion}
+\deftopic{Forces or Dynamics}{tpForces}
+\deftopic{Mass Weight and Density}{tpMass}
+\deftopic{Turning Effect of Forces}{tpMoments}
+\deftopic{Momentum (Dynamics)}{tpMomentum}
+\deftopic{Deformation}{tpDeform}
+\deftopic{Work Energy and Power}{tpWork}
+\deftopic{Pressure}{tpPressure}
+\deftopic{Kinetic Model of Matter}{tpKinetic}
+\deftopic{Thermal Properties \& Temperature}{tpThermalProp}
+\deftopic{Transfer of Thermal Energy}{tpThermalTx}
+\deftopic{General Wave Properties}{tpWaves}
+\deftopic{Light (Reflection/Refraction/Lenses)}{tpLight}
+\deftopic{Electromagnetic Spectrum}{tpEMS}
+\deftopic{Sound}{tpSound}
+\deftopic{Simple Magnetism and Magnetic Fields}{tpMagnet}
+\deftopic{Electric Charge}{tpCharge}
+\deftopic{Electrical Quantities}{tpEQuant}
+\deftopic{Electric Circuits}{tpCircuits}
+\deftopic{Practical Electricity / Electrical Safety}{tpPracElec}
+\deftopic{Electro Magnetism / Electromagnetic Induction}{tpEMag}
+\deftopic{Uses of Oscilloscope}{tpScope}
+\deftopic{The Nuclear Atom}{tpNuclear}
+\deftopic{Radioactivity}{tpRadio}
+\deftopic{Earth \& Solar System}{tpEarth}
+\deftopic{The Stars \& Universe}{tpStars}
+
+% =====================================================================
+%  THE HEADER — the ONE thing that differs between the two builds
+% =====================================================================
+\makeatletter
+\def\sw@firstof#1\textperiodcentered#2\@nil{#1}
+\newcommand{\swfirsttopic}[1]{\sw@firstof#1\textperiodcentered\@nil}
+% every topic of a question as its own chip, main topic first, 4bp apart:
+% the list is split where \examq's topics are joined, at "\textperiodcentered\ "
+\newcommand{\topicchips}[1]{\sw@chipsloop#1\textperiodcentered\ \@nil}
+\def\sw@chipsloop#1\textperiodcentered\ #2\@nil{\topicchip{#1}%
+  \if\relax\detokenize{#2}\relax\else\hspace{4bp}\sw@chipsloop#2\@nil\fi}
+\newcommand{\sw@hstrut}{\rule[-3.4bp]{0pt}{14.6bp}}
+\newcommand{\topicchip}[1]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@chip\expandafter{\sw@tmp}}
+%  The chip: a rounded tag in three shades of the topic's own colour - a
+%  tinted fill, a hairline border, and text darkened into the same hue, so it
+%  reads as a label rather than a block of paint.  The box keeps the old
+%  measurements exactly: 9bp above the baseline, 2.9bp below, 4.9bp of air
+%  either side of the text, so nothing around it moves.
+%
+%  Three knobs, if the look wants adjusting:
+%    sw@bg  fill      !60!white is a soft tint; raise towards !100 for solid
+%    sw@bd  border    a lightened version of the text colour
+%    sw@ink text      !45!black keeps it legible on any of the pastels
+%  For a solid chip instead, set sw@bg to sw@base and drop the draw= key.
+\newcommand{\sw@chip}[1]{%
+  \begingroup
+  \edef\sw@col{\ifcsname\sw@key{#1}\endcsname
+      \csname\sw@key{#1}\endcsname\else swDefault\fi}%
+  \colorlet{sw@base}{\sw@col}%
+  \colorlet{sw@ink}{sw@base!45!black}%
+  \colorlet{sw@bg}{sw@base!60!white}%
+  \colorlet{sw@bd}{sw@ink!35!white}%
+  \begin{tikzpicture}[baseline=(swchip.base)]
+    \node[anchor=base, at={(0,0)},
+          inner xsep=4.9bp, inner ysep=0bp,
+          text height=9bp, text depth=2.9bp,
+          rounded corners=2.6bp,
+          fill=sw@bg, draw=sw@bd, line width=0.4bp,
+          text=sw@ink,
+          font=\fontsize{8.6bp}{8.6bp}\selectfont\bfseries] (swchip) {#1\unskip};
+  \end{tikzpicture}%
+  \endgroup}
+
+% =====================================================================
+%  THE QUESTION HEAD
+%  Every question carries \examq{<paper id>}{<number>}{<topics>}{<marks>}.
+%  It is the single source of truth: the website splits the file on it and
+%  filters on the topic list, the contents page groups by the first topic,
+%  and \total reads the marks from it.
+%
+%  Three builds, one file:
+%     (default)    the yearly paper - the head prints NOTHING, so the page
+%                  stays a copy of the official one, page for page
+%     \swwbtrue    the printed workbook - paper id, question number and every
+%                  topic as a colour chip, main topic first; no marks
+%     \swwebtrue   the website - the full line, topics and marks included
+% =====================================================================
+\newif\ifswwb  \swwbfalse
+\newif\ifswweb \swwebfalse
+\makeatletter
+% The workbook and website builds add a head above every question, so a page
+% can no longer hold exactly what the paper's page holds.  In those builds a
+% page may break only before a question head or, in a structured paper,
+% before a part such as (b) or (ii) - never inside a question, between a stem
+% and its options, or between a part and its answer lines.  The yearly build
+% is untouched: there every \swnb is empty and every page break is the paper's.
+\newcommand{\swnb}{\ifswwb\nobreak\interlinepenalty=10000 \else
+  \ifswweb\nobreak\interlinepenalty=10000 \fi\fi}
+\newcommand{\partbreak}{\par\ifswwb\penalty\z@\else\ifswweb\penalty\z@\fi\fi}
+% the paper's page break before a question; in the head builds questions
+% simply follow on, each kept whole
+\newcommand{\swpage}{\par\newpage\pagestart}
+\makeatother
+\makeatletter
+\newcommand{\swsep}{\kern4.2bp\textendash\kern4.2bp}
+\gdef\swpaper{}\gdef\swqnum{}\gdef\swtopics{}\gdef\swmarks{}
+\newcommand{\examq}[4]{\par % ends the paragraph before, so no stray space is left in it
+  \gdef\swpaper{#1}\gdef\swqnum{#2}\gdef\swtopics{#3}\gdef\swmarks{#4}%
+  \ifswwb\sw@qhead{\sw@wbhead{#1}{#2}{#3}}\else
+  \ifswweb\sw@qhead{\sw@webhead{#1}{#2}{#3}{#4}}\fi\fi}
+\newcommand{\sw@wbhead}[3]{{\bfseries #1\swsep Q#2}\hspace{8bp}%
+  \raisebox{0.6bp}{\topicchips{#3}}}
+\newcommand{\sw@webhead}[4]{{\bfseries #1\swsep Q#2\swsep #3\swsep #4}}
+%  The head never takes space from the page, so every page of the workbook and
+%  website builds holds exactly what the paper's page holds.  A question that
+%  opens a page has its head set in the header band, under the logo (passed
+%  there as an e-TeX mark).  A question that starts part-way down a page has
+%  its head set in the gap the paper already leaves above it, 16bp above the
+%  question's first line, so the question stays where the paper puts it.
+\newif\ifsw@pending \sw@pendingfalse
+\newdimen\sw@hd
+\newcommand{\sw@qhead}[1]{%
+  \ifdim\prevdepth<-999pt \marks5{\unexpanded{#1}}%
+  \else \gdef\sw@pending{#1}\global\sw@pendingtrue \fi}
+%  #1 = the measured distance to the next element, #2 = the room it keeps below the head.
+%  The head's baseline goes #2 above the next element; when the paper's gap is
+%  too tight for that (under 29bp), the head sits in the middle of the gap
+%  instead, never closer than 13bp to the line above when there is room for it.
+%  Either way the next element lands exactly where the paper puts it.
+\newdimen\sw@rest
+\def\sw@puthead#1#2{\global\sw@pendingfalse
+  \sw@hd=\dimexpr #1bp-#2bp\relax
+  \ifdim\sw@hd<13bp
+    \sw@rest=\dimexpr #1bp/2\relax
+    \ifdim\sw@rest>13bp \sw@rest=13bp\fi
+    \ifdim\sw@hd<\sw@rest \sw@hd=\sw@rest\fi
+  \fi
+  \global\sw@rest=\dimexpr #1bp-\sw@hd\relax
+  \vskip\dimexpr\sw@hd-\prevdepth-\ht\strutbox\relax
+  \begingroup\leftskip\z@ \rightskip\z@ plus 1fil\@totalleftmargin\z@ \hangindent\z@
+  % the chip is taller than a line of text; it must not push the question down
+  \nointerlineskip\noindent\strut\raisebox{\z@}[\ht\strutbox][\dp\strutbox]{\sw@fit{\sw@pending}}%
+  \par\endgroup}
+%  one line: a head too long for the measure is scaled down to fit it
+\newcommand{\sw@fit}[1]{\setbox\z@\hbox{\fontsize{11bp}{12bp}\selectfont #1}%
+  \ifdim\wd\z@>\textwidth \resizebox{\textwidth}{!}{\box\z@}\else\box\z@\fi}
+% the mark total for the question, read from \examq so there is one number
+\makeatother
+
+% ---- the question body ----------------------------------------------
+%  Each element carries two numbers measured off the official paper: how far
+%  its baseline sits below the one above it, and the column it starts in.
+%  Blank working space needs no macro of its own - it is simply a larger
+%  distance to the next element.
+\makeatletter
+\gdef\sw@hang{0}
+%  a paragraph whose later lines line up under a phrase in the first
+\newcommand{\hang}[1]{\par\gdef\sw@hang{#1}}
+\newcommand{\sw@place}[3]{\par\swnb
+  \leftskip=\dimexpr #2bp-49.6bp\relax
+  \rightskip=\dimexpr 548.9bp-#3bp\relax
+  \@totalleftmargin=\leftskip
+  \linewidth=\dimexpr\textwidth-\leftskip-\rightskip\relax
+  \ifsw@pending \sw@puthead{#1}{16}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth-\ht\strutbox\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{\dimexpr #1bp-\ht\strutbox\relax}
+  \else \vskip\dimexpr #1bp-\prevdepth-\ht\strutbox\relax\fi\fi
+  \ifdim\sw@hang bp>0pt \hangindent=\sw@hang bp\relax\hangafter=1\relax\fi
+  \gdef\sw@hang{0}%
+  \nointerlineskip\noindent\strut\ignorespaces}
+% \prevdepth carries across \newpage, so the first element of a page would be
+% spaced from the last line of the page before.  This resets it, which also
+% tells \sw@place to set the distance from the top of the text area instead.
+\newcommand{\pagestart}{\par\prevdepth=-1000pt\relax\marks5{}}
+\newcommand{\swat}[1]{\sw@place{#1}{\sw@curx}{545.7}}
+\def\sw@curx{72.3}
+% a line of text starting in column #2
+% no \par at the end: the next element's \sw@place closes the paragraph,
+% so a line held back by \linebreak stays part of it
+\newcommand{\row}[3]{\sw@place{#1}{#2}{545.7}#3}
+% a label hanging #1 bp to the left of the text it belongs to
+\newcommand{\lab}[2]{\llap{\makebox[#1bp][l]{\strut #2}}\ignorespaces}
+% the paper's dotted answer line: 3.058bp between dots, as measured
+\def\swdots{\leavevmode\cleaders\hb@xt@ 3.058bp{\hss.\hss}\hfill\kern\z@}
+%   \dotline{gap}{from}{before the dots}{after them}{to}
+%   These macros print nothing, so each one starts with \par: otherwise the
+%   line break after it in the source would leave a space at the end of the
+%   paragraph before, and a full line would be squeezed to make room for it.
+%   \dotgrid{first dot}{last dot}{pitch}, given just before a \dotline, sets
+%   its dots where the paper prints them: on the paper's own grid, stopping at
+%   the last whole dot before the unit.  The unit then ends 5.5bp before the
+%   mark, and the mark ends at the right margin.
+\newif\ifsw@grid
+\newcommand{\dotgrid}[3]{\par\gdef\sw@gfirst{#1}\gdef\sw@glast{#2}\gdef\sw@gpitch{#3}%
+  \global\sw@gridtrue}
+\def\sw@post#1[#2]#3\sw@nil{%
+  \ifx\relax#1\relax\else{\ignorespaces#1\unskip}\fi
+  \ifx\relax#2\relax\else\kern5.5bp[#2]\fi}
+\newcommand{\dotline}[5]{\sw@place{#1}{#2}{#5}%
+  \ifsw@grid\global\sw@gridfalse
+    \rlap{\kern\dimexpr\sw@gfirst bp-#2bp\relax
+      \hbox to\dimexpr\sw@glast bp-\sw@gfirst bp+\sw@gpitch bp+0.5bp\relax
+        {\leaders\hbox to\sw@gpitch bp{.\hss}\hfill}}%
+    #3\hfill\sw@post#4[]\sw@nil
+  \else
+    \ifx\relax#3\relax\else#3\kern3.4bp\fi\swdots
+    \ifx\relax#4\relax\else\kern3.4bp#4\fi
+  \fi}
+% the mark for a part, set where the paper sets it.  Marks live only inside
+% these macros, never as loose text, so the site can count them.
+\newcommand{\swmark}[1]{\unskip\nobreak\hfill\mbox{#1}}
+\newcommand{\qmark}[2]{\sw@place{#1}{49.6}{545.7}\hfill\mbox{#2}}
+% the question total, taken from \examq so the number is written once
+\newcommand{\total}[1]{\sw@place{#1}{49.6}{545.7}\hfill\mbox{[T\kern-1.22bp otal:\ \swmarks]}}% the paper kerns "To"
+\newcommand{\gap}[1]{\par\vspace{#1bp}}
+\makeatother
+
+% ---- mathematics, placed piece by piece -----------------------------
+%  A line of mathematics - fractions, radicals, symbols set apart - is set as
+%  a \freerow: every run of letters is placed where the paper prints it,
+%  measured in bp from the column at 49.6bp and from the row's baseline (up is
+%  positive); fraction bars and the strokes of a radical sign are drawn where
+%  the paper draws them; and a glyph no free font has (a stretched bracket,
+%  MathType's own symbols) is cut out of the official PDF at its exact place.
+\makeatletter
+\newcommand{\freerow}[2]{\sw@place{#1}{49.6}{545.7}#2}
+\newcommand{\at}[3]{\rlap{\kern\dimexpr #1bp-49.6bp\relax\raisebox{#2bp}[0pt][0pt]{#3}}}
+\newcommand{\ruleat}[4]{\rlap{\kern\dimexpr #1bp-49.6bp\relax
+  \raisebox{\dimexpr #3bp-#4bp/2\relax}[0pt][0pt]{\rule{\dimexpr #2bp-#1bp\relax}{#4bp}}}}
+%  \swpath{style}{path}{clip}: a drawing, drawn through the paper's own
+%  clipping path when it has one (a radical sign is a thick stroke clipped to
+%  the sign's outline)
+\newcommand{\swpath}[3]{\rlap{\begin{tikzpicture}[overlay,x=1bp,y=1bp,baseline=0pt]
+  \begin{scope}#3\path[#1] #2;\end{scope}\end{tikzpicture}}}
+\newcommand{\swglyph}[2]{\swclip{#1}{#2}}
+% how far a band of mathematics hangs below its first baseline
+\newcommand{\swdepth}[1]{\vrule width\z@ height\z@ depth#1bp\relax}
+\makeatother
+% a glyph from the real Symbol font, by its code: \swsy{70} is pi
+\newcommand{\swsy}[1]{{\usefont{U}{psy}{m}{n}\char"#1\relax}}
+
+% ---- figures, clipped out of the official PDF at compile time --------
+%   \qfig{page}{l b r t}{caption}{above}{below}{left}
+%   above = bp from the previous baseline down to the top of the figure
+%   left  = the figure's left edge on the official page
+\newcommand{\srcpdf}{5054_s16_qp_22.pdf}
+\newcommand{\swclip}[3][]{%
+  \IfFileExists{\srcpdf}{\includegraphics[page=#2,trim=#3,clip,#1]{\srcpdf}}%
+  {\fbox{\parbox[c][22mm][c]{0.45\textwidth}{\centering\ttfamily\footnotesize
+    source PDF missing:\\\detokenize\expandafter{\srcpdf}}}}}
+\makeatletter
+\newcommand{\qfig}[7][]{\par\swnb\begingroup\setlength{\parskip}{0pt}%
+  \ifsw@pending \sw@puthead{#5}{12}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{#5bp}
+  \else \vskip\dimexpr #5bp-\prevdepth\relax\fi\fi
+  \nointerlineskip
+  \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+    \hspace*{\dimexpr #7bp-49.6bp\relax}\swclip[#1]{#2}{#3}\hfil}\par
+  \ifx\relax#4\relax\else
+    \vskip #6bp\relax\nointerlineskip
+    \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+      \makebox[\textwidth][c]{\textbf{#4}}}\par
+  \fi\endgroup}
+\makeatother
+
+% ---- the School Wits head -------------------------------------------
+%  The official paper leaves the top of the page empty apart from a centred
+%  page number, which we move to the foot. The head is built inside that
+%  margin, so the question area below it never moves.
+\newlength{\swlogoht}\setlength{\swlogoht}{14bp}
+\newlength{\swheadgap}\setlength{\swheadgap}{3bp}
+\newlength{\swqlinenow}% the line actually reserved: none in workbook mode,
+                       % so the logo drops to sit just above the question head
+\newlength{\swqline}\setlength{\swqline}{25.4bp}
+% the head of a question that opens a page sits 16bp above the question's
+% first line, the same as a head set in the gap above a question mid-page
+\newlength{\swheaddrop}\setlength{\swheaddrop}{1.05bp}
+\newcommand{\swlogofile}{3-01.png}
+%  mark then hairline. For the mark on the right instead, use:
+%    \renewcommand{\swlogoalign}{\hfil\swlogo}
+\newcommand{\swlogoalign}{\swlogo\hspace{13bp}%
+  \color{swrule}\leaders\hbox{\vrule height0.52\swlogoht depth-0.48\swlogoht width1bp}\hfil}
+\newcommand{\swlogo}{%
+  \IfFileExists{\swlogofile}%
+    {\includegraphics[height=\swlogoht]{\swlogofile}}%
+    {{\usefont{T1}{ptm}{b}{sc}\fontsize{11.5bp}{11.5bp}\selectfont School Wits}}}
+\gdef\swrunhead{}
+\makeatletter
+% The logo band always sits in the top margin at the same place.  The line
+% under it is optional: with \swrunhead empty the space is simply left blank,
+% so the logo and the body below it never move.
+\newcommand{\swheadblock}{%
+  % the head of a question that opens the page, pinned to the header's
+  % baseline: its own baseline lands 16bp above the question's first line
+  \rlap{\raisebox{-\swheaddrop}[\z@][\z@]{\sw@fit{\botmarks5}}}%
+  \parbox[b][\dimexpr\swlogoht+\swheadgap+\swqline\relax][t]{\textwidth}{%
+    \hb@xt@\textwidth{\swlogoalign}}}
+\makeatother
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\swheadblock}
+\fancyfoot[C]{\ftsize\thepage}
+
+\begin{document}
+\normalsize
+% ------------------------------------------------------- HEADER MODE --
+\swwebtrue     % website build: this is the WEB file
+% ----------------------------------------------------------------------
+\gdef\swrunhead{}
+\pagestart
+\row{0.6}{272.2}{\textbf{Section A}}
+\qfig{2}{121.98bp 737.96bp 121.56bp 88.60bp}{}{15.4}{0}{121.98}
+\examq{5054/22/M/J/16}{1}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics}{5}
+\row{34.2}{72.3}{\lab{22.7}{\textbf{1 }}Fig. 1.1 shows the speed-time graph f\kern-0.33bp or a car travelling along a horizontal road.}
+\qfig{2}{118.02bp 526.08bp 120.48bp 153.96bp}{}{15.8}{0}{118.02}
+\row{14.1}{401.7}{time\,/\,s}
+\row{30.4}{278.9}{\textbf{Fig. 1.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}On Fig. 1.1, mark and label a point where the car has a non-unif\kern-0.33bp orm deceleration.\swmark{[1]}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Calculate the deceleration of the car at {\itshape t }= 3.0\,s.}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{104.0}{277.9}{deceleration =}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}Explain, in terms of the horizontal f\kern-0.33bp orces that act on the car\kern-0.55bp , wh\kern-0.33bp y its speed is constant at\linebreak}
+{\itshape t }= 1.0\,s.
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{2}{Work Energy and Power}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{2 }}Fig. 2.1 shows an electric motor lifting a load.}
+\qfig{3}{197.94bp 611.57bp 200.76bp 90.43bp}{}{17.2}{0}{197.94}
+\row{26.0}{278.9}{\textbf{Fig. 2.1}}
+\row{26.0}{72.3}{The load, of weight 5.0\,N, is raised through a ver\kern0.44bp tical height of 3.5\,m at a constant speed.\newline}
+The efficiency of the electric motor is 0.65 (65\%).
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Calculate the increase in gravitational potential energy of the load.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{78.0}{197.5}{gravitational potential energy =}{[2]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{45.3}{\textbf{(b)}}\lab{21.7}{\textbf{(i) }}State the f\kern-0.33bp ormula that relates efficiency\kern-1.10bp , energy input and useful energy output.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Calculate the energy input to the motor\kern-0.55bp .}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{104.0}{277.2}{energy input =}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}Suggest one reason wh\kern-0.33bp y the efficiency of the motor is less than 1.0 (100\%).}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.4}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{3}{Deformation \textperiodcentered\ Mass Weight and Density}{5}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{3 }}A student has three springs A, B and C\kern-0.33bp . He measures the length of each spring, in turn, when\linebreak}
+diff\kern-0.33bp erent weights are placed on the end of each spring.
+\row{26.0}{72.3}{His table of results is shown in Fig. 3.1.}
+\qfig{4}{124.86bp 572.93bp 124.44bp 122.59bp}{}{10.4}{0}{124.86}
+\row{23.1}{278.9}{\textbf{Fig. 3.1}}
+\partbreak
+\row{26.0}{117.6}{\lab{45.3}{\textbf{(a)}}\lab{21.7}{\textbf{(i) }}State which spring has been stretched past the limit of propor\kern0.44bp tionality\kern-1.10bp .}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Using data from Fig. 3.1, e\kern-0.33bp xplain how you obtained your ans\kern-0.33bp wer to \textbf{(a)(i)}.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\qmark{13.0}{[2]}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}Calculate the unstretched length of spring A.}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{93.3}{247.2}{unstretched length =}{[1]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Describe how the student can use spring A to determine the mass of a small rock.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{4}{Thermal Properties \& Temperature \textperiodcentered\ Kinetic Model of Matter}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{4 }}A beaker is filled with water and placed on a hot-plate to boil, as shown in Fig.\,4.1.\,The hot-plate is\linebreak}
+on top of a balance, which measures the mass of water in the beaker\kern-0.55bp .
+\qfig{5}{178.86bp 596.05bp 181.32bp 99.83bp}{}{13.6}{0}{178.86}
+\row{23.7}{278.9}{\textbf{Fig. 4.1}}
+\row{26.0}{72.3}{The liquid boils f\kern-0.33bp or a long time.\,There are bubbles within the boiling water\kern-0.55bp .}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}State what is inside each bubble.}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}The mass of water is measured at two diff\kern-0.33bp erent times, while the water is boiling steadily\kern-1.10bp .}
+\row{26.0}{94.9}{During this time}
+\row{26.0}{117.6}{\lab{22.7}{•}the mass of water in the beaker decreases by 20\,g}
+\row{13.0}{117.6}{\lab{22.7}{•}the energy supplied to the hot-plate is 52\,000\,J}
+\row{13.0}{117.6}{\lab{22.7}{•}the energy lost from the hot-plate and beaker to the atmosphere is 6000\,J}
+\row{26.0}{94.9}{Calculate the specific latent heat of vaporisation of water\kern-0.55bp .}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{130.0}{246.6}{specific latent heat =}{[3]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}The beaker of water is taken off the hot-plate.\,The boiling stops but e\kern-0.33bp vaporation still continues\linebreak}
+and the water cools.
+\row{26.0}{94.9}{Explain, using ideas about molecules, how e\kern-0.33bp vaporation causes cooling.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{5}{Light (Reflection/Refraction/Lenses)}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{5 }}A person can f\kern-0.33bp ocus clearly on objects that are f\kern-0.33bp ar awa\kern-0.33bp y\kern-1.10bp , but near objects appear blurred.}
+\row{26.0}{72.3}{Fig. 5.1 shows three ra\kern-0.33bp ys from a point on a near object as they pass through the person'\kern-0.55bp s eye.\linebreak}
+The refraction of the light as it enters the eye is ignored.
+\qfig{6}{171.30bp 603.53bp 173.76bp 127.27bp}{}{15.1}{0}{171.30}
+\row{25.8}{278.9}{\textbf{Fig. 5.1}}
+\partbreak
+\row{26.0}{117.6}{\lab{45.3}{\textbf{(a)}}\lab{21.7}{\textbf{(i) }}State the name of the eye def\kern-0.33bp ect shown in Fig. 5.1.}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Explain what causes the image of the near object to appear blurred.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}A lens is used to correct the def\kern-0.33bp ect.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}On Fig. 5.2, draw a suitable lens placed in front of the eye and continue the path of the\linebreak}
+three ra\kern-0.33bp ys to the back of the eye.
+\qfig{6}{170.22bp 212.45bp 168.00bp 500.71bp}{}{15.4}{0}{170.22}
+\row{25.6}{278.9}{\textbf{Fig. 5.2 }\swmark{[2]}}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}State what type of lens is used.}
+\dotgrid{119.91}{529.69}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.4}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{6}{Electromagnetic Spectrum}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{6 }}Fig. 6.1 shows some of the colours in the visible par\kern0.44bp t of the electromagnetic spectrum.}
+\qfig{7}{132.06bp 730.01bp 131.64bp 83.59bp}{}{10.4}{0}{132.06}
+\row{23.2}{278.9}{\textbf{Fig. 6.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}State which colour in Fig. 6.1 has}
+\dotgrid{260.58}{447.12}{3.0580}
+\dotline{26.0}{95.9}{\textbf{(i)\kern11.34bp }the largest wavelength,}{[1]}{545.6}
+\dotgrid{260.58}{447.12}{3.0580}
+\dotline{26.0}{92.8}{\textbf{(ii)\kern11.34bp }the highest frequency\kern-1.10bp .}{[1]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Visible light, infra-red, ultra-violet and radio waves are f\kern-0.33bp our components of the electromagnetic\linebreak}
+spectrum.
+\row{26.0}{94.9}{State two other components of the electromagnetic spectrum and describe a diff\kern-0.33bp erent use\linebreak}
+that is made of each component.
+\dotgrid{168.84}{541.92}{3.0580}
+\dotline{26.0}{94.9}{1.\kern5.46bp component}{}{545.0}
+\dotgrid{187.19}{541.92}{3.0580}
+\dotline{26.0}{94.9}{description of use}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{168.84}{541.92}{3.0580}
+\dotline{26.0}{94.9}{2.\kern5.46bp component}{}{545.0}
+\dotgrid{187.19}{541.92}{3.0580}
+\dotline{26.0}{94.9}{description of use}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\qmark{13.0}{[4]}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{7}{Electric Charge}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{7 }}An uncharged piece of metal P rests on an insulator\kern-0.55bp . A positively charged rod is placed close to P\kern-1.98bp ,\linebreak}
+as shown in Fig. 7.1.
+\qfig{8}{93.18bp 642.13bp 93.48bp 103.07bp}{}{16.9}{0}{93.18}
+\row{25.7}{278.9}{\textbf{Fig. 7.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}State a material that is an electrical insulator\kern-0.55bp .}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}On Fig. 7.1, draw the distribution of charges on P\kern-1.98bp .\swmark{[2]}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}P is then connected to ear\kern0.44bp th by a wire, as shown in Fig. 7.2.}
+\qfig{8}{76.62bp 374.25bp 79.08bp 346.83bp}{}{17.2}{0}{76.62}
+\row{25.9}{278.9}{\textbf{Fig. 7.2}}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i)}}On Fig. 7.2, show the distribution of charges on P with the ear\kern0.44bp th wire connected.\swmark{[1]}}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}State what happens to the charges on P if the positively charged rod is removed}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{1.}}with the ear\kern0.44bp th wire still connected to P\kern-1.98bp ,}
+\dotgrid{141.32}{541.92}{3.0580}
+\dotline{26.0}{140.3}{}{}{545.0}
+\dotgrid{141.32}{529.68}{3.0580}
+\dotline{26.0}{140.3}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{2.}}after the ear\kern0.44bp th wire is disconnected from P\kern-1.98bp .}
+\dotgrid{141.32}{541.92}{3.0580}
+\dotline{26.0}{140.3}{}{}{545.0}
+\dotgrid{141.32}{529.68}{3.0580}
+\dotline{26.0}{140.3}{}{[1]}{545.4}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{8}{Electro Magnetism / Electromagnetic Induction \textperiodcentered\ Electric Circuits}{5}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{8 }}A transf\kern-0.33bp ormer and a diode are used to charge a batter\kern0.33bp y\kern-1.10bp .}
+\row{26.0}{72.3}{Fig. 8.1 shows the transf\kern-0.33bp ormer\kern-0.55bp , which contains a soft-iron core and two coils.}
+\row{27.4}{362.6}{diode}
+\qfig{9}{109.38bp 593.14bp 111.84bp 120.72bp}{}{-5.9}{0}{109.38}
+\row{25.7}{278.9}{\textbf{Fig. 8.1}}
+\row{26.0}{72.3}{The primar\kern0.33bp y coil is connected to the 240\kern0.83bp V a.c. mains supply\kern-1.10bp . The secondar\kern0.33bp y coil is connected in\linebreak}
+series with the diode and the batter\kern0.33bp y\kern-1.10bp .
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Explain wh\kern-0.33bp y an electromotive f\kern-0.33bp orce (e.m.f\kern-0.33bp .) is induced in the secondar\kern0.33bp y coil.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}The e.m.f\kern-0.33bp . induced in the secondar\kern0.33bp y coil is less than 240\kern0.83bp V\kern-1.38bp .}
+\row{26.0}{94.9}{Suggest wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}Suggest wh\kern-0.33bp y steel is not used as the core of a transf\kern-0.33bp ormer\kern-0.55bp .}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(d)}}Describe the action of the diode.}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.4}
+\newpage
+\pagestart
+\row{0.6}{272.2}{\textbf{Section B}}
+\qfig{10}{121.26bp 737.96bp 120.84bp 88.24bp}{}{15.0}{0}{121.26}
+\examq{5054/22/M/J/16}{9}{Electric Circuits \textperiodcentered\ Electrical Quantities}{15}
+\row{21.2}{72.3}{\lab{22.7}{\textbf{9 }}Fig. 9.1 is a circuit diagram.}
+\qfig{10}{201.90bp 617.20bp 201.48bp 142.40bp}{}{17.2}{0}{201.90}
+\row{25.8}{278.9}{\textbf{Fig. 9.1}}
+\row{26.0}{72.3}{The electromotive f\kern-0.33bp orce (e.m.f\kern-0.33bp .) of the batter\kern0.33bp y is 12\kern0.83bp V\kern-1.38bp .}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Explain what is meant by {\itshape electromotive f\kern-0.33bp orce}.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}An 18\,\ohms{} resistor and a 30\,\ohms{} resistor are connected in series with the batter\kern0.33bp y\kern-1.10bp .}
+\partbreak
+\row{26.0}{140.3}{\lab{44.4}{\textbf{(i) }}\lab{22.7}{\textbf{1.}}State the relationship between the current \makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}\sub{B} in the batter\kern0.33bp y\kern-1.10bp , the current \makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}\sub{1} in the 18\,\ohms{}\linebreak}
+resistor and the current \makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}\sub{2} in the 30\,\ohms{} resistor\kern-0.55bp .
+\dotgrid{141.32}{529.68}{3.0580}
+\dotline{26.0}{140.3}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{2.}}State an equation that relates the e.m.f\kern-0.33bp . {\itshape E }of the batter\kern0.33bp y\kern-1.10bp , the potential diff\kern-0.33bp erence {\itshape V}\sub{1}\linebreak}
+across the 18\,\ohms{} resistor and the potential diff\kern-0.33bp erence {\itshape V}\sub{2} across the 30\,\ohms{} resistor\kern-0.55bp .
+\dotgrid{141.32}{529.68}{3.0580}
+\dotline{26.0}{140.3}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Calculate the current in the batter\kern0.33bp y\kern-1.10bp .}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{78.0}{303.5}{current =}{[2]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}Calculate the potential diff\kern-0.33bp erence (p\kern-0.38bp .d.) across the 18\,\ohms{} resistor\kern-0.55bp .}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{106.3}{320.4}{p\kern-0.38bp .d. =}{[1]}{545.4}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{117.6}{\lab{27.8}{\textbf{(iv) }}Calculate the power produced in the 18\,\ohms{} resistor\kern-0.55bp .}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{106.4}{308.1}{power =}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}The resistors obey Ohm'\kern-0.55bp s law\kern-0.66bp .}
+\row{26.0}{94.9}{State Ohm'\kern-0.55bp s law and describe one limitation on this law\kern-0.66bp .}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(d)}}The resistors are made from the same material, but have diff\kern-0.33bp erent cross-sectional areas and\linebreak}
+diff\kern-0.33bp erent lengths.
+\row{26.0}{94.9}{State the relationship between}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}the resistance {\itshape R }and the length \textbf{l }of a wire of constant cross-sectional area,}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}the resistance {\itshape R }and the cross-sectional area {\itshape A }of a wire of constant length.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\qmark{13.0}{[2]}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(e)}}A resistor is shown in Fig. 9.2 and par\kern0.44bp t of the resistor colour code is shown in Fig. 9.3.}
+\qfig{11}{105.06bp 172.27bp 79.44bp 533.69bp}{}{16.1}{0}{105.06}
+\row{20.7}{94.9}{State the colour of the bands on the 30\,\ohms{} resistor\kern-0.55bp .}
+\dotgrid{352.32}{541.92}{3.0580}
+\dotline{26.0}{292.5}{first band =}{}{545.0}
+\dotgrid{352.32}{541.92}{3.0580}
+\dotline{26.0}{274.7}{second band =}{}{545.0}
+\dotgrid{352.32}{541.92}{3.0580}
+\dotline{26.0}{288.8}{third band =}{}{545.0}
+\qmark{13.0}{[2]}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{10}{Uses of Oscilloscope \textperiodcentered\ Sound}{15}
+\partbreak
+\row{0.6}{94.9}{\lab{45.3}{\textbf{10}}\lab{22.6}{\textbf{(a)}}Fig. 10.1 shows the basic structure of a cathode-ra\kern-0.33bp y oscilloscope (c.r\kern-0.55bp .o\kern-0.44bp .).}
+\qfig{12}{73.02bp 550.37bp 72.60bp 88.27bp}{}{15.1}{0}{73.02}
+\row{26.1}{275.8}{\textbf{Fig. 10.1}}
+\row{26.0}{94.9}{Electrons strike the middle of the screen and a bright spot is produced.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}On Fig. 10.1, write the names of par\kern0.44bp ts B, D\kern-0.77bp , E and F in the spaces provided.\swmark{[3]}}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}State the pur\kern0.33bp pose of}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{1. }}par\kern0.44bp t B,}
+\dotgrid{141.32}{541.92}{3.0580}
+\dotline{26.0}{140.3}{}{}{545.0}
+\dotgrid{141.32}{529.68}{3.0580}
+\dotline{26.0}{140.3}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{2.}}par\kern0.44bp t D\kern-0.77bp .}
+\dotgrid{141.32}{541.92}{3.0580}
+\dotline{26.0}{140.3}{}{}{545.0}
+\dotgrid{141.32}{529.68}{3.0580}
+\dotline{26.0}{140.3}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}State the useful energy change that occurs as electrons hit the screen of the c.r\kern-0.55bp .o\kern-0.44bp .}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iv) }}Describe what happens inside the c.r\kern-0.55bp .o\kern-0.44bp . to turn the spot into a horizontal line.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.4}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{94.9}{\lab{22.6}{\textbf{(b)}}A microphone is connected to a c.r\kern-0.55bp .o\kern-0.44bp . to displa\kern-0.33bp y a sound wave.}
+\row{26.0}{94.9}{Fig. 10.2 shows the trace on the c.r\kern-0.55bp .o\kern-0.44bp .}
+\qfig{13}{158.34bp 529.12bp 162.24bp 113.55bp}{}{14.3}{0}{158.34}
+\row{9.4}{322.5}{1 division}
+\row{30.4}{275.8}{\textbf{Fig. 10.2}}
+\row{26.0}{94.9}{The settings on the c.r\kern-0.55bp .o\kern-0.44bp . are:\,Y\kern-1.54bp -gain 0.5\kern0.83bp V\,/\,division; time base 2.0\,ms\,/\,division.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}Determine}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{1. }}the maximum voltage,}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{52.0}{302.5}{voltage =}{[1]}{545.4}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{2. }}the time f\kern-0.33bp or one oscillation,}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{78.0}{317.0}{time =}{[2]}{545.4}
+\partbreak
+\row{26.0}{140.3}{\lab{22.7}{\textbf{3. }}the frequency of the sound wave.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{78.0}{289.4}{frequency =}{[2]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}The settings of the c.r\kern-0.55bp .o\kern-0.44bp .\,remain the same.\,On Fig.\,10.2, sketch the trace of a sound wave\linebreak}
+with a smaller amplitude and a lower frequency\kern-1.10bp .\swmark{[2]}
+\newpage
+\pagestart
+\examq{5054/22/M/J/16}{11}{The Nuclear Atom \textperiodcentered\ Radioactivity \textperiodcentered\ The Stars \& Universe}{15}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{11}}Fig. 11.1 represents a nuclear fusion reaction.}
+\row{27.4}{412.2}{par\kern0.44bp ticle B}
+\qfig{14}{133.50bp 582.98bp 162.24bp 102.44bp}{}{1.8}{0}{133.50}
+\row{25.8}{275.8}{\textbf{Fig. 11.1}}
+\row{26.0}{72.3}{At ver\kern0.33bp y high temperatures, nuclei of the two isotopes\kern2.95bp \stack[3.80/3.90/8.25]{2}{1}H and\kern2.95bp \stack[3.80/3.90/8.25]{3}{1}H fuse together\kern-0.55bp . Energy is produced\linebreak}
+and two new par\kern0.44bp ticles are f\kern-0.33bp ormed, par\kern0.44bp ticle A and par\kern0.44bp ticle B.
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Explain what is meant by {\itshape isotopes }of h\kern-0.33bp ydrogen.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Using Fig. 11.1, state}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{95.9}{\textbf{(i)\kern11.34bp }the number of neutrons in a nucleus of the isotope\kern3.03bp \stack[3.80/3.90/8.25]{3}{1}H,}{}{517.5}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{92.8}{\textbf{(ii)\kern11.34bp }the name of par\kern0.44bp ticle A,}{}{517.5}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{89.8}{\textbf{(iii)\kern11.34bp }the proton number of par\kern0.44bp ticle B,}{}{517.5}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{89.8}{\textbf{(iv)\kern11.34bp }the nucleon number (mass number) of par\kern0.44bp ticle B.}{}{517.5}
+\qmark{13.0}{[4]}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}A ver\kern0.33bp y high temperature is needed to f\kern-0.33bp orce nuclei together\kern-0.55bp .}
+\row{26.0}{94.9}{Explain wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{94.9}{\lab{22.6}{\textbf{(d)}}A star f\kern-0.33bp orms from a large cloud of gas and dust in space.}
+\row{26.0}{94.9}{Describe what happens as the star f\kern-0.33bp orms.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[3]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(e)}}The isotope of h\kern-0.33bp ydrogen\kern3.03bp \stack[3.80/3.90/8.25]{3}{1}H has a half-lif\kern-0.33bp e of 12 years.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}State what is meant by {\itshape half-lif\kern-0.33bp e}.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}A sample contains 16\,000 atoms of\kern3.02bp \stack[3.80/3.90/8.25]{3}{1}H.}
+\row{26.0}{117.6}{Calculate the number of atoms of\kern3.03bp \stack[3.80/3.90/8.25]{3}{1}H present in the sample after 48 years.}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{169.0}{300.6}{number =}{[2]}{545.4}
+\end{document}

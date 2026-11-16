@@ -1,0 +1,720 @@
+% =====================================================================
+%  School Wits - Cambridge O Level Physics 5054
+%  Paper 1 (Multiple Choice), 5054/12/M/J/16
+%
+%  Keep 5054_s16_qp_12.pdf and 3-01.png beside this file (upload both to Overleaf). Nothing else is
+%  needed: the diagrams and tables are clipped out of the
+%  official PDF by pdflatex itself, at the exact size and position they have
+%  in the original.
+%
+%  Build modes - uncomment one line inside the document:
+%     \swwbtrue     the printed workbook head
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[paperwidth=595bp, paperheight=842bp,
+            left=49.6bp, right=46.3bp,
+            top=62.46bp, textheight=728bp,
+            head=42.4bp, headsep=7bp, footskip=30bp]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}\renewcommand{\familydefault}{\sfdefault}
+% Word sets the paper's Arial with neither ligatures nor pair kerning, so both
+% are switched off here: "fl" stays two letters and "Tr" is not tucked in.
+% Nimbus Sans then has Arial's advances exactly, letter for letter.
+\usepackage[protrusion=false,expansion=false,kerning=false,spacing=false,tracking=false]{microtype}
+\DisableLigatures{encoding = *, family = *}
+\usepackage{amsmath}\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{calc}
+\definecolor{swrule}{gray}{0.62}
+
+% The paper sets its body at 10.98bp on a 12.65bp baseline.  The class would
+% reset both at \begin{document}, so \normalsize is pinned to the measurement.
+\makeatletter
+\renewcommand\normalsize{\@setfontsize\normalsize{10.98bp}{12.65bp}%
+  \abovedisplayskip\z@ \belowdisplayskip\z@
+  \abovedisplayshortskip\z@ \belowdisplayshortskip\z@}
+\makeatother
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\linespread{1}\normalbaselineskip=12.65bp \baselineskip=12.65bp
+\lineskiplimit=-\maxdimen \lineskip=0pt
+\makeatletter\def\@listi{\leftmargin\leftmargini}\makeatother
+\setlength{\topskip}{10.04bp}
+\clubpenalty=10000 \widowpenalty=10000
+\hyphenpenalty=10000 \exhyphenpenalty=10000 \tolerance=4000 \emergencystretch=0pt
+%  The paper's word space, measured: 3.05bp, stretching by up to
+%  6.3bp and shrinking by up to 0.06bp to justify a line.
+\frenchspacing
+\spaceskip=3.05bp plus 6.3bp minus 0.06bp
+\xspaceskip=3.05bp plus 6.3bp minus 0.06bp
+\hbadness=10000
+
+% ---- symbols, set the way the paper sets them ------------------------
+\newcommand{\ftsize}{\fontsize{8bp}{9bp}\selectfont}
+\newcommand{\ohms}{{\usefont{U}{psy}{m}{n}W}}
+\newcommand{\dg}{{\usefont{U}{psy}{m}{n}\char"B0\relax}}
+\newcommand{\degC}{\dg C}
+\newcommand{\x}{\ensuremath{\times}}
+% super- and subscripts as the paper sets them: 7.02bp, 4.98bp up or 1.5bp down
+\newcommand{\pow}[1]{\raisebox{4.98bp}[0pt][0pt]{\fontsize{7.02bp}{7.02bp}\selectfont #1}}
+\newcommand{\sub}[1]{\raisebox{-1.5bp}[0pt][0pt]{\fontsize{7.02bp}{7.02bp}\selectfont #1}}
+% a glyph from the real Symbol font, by its code: \swsy{70} is pi
+\newcommand{\swsy}[1]{{\usefont{U}{psy}{m}{n}\char"#1\relax}}
+% the paper's current symbol I, a serifed italic capital set in Verdana:
+% Nimbus Roman italic brought up to Verdana's cap height, on its 4.6bp advance
+\newcommand{\vI}{\makebox[4.6bp][l]{\fontfamily{ptm}\fontsize{12.06bp}{12bp}\selectfont\itshape I}}
+% a few characters the paper sets in another font - Times New Roman for Roman
+% numerals, Bookman italic for a symbol - set in that font's free clone at the
+% paper's size: \swf{ptm}{12.00}{VII}
+\newcommand{\swf}[3]{{\fontfamily{#1}\fontsize{#2bp}{#2bp}\selectfont #3}}
+% the paper's round bullet (Calibri's black circle at body size), drawn with the
+% bullet of Nimbus Sans scaled and lowered to the same ink
+\newcommand{\swbul}{\makebox[6.66bp][l]{\raisebox{-3.36bp}[0pt][0pt]{\kern0.07bp
+  \fontsize{19.02bp}{19bp}\selectfont\textbullet}}}
+% a nuclide: mass and proton numbers right-aligned, 5.4bp up and 3bp down
+\newcommand{\nuc}[2]{{\fontsize{7.02bp}{7.02bp}\selectfont
+  \setbox0=\hbox{#1}\setbox2=\hbox{#2}%
+  \dimen0=\ifdim\wd0>\wd2 \wd0\else\wd2\fi
+  \rlap{\raisebox{5.4bp}[0pt][0pt]{\hbox to\dimen0{\hss\box0}}}%
+  \raisebox{-3bp}[0pt][0pt]{\hbox to\dimen0{\hss\box2}}}}
+%  the paper's thin space inside units, measured: 1.59bp (LaTeX's own is 1.83bp)
+\AtBeginDocument{\renewcommand{\,}{\ifmmode\mskip\thinmuskip\else\kern1.59bp\relax\fi}}
+
+% =====================================================================
+%  TOPIC COLOURS — one definition, read by the chip and by the website
+% =====================================================================
+\definecolor{swDefault}{HTML}{D8DDE4}
+\definecolor{tpMeasure}{HTML}{D44949}
+\definecolor{tpMotion}{HTML}{49A6D4}
+\definecolor{tpForces}{HTML}{D4C249}
+\definecolor{tpMass}{HTML}{9A49D4}
+\definecolor{tpMoments}{HTML}{49D449}
+\definecolor{tpMomentum}{HTML}{D4498F}
+\definecolor{tpDeform}{HTML}{D48F49}
+\definecolor{tpWork}{HTML}{4978D4}
+\definecolor{tpPressure}{HTML}{8FD449}
+\definecolor{tpKinetic}{HTML}{D449D4}
+\definecolor{tpThermalProp}{HTML}{49D4A6}
+\definecolor{tpThermalTx}{HTML}{D46C49}
+\definecolor{tpWaves}{HTML}{6049D4}
+\definecolor{tpLight}{HTML}{C9D449}
+\definecolor{tpEMS}{HTML}{49C9D4}
+\definecolor{tpSound}{HTML}{D4496C}
+\definecolor{tpMagnet}{HTML}{49D478}
+\definecolor{tpCharge}{HTML}{D4AB49}
+\definecolor{tpEQuant}{HTML}{4955D4}
+\definecolor{tpCircuits}{HTML}{D449BD}
+\definecolor{tpPracElec}{HTML}{A12B2B}
+\definecolor{tpEMag}{HTML}{2B7AA1}
+\definecolor{tpScope}{HTML}{A1912B}
+\definecolor{tpNuclear}{HTML}{702BA1}
+\definecolor{tpRadio}{HTML}{2BA12B}
+\definecolor{tpEarth}{HTML}{A12B66}
+\definecolor{tpStars}{HTML}{A1662B}
+
+\makeatletter
+\newcommand{\sw@key}[1]{sw@tc@\expandafter\zap@space\detokenize{#1} \@empty}
+\newcommand{\deftopic}[2]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@deftopic\expandafter{\sw@tmp}{#2}}
+\newcommand{\sw@deftopic}[2]{%
+  \expandafter\xdef\csname\sw@key{#1}\endcsname{#2}}
+\makeatother
+
+\deftopic{Physical Quantities and Measurements}{tpMeasure}
+\deftopic{Motion or Kinematics}{tpMotion}
+\deftopic{Forces or Dynamics}{tpForces}
+\deftopic{Mass Weight and Density}{tpMass}
+\deftopic{Turning Effect of Forces}{tpMoments}
+\deftopic{Momentum (Dynamics)}{tpMomentum}
+\deftopic{Deformation}{tpDeform}
+\deftopic{Work Energy and Power}{tpWork}
+\deftopic{Pressure}{tpPressure}
+\deftopic{Kinetic Model of Matter}{tpKinetic}
+\deftopic{Thermal Properties \& Temperature}{tpThermalProp}
+\deftopic{Transfer of Thermal Energy}{tpThermalTx}
+\deftopic{General Wave Properties}{tpWaves}
+\deftopic{Light (Reflection/Refraction/Lenses)}{tpLight}
+\deftopic{Electromagnetic Spectrum}{tpEMS}
+\deftopic{Sound}{tpSound}
+\deftopic{Simple Magnetism and Magnetic Fields}{tpMagnet}
+\deftopic{Electric Charge}{tpCharge}
+\deftopic{Electrical Quantities}{tpEQuant}
+\deftopic{Electric Circuits}{tpCircuits}
+\deftopic{Practical Electricity / Electrical Safety}{tpPracElec}
+\deftopic{Electro Magnetism / Electromagnetic Induction}{tpEMag}
+\deftopic{Uses of Oscilloscope}{tpScope}
+\deftopic{The Nuclear Atom}{tpNuclear}
+\deftopic{Radioactivity}{tpRadio}
+\deftopic{Earth \& Solar System}{tpEarth}
+\deftopic{The Stars \& Universe}{tpStars}
+
+% =====================================================================
+%  THE HEADER — the ONE thing that differs between the two builds
+% =====================================================================
+\makeatletter
+\def\sw@firstof#1\textperiodcentered#2\@nil{#1}
+\newcommand{\swfirsttopic}[1]{\sw@firstof#1\textperiodcentered\@nil}
+% every topic of a question as its own chip, main topic first, 4bp apart:
+% the list is split where \examq's topics are joined, at "\textperiodcentered\ "
+\newcommand{\topicchips}[1]{\sw@chipsloop#1\textperiodcentered\ \@nil}
+\def\sw@chipsloop#1\textperiodcentered\ #2\@nil{\topicchip{#1}%
+  \if\relax\detokenize{#2}\relax\else\hspace{4bp}\sw@chipsloop#2\@nil\fi}
+\newcommand{\sw@hstrut}{\rule[-3.4bp]{0pt}{14.6bp}}
+\newcommand{\topicchip}[1]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@chip\expandafter{\sw@tmp}}
+%  The chip: a rounded tag in three shades of the topic's own colour - a
+%  tinted fill, a hairline border, and text darkened into the same hue, so it
+%  reads as a label rather than a block of paint.  The box keeps the old
+%  measurements exactly: 9bp above the baseline, 2.9bp below, 4.9bp of air
+%  either side of the text, so nothing around it moves.
+%
+%  Three knobs, if the look wants adjusting:
+%    sw@bg  fill      !60!white is a soft tint; raise towards !100 for solid
+%    sw@bd  border    a lightened version of the text colour
+%    sw@ink text      !45!black keeps it legible on any of the pastels
+%  For a solid chip instead, set sw@bg to sw@base and drop the draw= key.
+\newcommand{\sw@chip}[1]{%
+  \begingroup
+  \edef\sw@col{\ifcsname\sw@key{#1}\endcsname
+      \csname\sw@key{#1}\endcsname\else swDefault\fi}%
+  \colorlet{sw@base}{\sw@col}%
+  \colorlet{sw@ink}{sw@base!45!black}%
+  \colorlet{sw@bg}{sw@base!60!white}%
+  \colorlet{sw@bd}{sw@ink!35!white}%
+  \begin{tikzpicture}[baseline=(swchip.base)]
+    \node[anchor=base, at={(0,0)},
+          inner xsep=4.9bp, inner ysep=0bp,
+          text height=9bp, text depth=2.9bp,
+          rounded corners=2.6bp,
+          fill=sw@bg, draw=sw@bd, line width=0.4bp,
+          text=sw@ink,
+          font=\fontsize{8.6bp}{8.6bp}\selectfont\bfseries] (swchip) {#1\unskip};
+  \end{tikzpicture}%
+  \endgroup}
+
+% =====================================================================
+%  THE QUESTION HEAD
+%  Every question carries \examq{<paper id>}{<number>}{<topics>}{<marks>}.
+%  It is the single source of truth: the website splits the file on it and
+%  filters on the topic list, the contents page groups by the first topic,
+%  and \total reads the marks from it.
+%
+%  Three builds, one file:
+%     (default)    the yearly paper - the head prints NOTHING, so the page
+%                  stays a copy of the official one, page for page
+%     \swwbtrue    the printed workbook - paper id, question number and every
+%                  topic as a colour chip, main topic first; no marks
+%     \swwebtrue   the website - the full line, topics and marks included
+% =====================================================================
+\newif\ifswwb  \swwbfalse
+\newif\ifswweb \swwebfalse
+\makeatletter
+% The workbook and website builds add a head above every question, so a page
+% can no longer hold exactly what the paper's page holds.  In those builds a
+% page may break only before a question head or, in a structured paper,
+% before a part such as (b) or (ii) - never inside a question, between a stem
+% and its options, or between a part and its answer lines.  The yearly build
+% is untouched: there every \swnb is empty and every page break is the paper's.
+\newcommand{\swnb}{\ifswwb\nobreak\interlinepenalty=10000 \else
+  \ifswweb\nobreak\interlinepenalty=10000 \fi\fi}
+\newcommand{\partbreak}{\par\ifswwb\penalty\z@\else\ifswweb\penalty\z@\fi\fi}
+% the paper's page break before a question; in the head builds questions
+% simply follow on, each kept whole
+\newcommand{\swpage}{\par\newpage\pagestart}
+\makeatother
+\makeatletter
+\newcommand{\swsep}{\kern4.2bp\textendash\kern4.2bp}
+\gdef\swpaper{}\gdef\swqnum{}\gdef\swtopics{}\gdef\swmarks{}
+\newcommand{\examq}[4]{\par % ends the paragraph before, so no stray space is left in it
+  \gdef\swpaper{#1}\gdef\swqnum{#2}\gdef\swtopics{#3}\gdef\swmarks{#4}%
+  \ifswwb\sw@qhead{\sw@wbhead{#1}{#2}{#3}}\else
+  \ifswweb\sw@qhead{\sw@webhead{#1}{#2}{#3}{#4}}\fi\fi}
+\newcommand{\sw@wbhead}[3]{{\bfseries #1\swsep Q#2}\hspace{8bp}%
+  \raisebox{0.6bp}{\topicchips{#3}}}
+\newcommand{\sw@webhead}[4]{{\bfseries #1\swsep Q#2\swsep #3\swsep #4}}
+%  The head never takes space from the page, so every page of the workbook and
+%  website builds holds exactly what the paper's page holds.  A question that
+%  opens a page has its head set in the header band, under the logo (passed
+%  there as an e-TeX mark).  A question that starts part-way down a page has
+%  its head set in the gap the paper already leaves above it, 16bp above the
+%  question's first line, so the question stays where the paper puts it.
+\newif\ifsw@pending \sw@pendingfalse
+\newdimen\sw@hd
+\newcommand{\sw@qhead}[1]{%
+  \ifdim\prevdepth<-999pt \marks5{\unexpanded{#1}}%
+  \else \gdef\sw@pending{#1}\global\sw@pendingtrue \fi}
+%  #1 = the measured distance to the next element, #2 = the room it keeps below the head.
+%  The head's baseline goes #2 above the next element; when the paper's gap is
+%  too tight for that (under 29bp), the head sits in the middle of the gap
+%  instead, never closer than 13bp to the line above when there is room for it.
+%  Either way the next element lands exactly where the paper puts it.
+\newdimen\sw@rest
+\def\sw@puthead#1#2{\global\sw@pendingfalse
+  \sw@hd=\dimexpr #1bp-#2bp\relax
+  \ifdim\sw@hd<13bp
+    \sw@rest=\dimexpr #1bp/2\relax
+    \ifdim\sw@rest>13bp \sw@rest=13bp\fi
+    \ifdim\sw@hd<\sw@rest \sw@hd=\sw@rest\fi
+  \fi
+  \global\sw@rest=\dimexpr #1bp-\sw@hd\relax
+  \vskip\dimexpr\sw@hd-\prevdepth-\ht\strutbox\relax
+  \begingroup\leftskip\z@ \rightskip\z@ plus 1fil\@totalleftmargin\z@ \hangindent\z@
+  % the chip is taller than a line of text; it must not push the question down
+  \nointerlineskip\noindent\strut\raisebox{\z@}[\ht\strutbox][\dp\strutbox]{\sw@fit{\sw@pending}}%
+  \par\endgroup}
+%  one line: a head too long for the measure is scaled down to fit it
+\newcommand{\sw@fit}[1]{\setbox\z@\hbox{\fontsize{11bp}{12bp}\selectfont #1}%
+  \ifdim\wd\z@>\textwidth \resizebox{\textwidth}{!}{\box\z@}\else\box\z@\fi}
+% the mark total for the question, read from \examq so there is one number
+\newcommand{\total}{\par\ifswwb\else\ifswweb\else\fi\fi}
+\makeatother
+
+% ---- the question body ----------------------------------------------
+%  Every line of question text hangs 21.3bp in from the margin; the question
+%  number sits out in the margin, exactly as the paper sets it.
+%
+%  Each element carries the distance, in bp, from the baseline of the element
+%  before it down to its own first baseline.  Those numbers are measured off
+%  the official paper, so the page is a copy of it rather than an imitation.
+\makeatletter
+\newlength{\swhang}\setlength{\swhang}{21.3bp}
+\newcommand{\sw@indent}{\leftskip=\swhang \@totalleftmargin=\swhang
+  \linewidth=\dimexpr\textwidth-\swhang\relax}
+% \prevdepth carries across \newpage, so the first element of a page would be
+% spaced from the last line of the page before.  This resets it.
+\newcommand{\pagestart}{\par\prevdepth=-1000pt\relax\marks5{}}
+\newcommand{\swat}[1]{\par\swnb
+  \ifsw@pending \sw@puthead{#1}{16}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth-\ht\strutbox\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{\dimexpr #1bp-\ht\strutbox\relax}
+  \else \vskip\dimexpr #1bp-\prevdepth-\ht\strutbox\relax\fi\fi
+  \ifdim\sw@hang bp>0pt \hangindent=\sw@hang bp\relax\hangafter=1\relax\fi
+  \gdef\sw@hang{0}%
+  \rightskip=3bp\relax
+  \nointerlineskip\noindent\strut\ignorespaces}
+\newcommand{\gap}[1]{\par\vspace{#1bp}}
+%  a paragraph whose later lines line up under a phrase in the first;
+%  it is remembered here and applied inside \swat, after the \par that would
+%  otherwise clear it
+\gdef\sw@hang{0}
+\newcommand{\hang}[1]{\par\gdef\sw@hang{#1}}
+\newcommand{\stem}[2]{\swat{#1}#2}
+\newcommand{\mcq}[3]{\swat{#1}%
+  \llap{\makebox[\swhang][l]{\strut\textbf{#2}}}#3}
+% four options across the page, at the paper's own 99.25bp pitch
+\newlength{\optcolw}\setlength{\optcolw}{99.25bp}
+\newcommand{\optrow}[5]{\swat{#1}%
+  \makebox[\optcolw][l]{\makebox[\swhang][l]{\strut\textbf{A}}#2}%
+  \makebox[\optcolw][l]{\makebox[\swhang][l]{\textbf{B}}#3}%
+  \makebox[\optcolw][l]{\makebox[\swhang][l]{\textbf{C}}#4}%
+  \makebox[\swhang][l]{\textbf{D}}#5\par}
+% options stacked one per line, letter at the question column
+\newcommand{\choice}[3]{\par\begingroup
+  \leftskip=\dimexpr\swhang+\swhang\relax
+  \@totalleftmargin=\dimexpr\swhang+\swhang\relax
+  \linewidth=\dimexpr\textwidth-\swhang-\swhang\relax
+  \swat{#1}%
+  \llap{\makebox[\swhang][l]{\strut\textbf{#2}}}#3\par\endgroup}
+% a passage indented to its own column - a numbered statement, a quotation
+\newcommand{\prow}[3]{\par\begingroup
+  \leftskip=\dimexpr #2bp-49.6bp\relax \@totalleftmargin=\leftskip
+  \linewidth=\dimexpr\textwidth-\leftskip\relax
+  \swat{#1}#3\par\endgroup}
+\newcommand{\plab}[2]{\llap{\makebox[#1bp][l]{#2}}\ignorespaces}
+% an option row built out of fractions: every piece placed where the paper
+% puts it, measured from the baseline of the letters A to D
+\newcommand{\freerow}[2]{\swat{#1}#2}
+% how far a typeset band hangs below its first baseline, so a page knows
+\newcommand{\swdepth}[1]{\vrule width\z@ height\z@ depth#1bp\relax}
+\newcommand{\at}[3]{\rlap{\kern\dimexpr #1bp-70.9bp\relax
+  \raisebox{#2bp}[0pt][0pt]{#3}}}
+\newcommand{\ruleat}[4]{\rlap{\kern\dimexpr #1bp-70.9bp\relax
+  \raisebox{\dimexpr #3bp-#4bp/2\relax}[0pt][0pt]{\rule{\dimexpr #2bp-#1bp\relax}{#4bp}}}}
+\makeatother
+
+% ---- figures, clipped out of the official PDF at compile time --------
+%   \qfig{page}{l b r t}{caption}{above}{below}{left}
+%   above = bp from the previous baseline down to the top of the figure
+%   left  = the figure's left edge on the official page
+\newcommand{\srcpdf}{5054_s16_qp_12.pdf}
+\newcommand{\swclip}[3][]{%
+  \IfFileExists{\srcpdf}{\includegraphics[page=#2,trim=#3,clip,#1]{\srcpdf}}%
+  {\fbox{\parbox[c][22mm][c]{0.45\textwidth}{\centering\ttfamily\footnotesize
+    source PDF missing:\\\detokenize\expandafter{\srcpdf}}}}}
+\makeatletter
+\newcommand{\qfig}[7][]{\par\swnb\begingroup\setlength{\parskip}{0pt}\rightskip=\z@%
+  \ifsw@pending \sw@puthead{#5}{12}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{#5bp}
+  \else \vskip\dimexpr #5bp-\prevdepth\relax\fi\fi
+  \nointerlineskip
+  \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+    \hspace*{\dimexpr #7bp-49.6bp\relax}\swclip[#1]{#2}{#3}\hfil}\par
+  \ifx\relax#4\relax\else
+    \vskip #6bp\relax\nointerlineskip
+    \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+      \makebox[\textwidth][c]{\textbf{#4}}}\par
+  \fi\endgroup}
+\makeatother
+
+% ---- the School Wits head -------------------------------------------
+%  The official paper leaves the top of the page empty apart from a centred
+%  page number, which we move to the foot. The head is built inside that
+%  margin, so the question area below it never moves.
+\newlength{\swlogoht}\setlength{\swlogoht}{14bp}
+\newlength{\swheadgap}\setlength{\swheadgap}{3bp}
+\newlength{\swqlinenow}% the line actually reserved: none in workbook mode,
+                       % so the logo drops to sit just above the question head
+\newlength{\swqline}\setlength{\swqline}{25.4bp}
+% the head of a question that opens a page sits 16bp above the question's
+% first line, the same as a head set in the gap above a question mid-page
+\newlength{\swheaddrop}\setlength{\swheaddrop}{1.05bp}
+\newcommand{\swlogofile}{3-01.png}
+%  mark then hairline. For the mark on the right instead, use:
+%    \renewcommand{\swlogoalign}{\hfil\swlogo}
+\newcommand{\swlogoalign}{\swlogo\hspace{13bp}%
+  \color{swrule}\leaders\hbox{\vrule height0.52\swlogoht depth-0.48\swlogoht width1bp}\hfil}
+\newcommand{\swlogo}{%
+  \IfFileExists{\swlogofile}%
+    {\includegraphics[height=\swlogoht]{\swlogofile}}%
+    {{\usefont{T1}{ptm}{b}{sc}\fontsize{11.5bp}{11.5bp}\selectfont School Wits}}}
+\gdef\swrunhead{}
+\makeatletter
+% The logo band always sits in the top margin at the same place.  The line
+% under it is optional: with \swrunhead empty the space is simply left blank,
+% so the logo and the body below it never move.
+\newcommand{\swheadblock}{%
+  % the head of a question that opens the page, pinned to the header's
+  % baseline: its own baseline lands 16bp above the question's first line
+  \rlap{\raisebox{-\swheaddrop}[\z@][\z@]{\sw@fit{\botmarks5}}}%
+  \parbox[b][\dimexpr\swlogoht+\swheadgap+\swqline\relax][t]{\textwidth}{%
+    \hb@xt@\textwidth{\swlogoalign}}}
+\makeatother
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\swheadblock}
+\fancyfoot[C]{\ftsize\thepage}
+
+\begin{document}
+\normalsize
+% ------------------------------------------------------- HEADER MODE --
+\swwebtrue     % website build: this is the WEB file
+% ----------------------------------------------------------------------
+\gdef\swrunhead{}
+\makeatletter\sw@indent\makeatother
+\pagestart
+\examq{5054/12/M/J/16}{1}{Physical Quantities and Measurements}{1}
+\mcq{0.3}{\textbf{1 }}{A student determines the circumference of a golf ball.}
+\stem{25.3}{Which instrument gives a reading that is the circumference of the golf ball?}
+\choice{23.6}{\textbf{A }}{calipers}
+\choice{21.7}{\textbf{B }}{micrometer}
+\choice{21.6}{\textbf{C }}{rule}
+\choice{21.7}{\textbf{D }}{tape}
+\examq{5054/12/M/J/16}{2}{Forces or Dynamics}{1}
+\mcq{37.9}{\textbf{2 }}{A man pulls a sledge of mass 25\,kg across level ground with a horizontal force of 60\,N.\linebreak}
+A constant force of friction of 20\,N acts on the sledge.
+\stem{25.3}{What is the acceleration of the sledge?}
+\optrow{23.6}{0.63\,m\,/\,s\pow{2}}{1.6\,m\,/\,s\pow{2}}{2.4\,m\,/\,s\pow{2}}{3.2\,m\,/\,s\pow{2}}
+\examq{5054/12/M/J/16}{3}{Forces or Dynamics}{1}
+\mcq{38.0}{\textbf{3 }}{A car moves in a circle at constant speed.}
+\stem{25.3}{What is the direction of the resultant force acting on the car?}
+\qfig{2}{126.30bp 280.36bp 126.74bp 362.60bp}{}{13.1}{0}{126.30}
+\examq{5054/12/M/J/16}{4}{Mass Weight and Density \textperiodcentered\ Forces or Dynamics}{1}
+\mcq{36.46}{\textbf{4 }}{Which property of a body resists change from a state of rest or of motion?}
+\choice{23.6}{\textbf{A }}{density}
+\choice{21.6}{\textbf{B }}{mass}
+\choice{21.7}{\textbf{C }}{volume}
+\choice{21.7}{\textbf{D }}{weight}
+\swpage
+\examq{5054/12/M/J/16}{5}{Mass Weight and Density}{1}
+\mcq{0.3}{\textbf{5 }}{A brick is placed on a newton meter and then on a beam balance.}
+\qfig{3}{122.70bp 567.83bp 121.34bp 87.01bp}{}{14.21}{0}{122.70}
+\stem{23.53}{What is measured by each instrument?}
+\qfig{3}{68.34bp 421.02bp 322.58bp 310.14bp}{}{12.44}{0}{68.34}
+\examq{5054/12/M/J/16}{6}{Turning Effect of Forces}{1}
+\mcq{32.72}{\textbf{6 }}{A uniform plank is pivoted at its mid-point. Two weights are added to the plank, one weight on\linebreak}
+each side of the pivot in the positions shown.
+\qfig{3}{144.66bp 273.29bp 144.02bp 481.63bp}{}{15.33}{0}{144.66}
+\stem{23.59}{A vertical force is applied at point X to balance the plank.}
+\stem{25.3}{What is the size and direction of this force?}
+\qfig{3}{69.78bp 101.18bp 349.22bp 630.34bp}{}{12.74}{0}{69.78}
+\swpage
+\examq{5054/12/M/J/16}{7}{Physical Quantities and Measurements}{1}
+\mcq{0.3}{\textbf{7 }}{Which quantity is a vector?}
+\choice{23.6}{\textbf{A }}{energy}
+\choice{21.7}{\textbf{B }}{force}
+\choice{21.6}{\textbf{C }}{speed}
+\choice{21.7}{\textbf{D }}{time}
+\examq{5054/12/M/J/16}{8}{Work Energy and Power \textperiodcentered\ The Nuclear Atom \textperiodcentered\ The Stars \& Universe}{1}
+\mcq{37.9}{\textbf{8 }}{Which process in the Sun produces energy?}
+\choice{23.7}{\textbf{A }}{burning}
+\choice{21.6}{\textbf{B }}{nuclear fission}
+\choice{21.6}{\textbf{C }}{nuclear fusion}
+\choice{21.7}{\textbf{D }}{radiation}
+\examq{5054/12/M/J/16}{9}{Work Energy and Power}{1}
+\mcq{38.0}{\textbf{9 }}{A 300\,N force is applied to a box to move it up a ramp, as shown.}
+\qfig{4}{177.42bp 361.55bp 177.14bp 339.01bp}{}{13.11}{0}{177.42}
+\stem{23.35}{How much work is done by the force when moving the box from X to Y?}
+\optrow{23.7}{900\,J}{1200\,J}{1500\,J}{3000\,J}
+\examq{5054/12/M/J/16}{10}{Pressure}{1}
+\mcq{37.9}{\textbf{10}}{Four beakers contain the same liquid.}
+\stem{25.3}{At which point is the pressure the greatest?}
+\qfig{4}{106.86bp 134.51bp 106.58bp 604.21bp}{}{13.51}{0}{106.86}
+\swpage
+\examq{5054/12/M/J/16}{11}{Pressure}{1}
+\mcq{0.3}{\textbf{11}}{A block of weight {\itshape W }rests on a side of area {\itshape A}. The gravitational field strength is {\itshape g}.}
+\stem{25.3}{What is the pressure exerted on the ground due to the block?}
+\freerow{24.7}{%
+  \at{292.42}{-0.00}{{\itshape W\kern2.16bp A}}%
+  \at{193.15}{-0.15}{{\itshape W}}%
+  \at{391.61}{-0.17}{{\itshape W}}%
+  \at{70.89}{-7.60}{\textbf{A}}%
+  \at{92.10}{-7.60}{{\itshape W\,A}}%
+  \at{170.11}{-7.60}{\textbf{B}}%
+  \at{269.35}{-7.60}{\textbf{C}}%
+  \at{368.56}{-7.60}{\textbf{D}}%
+  \at{196.30}{-16.84}{{\itshape A}}%
+  \at{394.67}{-16.84}{{\itshape g}}%
+  \at{299.31}{-17.01}{{\itshape g}}%
+  \ruleat{193.35}{205.99}{-4.60}{0.50}%
+  \ruleat{292.59}{312.80}{-4.60}{0.50}%
+  \ruleat{391.80}{404.45}{-4.60}{0.50}%
+  \swdepth{19.21}}
+\examq{5054/12/M/J/16}{12}{Kinetic Model of Matter \textperiodcentered\ Pressure}{1}
+\mcq{57.2}{\textbf{12}}{Water of depth 10\,m exerts a pressure equal to atmospheric pressure.}
+\stem{25.3}{An air bubble rises to the surface of a lake which is 20\,m deep. When the bubble reaches the\linebreak}
+surface, its volume is 6.0\,cm\pow{3}.
+\stem{25.3}{What is the volume of the air bubble at the bottom of the lake?}
+\optrow{23.6}{2.0\,cm\pow{3}}{3.0\,cm\pow{3}\,}{12\,cm\pow{3}}{18\,cm\pow{3}}
+\examq{5054/12/M/J/16}{13}{Kinetic Model of Matter}{1}
+\mcq{38.0}{\textbf{13}}{A gas in a container of fixed volume is heated.}
+\stem{25.3}{What happens to the molecules of the gas?}
+\choice{23.6}{\textbf{A }}{They collide less frequently.}
+\choice{21.6}{\textbf{B }}{They expand.}
+\choice{21.7}{\textbf{C }}{They move faster.}
+\choice{21.7}{\textbf{D }}{They move further apart.}
+\examq{5054/12/M/J/16}{14}{Thermal Properties \& Temperature}{1}
+\mcq{37.9}{\textbf{14}}{The diagram shows two liquid-in-glass thermometers P and Q.}
+\qfig{5}{133.86bp 251.22bp 132.86bp 469.14bp}{}{12.44}{0}{133.86}
+\stem{21.92}{The thermometers are identical except that Q has a capillary tube with a larger internal diameter\linebreak}
+than P.
+\stem{25.3}{Which thermometer has the larger range and which thermometer has the greater sensitivity?}
+\qfig{5}{68.34bp 68.13bp 265.70bp 663.03bp}{}{12.43}{0}{68.34}
+\swpage
+\examq{5054/12/M/J/16}{15}{Transfer of Thermal Energy}{1}
+\mcq{0.3}{\textbf{15}}{A slice of bread is placed under a red-hot electric grill to make toast.}
+\qfig{6}{172.74bp 699.59bp 173.18bp 87.01bp}{}{14.21}{0}{172.74}
+\stem{20.29}{How does heat energy reach the bread?}
+\choice{23.7}{\textbf{A }}{conduction and convection}
+\choice{21.6}{\textbf{B }}{conduction only}
+\choice{21.6}{\textbf{C }}{convection and radiation}
+\choice{21.7}{\textbf{D }}{radiation only}
+\examq{5054/12/M/J/16}{16}{Transfer of Thermal Energy \textperiodcentered\ Kinetic Model of Matter}{1}
+\mcq{38.0}{\textbf{16}}{The diagram shows the inside of a refrigerator.}
+\qfig{6}{228.90bp 425.86bp 227.90bp 302.42bp}{}{13.12}{0}{228.90}
+\stem{20.06}{When the refrigerator is first switched on, what happens to the air near the cooling unit?}
+\qfig{6}{68.34bp 282.88bp 237.26bp 448.64bp}{}{12.44}{0}{68.34}
+\examq{5054/12/M/J/16}{17}{General Wave Properties}{1}
+\mcq{33.08}{\textbf{17}}{A water wave in a ripple tank refracts as it passes from deep water to shallow water.}
+\stem{25.3}{Which properties change as the wave refracts?}
+\choice{23.6}{\textbf{A }}{frequency and amplitude}
+\choice{21.6}{\textbf{B }}{frequency and wavelength}
+\choice{21.7}{\textbf{C }}{speed and frequency}
+\choice{21.7}{\textbf{D }}{speed and wavelength}
+\swpage
+\examq{5054/12/M/J/16}{18}{Light (Reflection/Refraction/Lenses)}{1}
+\mcq{0.3}{\textbf{18}}{The diagram shows light incident on a plane mirror.}
+\qfig{7}{203.70bp 642.35bp 203.06bp 87.37bp}{}{14.57}{0}{203.70}
+\stem{23.05}{Which row gives the angle of reflection and the name of line PQ?}
+\qfig{7}{69.78bp 481.98bp 309.26bp 235.14bp}{}{12.44}{0}{69.78}
+\examq{5054/12/M/J/16}{19}{Light (Reflection/Refraction/Lenses)}{1}
+\mcq{32.78}{\textbf{19}}{Which length is the focal length of the lens shown in the diagram?}
+\qfig{7}{111.18bp 293.88bp 110.54bp 407.76bp}{}{14.96}{0}{111.18}
+\swpage
+\examq{5054/12/M/J/16}{20}{Light (Reflection/Refraction/Lenses)}{1}
+\mcq{0.3}{\textbf{20}}{The rays of light from a ray-box pass through three lenses placed at positions 1, 2 and 3.}
+\qfig{8}{115.14bp 600.95bp 114.14bp 85.57bp}{}{12.77}{0}{115.14}
+\stem{21.65}{What type of lens is used at each position?}
+\qfig{8}{68.34bp 456.39bp 235.10bp 275.13bp}{}{12.43}{0}{68.34}
+\examq{5054/12/M/J/16}{21}{Light (Reflection/Refraction/Lenses)}{1}
+\mcq{33.09}{\textbf{21}}{Light passes from air into a block of glass, as shown.}
+\qfig{8}{217.38bp 290.70bp 217.82bp 431.82bp}{}{13.12}{0}{217.38}
+\stem{20.3}{Which expression is equal to the refractive index of glass?}
+\freerow{29.4}{%
+  \at{94.82}{7.02}{sin}%
+  \at{109.62}{7.02}{{\itshape w}}%
+  \at{194.03}{7.02}{sin}%
+  \at{209.68}{7.02}{{\itshape w}}%
+  \at{294.04}{6.93}{sin}%
+  \at{309.83}{6.93}{{\itshape y}}%
+  \at{392.80}{6.93}{sin}%
+  \at{408.42}{6.93}{{\itshape z}}%
+  \at{70.90}{0.05}{\textbf{A}}%
+  \at{170.11}{0.05}{\textbf{B}}%
+  \at{269.35}{0.05}{\textbf{C}}%
+  \at{368.56}{0.05}{\textbf{D}}%
+  \at{293.27}{-8.51}{sin}%
+  \at{308.21}{-8.51}{{\itshape w}}%
+  \at{392.46}{-8.51}{sin}%
+  \at{408.39}{-8.51}{{\itshape x}}%
+  \at{95.59}{-8.60}{sin}%
+  \at{111.23}{-8.60}{{\itshape y}}%
+  \at{195.31}{-8.57}{sin}%
+  \at{211.63}{-8.57}{{\itshape z}}%
+  \ruleat{94.17}{119.20}{2.80}{0.50}%
+  \ruleat{193.38}{219.26}{2.80}{0.50}%
+  \ruleat{292.62}{317.79}{2.80}{0.50}%
+  \ruleat{391.80}{415.05}{2.80}{0.50}%
+  \swdepth{10.80}}
+\swpage
+\examq{5054/12/M/J/16}{22}{Sound \textperiodcentered\ General Wave Properties}{1}
+\mcq{0.3}{\textbf{22}}{A sound wave travels through air. The lines in the diagram show the positions of layers of air at\linebreak}
+one particular time.
+\stem{25.3}{Which distance shows the wavelength of the wave?}
+\qfig{9}{52.50bp 629.26bp 51.86bp 123.86bp}{}{13.16}{0}{52.50}
+\examq{5054/12/M/J/16}{23}{Simple Magnetism and Magnetic Fields}{1}
+\mcq{33.36}{\textbf{23}}{Four plotting compasses are placed near a bar magnet. You may ignore any effects of the Earth's\linebreak}
+magnetic field.
+\stem{25.3}{One compass appears like this\kern2.24bp \raisebox{-7.81bp}[0pt][0pt]{\swclip{9}{223.55bp 550.19bp 350.33bp 269.25bp}}\kern4.12bp .}
+\stem{25.3}{What is a possible position for this compass?}
+\qfig{9}{199.38bp 364.06bp 200.18bp 322.82bp}{}{13.52}{0}{199.38}
+\examq{5054/12/M/J/16}{24}{Electric Charge}{1}
+\mcq{32.96}{\textbf{24}}{A polythene rod is rubbed with a cloth and the cloth becomes positively charged.}
+\stem{25.3}{Which statement describes the transfer of charge?}
+\choice{23.6}{\textbf{A }}{Negative charges are transferred from the cloth to the polythene.}
+\choice{21.7}{\textbf{B }}{Negative charges are transferred from the polythene to the cloth.}
+\choice{21.6}{\textbf{C }}{Positive charges are transferred from the cloth to the polythene.}
+\choice{21.7}{\textbf{D }}{Positive charges are transferred from the polythene to the cloth.}
+\examq{5054/12/M/J/16}{25}{Electrical Quantities}{1}
+\mcq{37.9}{\textbf{25}}{A charge of 45\,C flows through an electric appliance in 3.0 minutes.}
+\stem{23.7}{What is the average current in the appliance?}
+\optrow{23.7}{0.25 A}{4.0 A}{15 A}{135 A}
+\swpage
+\examq{5054/12/M/J/16}{26}{Electrical Quantities}{1}
+\mcq{0.3}{\textbf{26}}{How can {\itshape one volt }also be expressed?}
+\choice{23.6}{\textbf{A }}{one coulomb per ampere}
+\choice{21.7}{\textbf{B }}{one coulomb per joule}
+\choice{21.6}{\textbf{C }}{one joule per ampere}
+\choice{21.7}{\textbf{D }}{one joule per coulomb}
+\examq{5054/12/M/J/16}{27}{Electric Circuits}{1}
+\mcq{37.9}{\textbf{27}}{The diagram shows a battery of three 1.5\,V cells.}
+\qfig{10}{230.70bp 508.97bp 230.42bp 212.11bp}{}{12.81}{0}{230.70}
+\stem{20.27}{What is an advantage of this arrangement of cells?}
+\choice{23.6}{\textbf{A }}{The battery can supply a current for a longer time than a single 1.5\,V cell.}
+\choice{21.7}{\textbf{B }}{The battery can supply any e.m.f. between 0\,V and 4.5\,V.}
+\choice{21.6}{\textbf{C }}{The battery supplies more energy to each coulomb of charge than a single 1.5\,V cell.}
+\choice{21.7}{\textbf{D }}{The e.m.f. of the battery is 4.5\,V.}
+\swpage
+\examq{5054/12/M/J/16}{28}{Electric Circuits \textperiodcentered\ Electrical Quantities}{1}
+\mcq{0.3}{\textbf{28}}{Which diagram shows the arrangement of the ammeter and voltmeter to obtain readings to find\linebreak}
+the power of a lamp?
+\qfig{11}{113.70bp 450.78bp 113.78bp 100.74bp}{}{15.34}{0}{113.70}
+\examq{5054/12/M/J/16}{29}{Electric Circuits}{1}
+\mcq{32.78}{\textbf{29}}{A 6.0\,V battery is connected to a network containing five identical resistors. A voltmeter has one\linebreak}
+lead connected to point K as shown.
+\stem{25.3}{At which point should lead L be connected so that the voltmeter reads 3.0\,V?}
+\qfig{11}{180.66bp 151.30bp 180.38bp 476.54bp}{}{14.54}{0}{180.66}
+\swpage
+\examq{5054/12/M/J/16}{30}{Practical Electricity / Electrical Safety}{1}
+\mcq{0.3}{\textbf{30}}{The diagram shows the wiring of a three-pin mains plug. There is an error in the diagram.}
+\qfig{12}{209.10bp 586.55bp 207.74bp 86.29bp}{}{13.49}{0}{209.10}
+\stem{20.25}{What is the error?}
+\choice{23.6}{\textbf{A }}{The cable cover C is not under the clip S.}
+\choice{21.7}{\textbf{B }}{The earth wire E is connected to the wrong terminal.}
+\choice{21.7}{\textbf{C }}{The fuse F is connected to the live wire L.}
+\choice{21.6}{\textbf{D }}{The live wire L is connected to the wrong end of the fuse F.}
+\examq{5054/12/M/J/16}{31}{Practical Electricity / Electrical Safety}{1}
+\mcq{38.0}{\textbf{31}}{A 100\,W lamp is switched on for five hours each day for three weeks.}
+\stem{25.3}{The cost of one unit of electricity is \$0.24.}
+\stem{25.3}{How much does it cost to run the lamp for this time?}
+\optrow{23.6}{\$0.36}{\$0.84}{\$2.52}{\$25.20}
+\swpage
+\examq{5054/12/M/J/16}{32}{Electro Magnetism / Electromagnetic Induction}{1}
+\mcq{0.3}{\textbf{32}}{The diagram shows a simple d.c. motor.}
+\qfig{13}{200.82bp 627.59bp 200.54bp 85.21bp}{}{12.41}{0}{200.82}
+\stem{20.29}{The switch is closed and the coil rotates.}
+\stem{25.3}{Which change makes the coil rotate in the opposite direction \textbf{and }at a faster rate?}
+\choice{23.6}{\textbf{A }}{increase the current in the coil and increase the number of turns in the coil}
+\choice{21.7}{\textbf{B }}{reverse both the magnetic field and the current in the coil}
+\choice{21.7}{\textbf{C }}{reverse the magnetic field and decrease the current in the coil}
+\choice{21.6}{\textbf{D }}{reverse the magnetic field and increase the current in the coil}
+\examq{5054/12/M/J/16}{33}{Electro Magnetism / Electromagnetic Induction}{1}
+\mcq{38.0}{\textbf{33}}{The diagram shows a wire PQ between the N-pole and the S-pole of a magnet. There is a current\linebreak}
+in the wire in the direction of the arrow.
+\qfig{13}{215.58bp 334.27bp 215.30bp 412.37bp}{}{13.17}{0}{215.58}
+\stem{20.47}{What is the direction of the force on the wire PQ?}
+\choice{25.2}{\textbf{A }}{into the page}
+\choice{21.7}{\textbf{B }}{out of the page}
+\choice{21.6}{\textbf{C }}{towards the N-pole}
+\choice{21.7}{\textbf{D }}{towards the S-pole}
+\swpage
+\examq{5054/12/M/J/16}{34}{Electro Magnetism / Electromagnetic Induction}{1}
+\mcq{0.3}{\textbf{34}}{Electrical power is transmitted by cables over long distances at very high voltages.}
+\stem{25.3}{What are the effects of using a high voltage transmission system?}
+\qfig{14}{68.34bp 606.62bp 282.62bp 110.86bp}{}{12.76}{0}{68.34}
+\examq{5054/12/M/J/16}{35}{Uses of Oscilloscope}{1}
+\mcq{32.82}{\textbf{35}}{The diagram represents thermionic emission from a metal filament.}
+\qfig{14}{157.98bp 438.31bp 157.34bp 282.41bp}{}{14.21}{0}{157.98}
+\stem{20.41}{The particles are attracted by a charged plate.}
+\stem{25.3}{Which row shows the charge on the plate, and the temperature of the metal filament?}
+\qfig{14}{68.34bp 255.27bp 280.82bp 462.21bp}{}{12.81}{0}{68.34}
+\swpage
+\examq{5054/12/M/J/16}{36}{Electric Circuits}{1}
+\mcq{0.3}{\textbf{36}}{A potential divider is connected across the terminals of a 6.0\,V supply.}
+\qfig{15}{197.94bp 612.11bp 196.94bp 87.37bp}{}{14.57}{0}{197.94}
+\stem{24.61}{When R is adjusted to 6.0\,\swsy{57}, the voltmeter readings {\itshape V}\sub{1} and {\itshape V}\sub{2} are equal.}
+\stem{25.4}{What happens to the readings when the resistance of R is then increased?}
+\qfig{15}{68.34bp 438.88bp 321.86bp 292.64bp}{}{12.74}{0}{68.34}
+\examq{5054/12/M/J/16}{37}{Radioactivity}{1}
+\mcq{35.38}{\textbf{37}}{Which nucleus is produced when americium-241\kern4.58bp (\kern0.39bp\nuc{241}{95}\kern0.16bpAm)\kern5.38bp emits an alpha-particle?}
+\freerow{26.0}{%
+  \at{93.88}{4.94}{{\fontsize{7.00bp}{7.00bp}\selectfont 237}}%
+  \at{193.15}{4.94}{{\fontsize{7.00bp}{7.00bp}\selectfont 237}}%
+  \at{292.39}{4.94}{{\fontsize{7.00bp}{7.00bp}\selectfont 245}}%
+  \at{391.58}{4.94}{{\fontsize{7.00bp}{7.00bp}\selectfont 245}}%
+  \at{70.87}{0.01}{\textbf{A}}%
+  \at{106.38}{-0.02}{Np}%
+  \at{170.11}{0.01}{\textbf{B}}%
+  \at{205.65}{-0.02}{Bk}%
+  \at{269.32}{0.01}{\textbf{C}}%
+  \at{304.89}{-0.02}{Np}%
+  \at{368.56}{0.01}{\textbf{D}}%
+  \at{404.08}{-0.02}{Bk}%
+  \at{97.82}{-2.77}{{\fontsize{7.00bp}{7.00bp}\selectfont 93}}%
+  \at{197.09}{-2.77}{{\fontsize{7.00bp}{7.00bp}\selectfont 97}}%
+  \at{296.33}{-2.77}{{\fontsize{7.00bp}{7.00bp}\selectfont 93}}%
+  \at{395.52}{-2.77}{{\fontsize{7.00bp}{7.00bp}\selectfont 97}}%
+  \swdepth{4.17}}
+\examq{5054/12/M/J/16}{38}{Radioactivity}{1}
+\mcq{40.6}{\textbf{38}}{Which states the three types of radiation emitted by radioactive isotopes in order of their ionising\linebreak}
+effect from highest to lowest?
+\choice{23.6}{\textbf{A }}{alpha-particles, beta-particles, gamma-rays}
+\choice{21.6}{\textbf{B }}{alpha-particles, gamma-rays, beta-particles}
+\choice{21.7}{\textbf{C }}{beta-particles, gamma-rays, alpha-particles}
+\choice{21.6}{\textbf{D }}{gamma-rays, beta-particles, alpha-particles}
+\examq{5054/12/M/J/16}{39}{Radioactivity}{1}
+\mcq{38.0}{\textbf{39}}{Which statement about the half-life of a radioactive isotope is correct?}
+\choice{23.6}{\textbf{A }}{Half-life changes as the isotope decays.}
+\choice{21.7}{\textbf{B }}{Half-life is the time it takes for the nucleon number of the isotope to halve.}
+\choice{21.6}{\textbf{C }}{Half-life is half the time it takes for the number of nuclei of the isotope to decrease to zero.}
+\choice{21.7}{\textbf{D }}{Half-life is the time it takes for the number of nuclei of the isotope to decrease by half.}
+\swpage
+\examq{5054/12/M/J/16}{40}{The Nuclear Atom}{1}
+\mcq{0.3}{\textbf{40}}{The diagrams represent the nuclei of three atoms.}
+\qfig{16}{118.38bp 657.47bp 118.82bp 87.01bp}{}{14.21}{0}{118.38}
+\stem{23.17}{Which are isotopes of the same element?}
+\choice{23.6}{\textbf{A }}{P and Q only}
+\choice{21.7}{\textbf{B }}{P and R only}
+\choice{21.7}{\textbf{C }}{Q and R only}
+\choice{21.6}{\textbf{D }}{P, Q and R}
+\end{document}

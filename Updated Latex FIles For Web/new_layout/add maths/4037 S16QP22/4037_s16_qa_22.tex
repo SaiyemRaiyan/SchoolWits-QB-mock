@@ -1,0 +1,322 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath}\usepackage{amssymb}\usepackage[table]{xcolor}
+\usepackage{tabularx}\usepackage{multirow}\usepackage{geometry}
+\usepackage{enumitem}\usepackage{parskip}\usepackage{titlesec}
+\usepackage{tocloft}\usepackage[most]{tcolorbox}
+\usepackage{tikz}\usepackage{pgfplots}\pgfplotsset{compat=1.18}\usetikzlibrary{arrows.meta,calc,positioning,shapes.geometric,patterns}
+\geometry{margin=2.5cm}
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+\setlength{\cftbeforesecskip}{6pt}
+\definecolor{q1color}{HTML}{D6EAF8}\definecolor{q2color}{HTML}{D5F5E3}
+\definecolor{q3color}{HTML}{FDEBD0}\definecolor{q4color}{HTML}{F9E79F}
+\definecolor{q5color}{HTML}{E8DAEF}\definecolor{q6color}{HTML}{FADBD8}
+\definecolor{q7color}{HTML}{D1F2EB}\definecolor{q8color}{HTML}{FCF3CF}
+\definecolor{q9color}{HTML}{EBDEF0}\definecolor{q10color}{HTML}{F5EEF8}
+\newenvironment{mstab}[1]{%
+  {\color{#1!75!black}\nobreak Mark Scheme}\par\nopagebreak\smallskip
+  \arrayrulecolor{#1!70!black}\renewcommand{\arraystretch}{1.3}%
+  \tabularx{\textwidth}{|>{\columncolor{#1!12}\raggedright\arraybackslash}p{1.9cm}|>{\columncolor{#1!12}}X|>{\columncolor{#1!12}\centering\arraybackslash}p{1.1cm}|}%
+  \hline\rowcolor{#1!45} Question & Answer & Marks \\ \hline}{%
+  \endtabularx\arrayrulecolor{black}\par\medskip}
+\newtcolorbox{ansbox}[1]{colback=#1!8,colbacktitle=#1!30,colframe=#1!70!black,coltitle=black,fonttitle=\normalfont,title=Worked Solution,boxrule=0.6pt,arc=2mm,left=4pt,right=4pt,top=4pt,bottom=4pt,breakable}
+\newcommand{\topiclabel}[1]{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}
+\newcommand{\examq}[4]{\section[#1 - Q#2]{#1 - Q#2 - #3 - #4}}
+\begin{document}
+\begin{center}
+  {\LARGE \textbf{Cambridge O Level Additional Mathematics 4037/22/M/J/16}}\\[6pt]
+  {\large May/June 2016 -- Mark Scheme \& Worked Solutions}
+\end{center}
+\bigskip
+
+% ===================================================== Q1
+\examq{4037/22/M/J/16}{1}{Quadratic Functions}{4}
+\begin{mstab}{q1color}
+ & $(2k)^2-4(1)(4k-3)\ [<0]$ \newline \textit{clear attempt at $b^2-4ac$} & M1 \\ \hline
+\multirow{-2}{1.9cm}{1(i)} & Correct completion to given inequality $k^2-4k+3<0$ isw & A1 \\ \hline
+ & Critical values 1 and 3 soi \newline \textit{May be implied by incorrect inequalities} & M1 \\ \hline
+\multirow{-2}{1.9cm}{1(ii)} & $1<k<3$ as final answer & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q1color}
+\textbf{(i)} $x^2+2kx+4k-3=0$ has no real roots, so $b^2-4ac<0$:
+\[ (2k)^2-4(1)(4k-3)<0 \;\Rightarrow\; 4k^2-16k+12<0 \]
+\[ \boxed{k^2-4k+3<0} \]
+
+\textbf{(ii)}
+\[ (k-1)(k-3)<0 \;\Rightarrow\; \text{critical values } k=1,\ k=3 \]
+The quadratic is negative between its roots:
+\[ \boxed{1<k<3} \]
+\end{ansbox}
+
+% ===================================================== Q2
+\examq{4037/22/M/J/16}{2}{Differentiation}{5}
+\begin{mstab}{q2color}
+ & Clear attempt at quotient rule or equivalent product rule \newline \textit{condone omission of brackets} & M1 \\ \hline
+\multirow{-2}{1.9cm}{2(i)} & $\dfrac{\mathrm{d}y}{\mathrm{d}x}=\dfrac{14}{(x-3)^2}$ or $\dfrac{\mathrm{d}y}{\mathrm{d}x}=\dfrac{14}{x^2-6x+9}$ cao or correct simplified equivalent \newline \textit{allow recovery from bracketing errors or omissions if implied in correct work to the correct answer} & A1 \\ \hline
+ & $[y=9]$ \ $x=2$ & B1 \\ \hline
+ & $\delta x\approx\dfrac{0.07}{\text{their}\left(\dfrac{\mathrm{d}y}{\mathrm{d}x}\right)_{x=2}}$ oe \newline \textit{condone $\delta x=\dfrac{0.07}{\text{their}\left(\frac{\mathrm{d}y}{\mathrm{d}x}\right)_{x=2}}$} & M1 \\ \hline
+\multirow{-3}{1.9cm}{2(ii)} & $0.005$ oe \newline \textit{not from wrong working; answer only does not score} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q2color}
+$y=\dfrac{5x-1}{3-x}$.
+
+\textbf{(i)} Quotient rule:
+\[ \frac{\mathrm{d}y}{\mathrm{d}x}=\frac{(3-x)(5)-(5x-1)(-1)}{(3-x)^2}=\frac{15-5x+5x-1}{(3-x)^2} \]
+\[ \boxed{\frac{\mathrm{d}y}{\mathrm{d}x}=\frac{14}{(x-3)^2}} \]
+
+\textbf{(ii)} When $y=9$:
+\[ 9(3-x)=5x-1 \;\Rightarrow\; 27-9x=5x-1 \;\Rightarrow\; 14x=28 \;\Rightarrow\; x=2 \]
+\[ \left(\frac{\mathrm{d}y}{\mathrm{d}x}\right)_{x=2}=\frac{14}{(2-3)^2}=14 \]
+\[ \delta y\approx\frac{\mathrm{d}y}{\mathrm{d}x}\,\delta x \;\Rightarrow\; \delta x\approx\frac{0.07}{14} \]
+\[ \boxed{\delta x\approx0.005} \]
+\end{ansbox}
+
+% ===================================================== Q3
+\examq{4037/22/M/J/16}{3}{Permutations \& Combinations}{3}
+\begin{mstab}{q3color}
+ & Any one of: \newline $\left({}^{6}\mathrm{C}_0\times{}^{7}\mathrm{C}_3\right)+\left({}^{6}\mathrm{C}_1\times{}^{7}\mathrm{C}_2\right)$ or $35+126$ \newline or ${}^{13}\mathrm{C}_3-{}^{6}\mathrm{C}_2\times{}^{7}\mathrm{C}_1-{}^{6}\mathrm{C}_3$ or $286-105-20$ \newline \textit{M1 for ${}^{6}\mathrm{C}_0\times{}^{7}\mathrm{C}_3$ or ${}^{6}\mathrm{C}_1\times{}^{7}\mathrm{C}_2$ or ${}^{13}\mathrm{C}_3-{}^{6}\mathrm{C}_2\times{}^{7}\mathrm{C}_1$ or ${}^{13}\mathrm{C}_3-{}^{6}\mathrm{C}_3$ or ${}^{6}\mathrm{C}_2\times{}^{7}\mathrm{C}_1+{}^{6}\mathrm{C}_3$ or for the numerical equivalent of one of these calculations} & M2 \\ \hline
+\multirow{-2}{1.9cm}{3} & $161$ \newline \textit{If M0 then B3 for answer only of 161} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q3color}
+More women than men in a team of 3 means either 3 women and 0 men, or 2 women and 1 man.
+\[ \text{3W, 0M:}\quad {}^{7}\mathrm{C}_3\times{}^{6}\mathrm{C}_0=35\times1=35 \]
+\[ \text{2W, 1M:}\quad {}^{7}\mathrm{C}_2\times{}^{6}\mathrm{C}_1=21\times6=126 \]
+\[ \text{Total}=35+126=\boxed{161} \]
+\end{ansbox}
+
+% ===================================================== Q4
+\examq{4037/22/M/J/16}{4}{Factors of Polynomials}{5}
+\begin{mstab}{q4color}
+4(i) & $2(2)^3-3(2)^2+2q+56=0$ with one correct interim step leading to $q=-30$ \newline \textit{allow for only $16-12+2q+56=0\Rightarrow q=-30$; NB $=0$ must be seen or may be implied by e.g.\ $-60=2q$ or $60=-2q$; or convincingly showing $2(2)^3-3(2)^2-30(2)+56=0$; allow for only $16-12+2(-30)+56=0$; or correct synthetic division at least as far as remainder $2q+60$, then $q=-30$} & B1 \\ \hline
+ & $2x^2+x-28$ \newline \textit{B1 for any two terms correct} & B2 \\ \hline
+ & $(x-2)(2x-7)(x+4)$ \newline \textit{For factorising the correct equation; condone $=0$; condone $(2x-7)(x+4)$ only for M1 but for A1 must see all 3 factors in this part; do not allow $\left(x-\frac{7}{2}\right)$} & M1 \\ \hline
+\multirow{-3}{1.9cm}{4(ii)} & $x=2$, \ $x=-4$, \ $x=3.5$ oe \newline \textit{not from wrong working; answers only do not score} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q4color}
+$\mathrm{p}(x)=2x^3-3x^2+qx+56$.
+
+\textbf{(i)} $x-2$ is a factor, so $\mathrm{p}(2)=0$:
+\[ 2(2)^3-3(2)^2+2q+56=0 \;\Rightarrow\; 16-12+2q+56=0 \;\Rightarrow\; 2q=-60 \]
+\[ \boxed{q=-30} \]
+
+\textbf{(ii)} Divide $2x^3-3x^2-30x+56$ by $x-2$:
+\[ 2x^3-3x^2-30x+56=(x-2)\left(2x^2+x-28\right) \]
+\[ 2x^2+x-28=(2x-7)(x+4) \]
+\[ \boxed{\mathrm{p}(x)=(x-2)(2x-7)(x+4)} \]
+\[ \mathrm{p}(x)=0:\quad \boxed{x=2,\quad x=-4,\quad x=3.5} \]
+\end{ansbox}
+
+% ===================================================== Q5
+\examq{4037/22/M/J/16}{5}{Straight-Line Graphs}{7}
+\begin{mstab}{q5color}
+5(i) & $(2,\ 8)$ & B1, B1 \\ \hline
+ & $\dfrac{8-0}{\text{their }2-p}=-2$ or better \newline \textit{Condone $\dfrac{\text{their }8-0}{\text{their }2-p}=\dfrac{-1}{\text{their gradient }AB}$ oe} & M1 \\ \hline
+\multirow{-2}{1.9cm}{5(ii)} & $[p=]\ 6$ & A1 \\ \hline
+ & $[MB=]\ \sqrt{(6-\text{their }2)^2+(10-\text{their }8)^2}$ soi \newline or $\dfrac{1}{2}AB=\dfrac{1}{2}\sqrt{(-2-6)^2+(10-6)^2}$ soi \newline or $[MC=]\ \sqrt{(\text{their }p-\text{their }2)^2+(\text{their }8-0)^2}$ soi \newline or $\tan[\ldots]=\dfrac{8}{4}$ soi \newline \textit{implied by $[MB=]\ \sqrt{20}$ or $\frac{1}{2}AB=\frac{1}{2}\sqrt{80}$, e.g.\ 4.47, or $[MC=]\ \sqrt{80}$ or e.g.\ 8.94, or $63.4^\circ$ or equivalents} & M1 \\ \hline
+ & or $4.47^2=8.94^2+10^2-2(8.94)(10)\cos[\ldots]$ \newline or $8.94^2=10^2+10^2-2(10)(10)\cos[\ldots]$ \newline or $\sin^{-1}\left(\dfrac{\sqrt{20}}{10}\right)$ oe soi \newline \textit{or $\cos^{-1}\left(\frac{\sqrt{80}}{10}\right)$ or $\tan^{-1}\left(\frac{\sqrt{20}}{\sqrt{80}}\right)$ or $\tan^{-1}\left(\frac{4}{8}\right)$ or $90-\tan^{-1}\left(\frac{8}{4}\right)$ or equivalent complete correct method; implies first M1} & M1 \\ \hline
+\multirow{-3}{1.9cm}{5(iii)} & $26.56$ to $26.6^\circ$ or $0.4636$ to $0.464$ rads cao \newline \textit{Not from wrong working} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q5color}
+$A(-2,\ 6)$, $B(6,\ 10)$, $C(p,\ 0)$.
+
+\textbf{(i)}
+\[ M=\left(\frac{-2+6}{2},\ \frac{6+10}{2}\right)=\boxed{(2,\ 8)} \]
+
+\textbf{(ii)} Gradient of $AB=\dfrac{10-6}{6-(-2)}=\dfrac{4}{8}=\dfrac{1}{2}$, so the gradient of $CM$ is $-2$:
+\[ \frac{8-0}{2-p}=-2 \;\Rightarrow\; 8=-4+2p \;\Rightarrow\; \boxed{p=6} \]
+
+\textbf{(iii)} $C$ is $(6,\ 0)$. Since $CM\perp AB$, triangle $MCB$ has a right angle at $M$.
+\[ MB=\sqrt{(6-2)^2+(10-8)^2}=\sqrt{20}, \qquad MC=\sqrt{(6-2)^2+(0-8)^2}=\sqrt{80} \]
+\[ \tan M\hat{C}B=\frac{MB}{MC}=\frac{\sqrt{20}}{\sqrt{80}}=\frac{1}{2} \;\Rightarrow\; M\hat{C}B=\tan^{-1}\left(\frac{1}{2}\right) \]
+\[ \boxed{M\hat{C}B=26.6^\circ} \]
+\end{ansbox}
+
+% ===================================================== Q6
+\examq{4037/22/M/J/16}{6}{Circular Measure}{7}
+\begin{mstab}{q6color}
+6(i) & Valid explanation \newline \textit{e.g.\ arc length is greater than the radius or 7 is greater than 5} & B1 \\ \hline
+ & $7=5\theta$ & M1 \\ \hline
+\multirow{-2}{1.9cm}{6(ii)} & $\theta=1.4$ oe \newline \textit{implies M1} & A1 \\ \hline
+ & $\dfrac{1}{2}\times5^2\times\text{their }1.4$ oe & M1 \\ \hline
+\multirow{-2}{1.9cm}{6(iii)} & $17.5$ oe & A1 \\ \hline
+ & [triangle area $=$] $\dfrac{1}{2}\times5^2\times\sin(\text{their }1.4)$ or $12.3$ to $12.32$ \newline or for $\left[\dfrac{1}{2}\times\text{base}\times\text{height}=\right]\ \dfrac{1}{2}\times6.4[4\ldots]\times3.8[2\ldots]$ oe \newline \textit{may be embedded in a difference calculation} & M1 \\ \hline
+\multirow{-2}{1.9cm}{6(iv)} & $5.18$ to $5.2$ inclusive \newline \textit{implies M1} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q6color}
+Radius $r=5$ cm, arc length $s=7$ cm.
+
+\textbf{(i)} $s=r\theta$, so $\theta=\dfrac{s}{r}=\dfrac{7}{5}$. Because the arc length (7 cm) is greater than the radius (5 cm), $\theta>1$ radian (an angle of exactly 1 radian gives an arc equal to the radius).
+
+\textbf{(ii)}
+\[ 7=5\theta \;\Rightarrow\; \boxed{\theta=1.4} \]
+
+\textbf{(iii)}
+\[ \text{Sector area}=\frac{1}{2}r^2\theta=\frac{1}{2}\times5^2\times1.4=\boxed{17.5\ \mathrm{cm^2}} \]
+
+\textbf{(iv)} The shaded segment is the sector minus triangle $AOB$:
+\[ \text{Area of triangle }AOB=\frac{1}{2}\times5^2\times\sin1.4=12.5\times0.98545\ldots=12.318\ldots \]
+\[ \text{Segment area}=17.5-12.318\ldots=\boxed{5.18\ \mathrm{cm^2}} \]
+\end{ansbox}
+
+% ===================================================== Q7
+\examq{4037/22/M/J/16}{7}{Excluded from the present curriculum}{8}
+\begin{mstab}{q7color}
+ & $\begin{pmatrix}12&15\\9&6\end{pmatrix}+\begin{pmatrix}4&2\\1&3\end{pmatrix}$ soi \newline \textit{if no method shown, may be implied by their answer with at least 2 correct elements} & M1 \\ \hline
+\multirow{-2}{1.9cm}{7(i)} & $\begin{pmatrix}16&17\\10&9\end{pmatrix}$ & A1 \\ \hline
+ & $\det\mathbf{A}=4\times2-3\times5=-7$ or $\det\mathbf{B}=4\times3-2\times1=10$ \newline \textit{allow for e.g.\ $(4\times2-3\times5)\times(4\times3-2\times1)=-70$ or $\det\mathbf{A}=8-15=-7$ or $\det\mathbf{B}=12-2=10$} & B1 \\ \hline
+ & $\mathbf{AB}=\begin{pmatrix}21&23\\14&12\end{pmatrix}$ \newline \textit{or B1 for two elements correct} & B2 \\ \hline
+\multirow{-3}{1.9cm}{7(ii)} & $\det(\mathbf{AB})=21\times12-23\times14=-70$ \newline \textit{allow for $\det(\mathbf{AB})=252-322=-70$; For full marks must conclude that $\det\mathbf{AB}=\det\mathbf{A}\times\det\mathbf{B}$ or show the product $-7\times10=-70$, otherwise max 3 marks} & B1 \\ \hline
+7(iii) & $\dfrac{1}{\text{their }\det\mathbf{AB}}\times\begin{pmatrix}12&-23\\-14&21\end{pmatrix}$ isw \newline \textit{B2 correct or correct FT; FT their $\mathbf{AB}$ and their non-zero $\det\mathbf{AB}$; their $\mathbf{AB}$ must be an attempt at a matrix product e.g.}\ $\begin{pmatrix}16&10\\3&6\end{pmatrix}$; \newline \textit{B1 for $\dfrac{1}{\text{their }\det\mathbf{AB}}\times$ their $\mathbf{AB}$ or for} $k\begin{pmatrix}12&-23\\-14&21\end{pmatrix}$ & B2 \\ \hline
+\end{mstab}
+\begin{ansbox}{q7color}
+$\mathbf{A}=\begin{pmatrix}4&5\\3&2\end{pmatrix}$, \ $\mathbf{B}=\begin{pmatrix}4&2\\1&3\end{pmatrix}$.
+
+\textbf{(i)}
+\[ \mathbf{C}=3\mathbf{A}+\mathbf{B}=\begin{pmatrix}12&15\\9&6\end{pmatrix}+\begin{pmatrix}4&2\\1&3\end{pmatrix}=\boxed{\begin{pmatrix}16&17\\10&9\end{pmatrix}} \]
+
+\textbf{(ii)}
+\[ \det\mathbf{A}=4\times2-5\times3=8-15=-7, \qquad \det\mathbf{B}=4\times3-2\times1=12-2=10 \]
+\[ \mathbf{AB}=\begin{pmatrix}4(4)+5(1)&4(2)+5(3)\\3(4)+2(1)&3(2)+2(3)\end{pmatrix}=\begin{pmatrix}21&23\\14&12\end{pmatrix} \]
+\[ \det(\mathbf{AB})=21\times12-23\times14=252-322=-70 \]
+\[ \det\mathbf{A}\times\det\mathbf{B}=-7\times10=-70 \;\Rightarrow\; \boxed{\det(\mathbf{AB})=\det\mathbf{A}\times\det\mathbf{B}} \]
+
+\textbf{(iii)}
+\[ (\mathbf{AB})^{-1}=\frac{1}{\det(\mathbf{AB})}\begin{pmatrix}12&-23\\-14&21\end{pmatrix} \]
+\[ \boxed{(\mathbf{AB})^{-1}=-\frac{1}{70}\begin{pmatrix}12&-23\\-14&21\end{pmatrix}} \]
+\end{ansbox}
+
+% ===================================================== Q8
+\examq{4037/22/M/J/16}{8}{Simultaneous Equations}{6}
+\begin{mstab}{q8color}
+ & Eliminates $y$ e.g.\ $\dfrac{5}{15x+10}+\dfrac{3}{x}+4=0$ \newline or eliminates $x$ e.g.\ $\dfrac{5}{y}+\dfrac{3(15)}{y-10}+4=0$ \newline \textit{allow even after incorrect rearrangement of the equation of the curve (dependent on resulting equation still in terms of $x$ and $y$); condone substitution of e.g.\ $\frac{y+10}{15}$} & M1 \\ \hline
+ & Rearrange to a 3-term quadratic \newline \textit{condone sign slips/arithmetic slips} & M1 \\ \hline
+ & $60x^2+90x+30=0$ oe or $4y^2+10y-50=0$ oe & A1 \\ \hline
+ & Factorise or solve 3-term quadratic & M1 \\ \hline
+ & $x=-\dfrac{1}{2}$, \ $x=-1$ isw \newline \textit{or $y=2\frac{1}{2}$, $y=-5$} & A1 \\ \hline
+\multirow{-6}{1.9cm}{8} & $y=2\dfrac{1}{2}$, \ $y=-5$ isw \newline \textit{or $x=-\frac{1}{2}$, $x=-1$; If final A marks not awarded then A1 for a correct $x$, $y$ pair} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q8color}
+Curve: $\dfrac{5}{y}+\dfrac{3}{x}+4=0$; \quad line: $y=15x+10$.
+
+Substitute for $y$:
+\[ \frac{5}{15x+10}+\frac{3}{x}+4=0 \]
+Multiply through by $x(15x+10)$:
+\[ 5x+3(15x+10)+4x(15x+10)=0 \;\Rightarrow\; 5x+45x+30+60x^2+40x=0 \]
+\[ 60x^2+90x+30=0 \;\Rightarrow\; 2x^2+3x+1=0 \;\Rightarrow\; (2x+1)(x+1)=0 \]
+\[ x=-\frac{1}{2} \;\text{ or }\; x=-1 \]
+\[ x=-\frac{1}{2}:\quad y=15\left(-\frac{1}{2}\right)+10=\frac{5}{2}, \qquad x=-1:\quad y=-15+10=-5 \]
+\[ \boxed{\left(-\frac{1}{2},\ 2\frac{1}{2}\right)\ \text{and}\ (-1,\ -5)} \]
+\end{ansbox}
+
+% ===================================================== Q9
+\examq{4037/22/M/J/16}{9}{Integration}{7}
+\begin{mstab}{q9color}
+9(a) & $\dfrac{x^2}{2}+2x-\dfrac{1}{x}\ (+c)$ isw \newline \textit{B1 for each term; allow $\dfrac{x^2}{2}+2x+\dfrac{x^{-1}}{-1}\ (+c)$ isw for B3} & B3 \\ \hline
+ & $k\cos(5x+\pi)$ where $k<0$ or $\dfrac{\cos(5x+\pi)}{5}$ & M1 \\ \hline
+\multirow{-2}{1.9cm}{9(b)(i)} & $\dfrac{-\cos(5x+\pi)}{5}\ (+c)$ & A1 \\ \hline
+ & $\dfrac{-\cos(5(0)+\pi)}{5}-\dfrac{-\cos\left(5\left(-\frac{\pi}{5}\right)+\pi\right)}{5}$ or $-\dfrac{\cos(\pi)}{5}-\left(-\dfrac{\cos(0)}{5}\right)$ \newline \textit{correct substitution of the given limits into their expression of the form $k\cos(5x+\pi)$, dep on M1 in (b)(i)} & M1 \\ \hline
+\multirow{-2}{1.9cm}{9(b)(ii)} & $0.4$ oe \newline \textit{answer only does not score} & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q9color}
+\textbf{(a)} Divide each term by $x^2$:
+\[ \int\frac{x^3+2x^2+1}{x^2}\,\mathrm{d}x=\int\left(x+2+x^{-2}\right)\mathrm{d}x \]
+\[ \boxed{=\frac{x^2}{2}+2x-\frac{1}{x}+c} \]
+
+\textbf{(b)(i)}
+\[ \int\sin(5x+\pi)\,\mathrm{d}x=\boxed{-\frac{\cos(5x+\pi)}{5}+c} \]
+
+\textbf{(ii)}
+\[ \int_{-\frac{\pi}{5}}^{0}\sin(5x+\pi)\,\mathrm{d}x=\left[-\frac{\cos(5x+\pi)}{5}\right]_{-\frac{\pi}{5}}^{0}=-\frac{\cos\pi}{5}-\left(-\frac{\cos0}{5}\right) \]
+\[ =\frac{1}{5}+\frac{1}{5}=\boxed{0.4} \]
+\end{ansbox}
+
+% ===================================================== Q10
+\examq{4037/22/M/J/16}{10}{Logarithmic \& Exponential Functions \textperiodcentered\ Equations, Inequalities \& Graphs}{9}
+\begin{mstab}{q10color}
+ & $2=p-q$ and $14=4p-2q$ oe & M1 \\ \hline
+ & $p=5$ & A1 \\ \hline
+\multirow{-3}{1.9cm}{10(a)} & $q=3$ & A1 \\ \hline
+ & Factorise $10^{2x}-2(10^x)-24\ [=0]$ or factorise $u^2-2u-24\ [=0]$ \newline \textit{or applies the formula or completes the square} & M1 \\ \hline
+ & $10^x=6$ \newline \textit{ignore $10^x=-4$ for this mark} & A1 \\ \hline
+\multirow{-3}{1.9cm}{10(b)} & $x=\lg6$ cao as final answer \newline \textit{or exact equivalent} & A1 \\ \hline
+ & $\dfrac{x+1}{x}=2^3$ oe www \newline \textit{combines logs and anti-logs; or B1 for one correct log move e.g.\ $\log_2\left(\frac{x+1}{x}\right)=3$ or $\log_2(x+1)-\log_2(x)=\log_2 8$ or $\log_2(x+1)-\log_2(x)=3\log_2 2$} & M2 \\ \hline
+\multirow{-2}{1.9cm}{10(c)} & $x=\dfrac{1}{7}$ or $0.143$ or $0.1428$ to $0.1429$ & A1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q10color}
+\textbf{(a)} $y=p\left(4^{2x}\right)-q\left(4^{x}\right)$.
+\[ (0,\ 2):\quad 2=p(1)-q(1) \;\Rightarrow\; p-q=2 \]
+\[ (0.5,\ 14):\quad 14=p\left(4^{1}\right)-q\left(4^{0.5}\right) \;\Rightarrow\; 4p-2q=14 \;\Rightarrow\; 2p-q=7 \]
+Subtracting: $p=5$, then $q=p-2=3$:
+\[ \boxed{p=5,\quad q=3} \]
+
+\textbf{(b)} With $u=10^x$, \ $y=10^{2x}-2\left(10^x\right)=u^2-2u$. When $y=24$:
+\[ u^2-2u-24=0 \;\Rightarrow\; (u-6)(u+4)=0 \;\Rightarrow\; u=6 \;\text{ or }\; u=-4 \]
+$10^x=-4$ has no solution, so $10^x=6$:
+\[ \boxed{x=\lg6} \]
+
+\textbf{(c)}
+\[ \log_2(x+1)-\log_2 x=3 \;\Rightarrow\; \log_2\left(\frac{x+1}{x}\right)=3 \;\Rightarrow\; \frac{x+1}{x}=2^3=8 \]
+\[ x+1=8x \;\Rightarrow\; 7x=1 \;\Rightarrow\; \boxed{x=\frac{1}{7}} \]
+\end{ansbox}
+
+% ===================================================== Q11
+\examq{4037/22/M/J/16}{11}{Functions \textperiodcentered\ Quadratic Functions}{11}
+\begin{mstab}{q1color}
+ & Valid method \newline \textit{Completing the square as far as e.g.\ $-\left(x-\frac{1}{2}\right)^2+\text{constant}$ or calculus as far as $1-2x=0$ or finding roots $x=0$ and $x=1$ and using symmetry soi} & M1 \\ \hline
+ & when $x=\dfrac{1}{2}$ & A1 \\ \hline
+\multirow{-3}{1.9cm}{11(a)} & [greatest value $=$] $\dfrac{1}{4}$ \newline \textit{Implies M1 if not clearly from wrong working} & B1 \\ \hline
+11(b) & Valid comment e.g.\ when $x\geqslant1$, f is always decreasing \newline \textit{Allow e.g.\ a sketch with a comment such as the curve is one-one [when $x\geqslant1$] or e.g.\ the curve is one-one when $x>\frac{1}{2}$} & B1 \\ \hline
+ & $\mathrm{k}(10)=8$ or $\sqrt{10-1}+5=8$ or stating $\mathrm{h}(8)$ \newline \textit{or $[\mathrm{hk}(x)=]\ \lg\left(7+\sqrt{x-1}\right)$} & M1 \\ \hline
+\multirow{-2}{1.9cm}{11(c)(i)} & $\mathrm{h}(8)=1$ or $\lg(8+2)=1$ cao \newline \textit{or $[\mathrm{hk}(10)=]\ \lg\left(7+\sqrt{10-1}\right)=1$} & A1 \\ \hline
+ & $(y-5)^2=x-1$ \newline \textit{or $(x-5)^2=y-1$} & M1 \\ \hline
+ & $\mathrm{k}^{-1}(x)=(x-5)^2+1$ isw or $\mathrm{k}^{-1}(x)=x^2-10x+26$ isw & A1 \\ \hline
+ & $5<x<15$ \newline \textit{B1 for $5<x$ oe and B1 for $x<15$ oe; allow $(5,\ 15)$; one mark for each limit of the interval; if B0 then SC1 for $5\leqslant x\leqslant15$ or `5 to 15' or $[5,\ 15]$ etc.} & B1, B1 \\ \hline
+\multirow{-4}{1.9cm}{11(c)(ii)} & $1<\mathrm{k}^{-1}(x)<101$ \newline \textit{allow $(1,\ 101)$} & B1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q1color}
+\textbf{(a)} $\mathrm{f}(x)=x-x^2$. Completing the square:
+\[ x-x^2=-\left(x^2-x\right)=-\left[\left(x-\frac{1}{2}\right)^2-\frac{1}{4}\right]=\frac{1}{4}-\left(x-\frac{1}{2}\right)^2 \]
+The squared term is never negative, so the greatest value occurs when $x-\frac{1}{2}=0$:
+\[ \boxed{\text{greatest value}=\frac{1}{4}\ \text{ when }\ x=\frac{1}{2}} \]
+
+\textbf{(b)} The graph of $y=x-x^2$ has its vertex at $x=\frac{1}{2}$. For $x\geqslant1$ (which lies entirely to the right of the vertex) the function is always decreasing, so it is one-one on this domain and therefore $\mathrm{g}^{-1}(x)$ exists.
+
+\textbf{(c)} $\mathrm{h}:x\mapsto\lg(x+2)$ for $x>-2$; \ $\mathrm{k}:x\mapsto\sqrt{x-1}+5$ for $1<x<101$.
+
+\textbf{(i)}
+\[ \mathrm{k}(10)=\sqrt{10-1}+5=3+5=8, \qquad \mathrm{h}(8)=\lg(8+2)=\lg10 \]
+\[ \boxed{\mathrm{hk}(10)=1} \]
+
+\textbf{(ii)} Let $y=\sqrt{x-1}+5$:
+\[ y-5=\sqrt{x-1} \;\Rightarrow\; (y-5)^2=x-1 \;\Rightarrow\; x=(y-5)^2+1 \]
+\[ \boxed{\mathrm{k}^{-1}(x)=(x-5)^2+1} \]
+The domain of $\mathrm{k}^{-1}$ is the range of $\mathrm{k}$: for $1<x<101$, $0<\sqrt{x-1}<10$, so $5<\mathrm{k}(x)<15$. The range of $\mathrm{k}^{-1}$ is the domain of $\mathrm{k}$:
+\[ \boxed{\text{Domain: } 5<x<15, \qquad \text{Range: } 1<\mathrm{k}^{-1}(x)<101} \]
+\end{ansbox}
+
+% ===================================================== Q12
+\examq{4037/22/M/J/16}{12}{Trigonometry}{8}
+\begin{mstab}{q2color}
+ & $8\left(1-\cos^2A\right)+2\cos A=7$ or better & B1 \\ \hline
+ & Solves or factorises their 3-term quadratic in $\cos A$ & M1 \\ \hline
+\multirow{-3}{1.9cm}{12(i)} & $60^\circ$, \ $104.477\ldots^\circ$ rounded or truncated to 1 dp or more \newline \textit{with no extras in range; not from clearly wrong working but allow recovery from minor slips; or A1 for either, ignoring extras} & A2 \\ \hline
+ & $\sin(3B+1)=0.4$ soi \newline \textit{may be implied by $\dfrac{1}{\sin(3B+1)}=2.5$} & B1 \\ \hline
+ & $[3B+1=]\ 0.41$ or better \newline \textit{implies B1} & M1 \\ \hline
+\multirow{-3}{1.9cm}{12(ii)} & $0.577$, \ $1.9[0]$, \ $2.67$ or $0.57669\ldots$, \ $1.89823\ldots$, \ $2.67108\ldots$ rounded or truncated to 4 or more sf \newline \textit{with no extras in range; or A1 for any one correct ignoring extras; If M0 then B2 for all 3 correct angles found or B1 for 1 or 2 correct angles found} & A2 \\ \hline
+\end{mstab}
+\begin{ansbox}{q2color}
+\textbf{(i)} $8\sin^2A+2\cos A=7$, \ $0^\circ\leqslant A\leqslant180^\circ$. Use $\sin^2A=1-\cos^2A$:
+\[ 8\left(1-\cos^2A\right)+2\cos A=7 \;\Rightarrow\; 8\cos^2A-2\cos A-1=0 \]
+\[ (2\cos A-1)(4\cos A+1)=0 \;\Rightarrow\; \cos A=\frac{1}{2} \;\text{ or }\; \cos A=-\frac{1}{4} \]
+\[ \cos A=\frac{1}{2}\;\Rightarrow\; A=60^\circ, \qquad \cos A=-\frac{1}{4}\;\Rightarrow\; A=104.477\ldots^\circ \]
+\[ \boxed{A=60^\circ,\quad A=104.5^\circ} \]
+
+\textbf{(ii)} $\operatorname{cosec}(3B+1)=2.5$, \ $0\leqslant B\leqslant\pi$:
+\[ \sin(3B+1)=\frac{1}{2.5}=0.4 \]
+The range for $3B+1$ is $1\leqslant3B+1\leqslant3\pi+1\ (=10.42\ldots)$. The principal value is $\sin^{-1}0.4=0.41151\ldots$ (outside the range), so
+\[ 3B+1=\pi-0.41151\ldots,\quad 2\pi+0.41151\ldots,\quad 3\pi-0.41151\ldots \]
+\[ 3B+1=2.73008\ldots,\quad 6.69470\ldots,\quad 9.01326\ldots \]
+\[ B=\frac{2.73008\ldots-1}{3},\quad \frac{6.69470\ldots-1}{3},\quad \frac{9.01326\ldots-1}{3} \]
+\[ \boxed{B=0.577,\quad 1.90,\quad 2.67\ \text{radians}} \]
+\end{ansbox}
+
+\end{document}

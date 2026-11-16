@@ -1,0 +1,990 @@
+% =====================================================================
+%  School Wits - Cambridge O Level Physics 5054
+%  Paper 2 (Theory), 5054/21/M/J/16
+%
+%  Keep 5054_s16_qp_21.pdf and 3-01.png beside this file (upload both to Overleaf). Nothing else is
+%  needed: the diagrams, tables and stacked fractions are clipped out of the
+%  official PDF by pdflatex itself, at the exact size and position they have
+%  in the original.
+%
+%  Build modes - uncomment one line inside the document:
+%     \swwbtrue     the printed workbook head
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[paperwidth=595.276bp, paperheight=841.89bp,
+            left=49.6bp, right=46.376bp,
+            top=62.56bp, textheight=734bp,
+            head=42.4bp, headsep=7bp, footskip=22bp]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}\renewcommand{\familydefault}{\sfdefault}
+% Word sets the paper's Arial with neither ligatures nor pair kerning, so both
+% are switched off here: "fl" stays two letters and "Tr" is not tucked in.
+% Nimbus Sans then has Arial's advances exactly, letter for letter.
+\usepackage[protrusion=false,expansion=false,kerning=false,spacing=false,tracking=false]{microtype}
+\DisableLigatures{encoding = *, family = *}
+\usepackage{amsmath}\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{calc}
+\definecolor{swrule}{gray}{0.62}
+
+% The paper sets its body at 11bp on a 13bp baseline.  The class would reset
+% both at \begin{document}, so \normalsize itself is pinned to the measurement.
+\makeatletter
+\renewcommand\normalsize{\@setfontsize\normalsize{11bp}{13bp}%
+  \abovedisplayskip\z@ \belowdisplayskip\z@
+  \abovedisplayshortskip\z@ \belowdisplayshortskip\z@}
+\makeatother
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\linespread{1}\normalbaselineskip=13bp \baselineskip=13bp
+\lineskiplimit=-\maxdimen \lineskip=0pt
+\makeatletter\def\@listi{\leftmargin\leftmargini}\makeatother
+\setlength{\topskip}{10.04bp}
+% A page that opens lower than the standard first baseline needs its offset
+% as non-discardable space: TeX throws away ordinary glue at the top.
+
+\clubpenalty=10000 \widowpenalty=10000
+\hyphenpenalty=10000 \exhyphenpenalty=10000 \tolerance=4000 \emergencystretch=0pt
+%  The paper's word space, measured: 3.058bp, stretching by up to
+%  2.85bp and shrinking by up to 1.72bp to justify a line.
+\frenchspacing
+\spaceskip=3.058bp plus 2.85bp minus 1.72bp
+\xspaceskip=3.058bp plus 2.85bp minus 1.72bp
+\hbadness=10000
+% a line the paper fills to a hair past the measure is not worth a warning
+\hfuzz=1bp
+
+% ---- symbols, set the way the paper sets them ------------------------
+\newcommand{\ftsize}{\fontsize{8bp}{9bp}\selectfont}
+\newcommand{\ohms}{{\usefont{U}{psy}{m}{n}W}}
+\newcommand{\dg}{{\usefont{U}{psy}{m}{n}\char"B0\relax}}
+\newcommand{\degC}{\dg C}
+\newcommand{\x}{\ensuremath{\times}}
+% super- and subscripts as the paper sets them: 8.25bp, 3.86bp up or 3.84bp
+% down, taking no height so a line holding one keeps its place
+\newcommand{\pow}[1]{\raisebox{3.86bp}[0pt][0pt]{\fontsize{8.25bp}{8.25bp}\selectfont #1}}
+\newcommand{\sub}[1]{\raisebox{-3.84bp}[0pt][0pt]{\fontsize{8.25bp}{8.25bp}\selectfont #1}}
+%  a nuclide symbol: mass number above, proton number below, as the paper sets it
+% a nuclide symbol: the two numbers centred over one another.  The paper's
+% own offsets and size come in the optional argument, up/down/size in bp,
+% because they differ from paper to paper: \stack[3.86/3.84/8.25]{X}{Y}
+\makeatletter
+\newcommand{\stack}[3][5.34/2.66/8]{\sw@stack#1\relax{#2}{#3}}
+\def\sw@stack#1/#2/#3\relax#4#5{\begingroup\fontsize{#3bp}{#3bp}\selectfont
+  \setbox0=\hbox{#4}\setbox2=\hbox{#5}%
+  \dimen0=\ifdim\wd0>\wd2 \wd0\else\wd2\fi
+  \rlap{\raisebox{#1bp}[0pt][0pt]{\hbox to\dimen0{\hss\box0\hss}}}%
+  \raisebox{-#2bp}[0pt][0pt]{\hbox to\dimen0{\hss\box2\hss}}\endgroup}
+\makeatother
+% a few characters the paper sets in another font - Times New Roman for Roman
+% numerals - set in that font's free clone at the paper's size: \swf{ptm}{12.00}{VII}
+\newcommand{\swf}[3]{{\fontfamily{#1}\fontsize{#2bp}{#2bp}\selectfont #3}}
+%  the paper's thin space inside units, measured: 1.53bp (LaTeX's own is 1.83bp)
+\AtBeginDocument{\renewcommand{\,}{\ifmmode\mskip\thinmuskip\else\kern1.53bp\relax\fi}}
+
+% =====================================================================
+%  TOPIC COLOURS — one definition, read by the chip and by the website
+% =====================================================================
+\definecolor{swDefault}{HTML}{D8DDE4}
+\definecolor{tpMeasure}{HTML}{D44949}
+\definecolor{tpMotion}{HTML}{49A6D4}
+\definecolor{tpForces}{HTML}{D4C249}
+\definecolor{tpMass}{HTML}{9A49D4}
+\definecolor{tpMoments}{HTML}{49D449}
+\definecolor{tpMomentum}{HTML}{D4498F}
+\definecolor{tpDeform}{HTML}{D48F49}
+\definecolor{tpWork}{HTML}{4978D4}
+\definecolor{tpPressure}{HTML}{8FD449}
+\definecolor{tpKinetic}{HTML}{D449D4}
+\definecolor{tpThermalProp}{HTML}{49D4A6}
+\definecolor{tpThermalTx}{HTML}{D46C49}
+\definecolor{tpWaves}{HTML}{6049D4}
+\definecolor{tpLight}{HTML}{C9D449}
+\definecolor{tpEMS}{HTML}{49C9D4}
+\definecolor{tpSound}{HTML}{D4496C}
+\definecolor{tpMagnet}{HTML}{49D478}
+\definecolor{tpCharge}{HTML}{D4AB49}
+\definecolor{tpEQuant}{HTML}{4955D4}
+\definecolor{tpCircuits}{HTML}{D449BD}
+\definecolor{tpPracElec}{HTML}{A12B2B}
+\definecolor{tpEMag}{HTML}{2B7AA1}
+\definecolor{tpScope}{HTML}{A1912B}
+\definecolor{tpNuclear}{HTML}{702BA1}
+\definecolor{tpRadio}{HTML}{2BA12B}
+\definecolor{tpEarth}{HTML}{A12B66}
+\definecolor{tpStars}{HTML}{A1662B}
+
+\makeatletter
+\newcommand{\sw@key}[1]{sw@tc@\expandafter\zap@space\detokenize{#1} \@empty}
+\newcommand{\deftopic}[2]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@deftopic\expandafter{\sw@tmp}{#2}}
+\newcommand{\sw@deftopic}[2]{%
+  \expandafter\xdef\csname\sw@key{#1}\endcsname{#2}}
+\makeatother
+
+\deftopic{Physical Quantities and Measurements}{tpMeasure}
+\deftopic{Motion or Kinematics}{tpMotion}
+\deftopic{Forces or Dynamics}{tpForces}
+\deftopic{Mass Weight and Density}{tpMass}
+\deftopic{Turning Effect of Forces}{tpMoments}
+\deftopic{Momentum (Dynamics)}{tpMomentum}
+\deftopic{Deformation}{tpDeform}
+\deftopic{Work Energy and Power}{tpWork}
+\deftopic{Pressure}{tpPressure}
+\deftopic{Kinetic Model of Matter}{tpKinetic}
+\deftopic{Thermal Properties \& Temperature}{tpThermalProp}
+\deftopic{Transfer of Thermal Energy}{tpThermalTx}
+\deftopic{General Wave Properties}{tpWaves}
+\deftopic{Light (Reflection/Refraction/Lenses)}{tpLight}
+\deftopic{Electromagnetic Spectrum}{tpEMS}
+\deftopic{Sound}{tpSound}
+\deftopic{Simple Magnetism and Magnetic Fields}{tpMagnet}
+\deftopic{Electric Charge}{tpCharge}
+\deftopic{Electrical Quantities}{tpEQuant}
+\deftopic{Electric Circuits}{tpCircuits}
+\deftopic{Practical Electricity / Electrical Safety}{tpPracElec}
+\deftopic{Electro Magnetism / Electromagnetic Induction}{tpEMag}
+\deftopic{Uses of Oscilloscope}{tpScope}
+\deftopic{The Nuclear Atom}{tpNuclear}
+\deftopic{Radioactivity}{tpRadio}
+\deftopic{Earth \& Solar System}{tpEarth}
+\deftopic{The Stars \& Universe}{tpStars}
+
+% =====================================================================
+%  THE HEADER — the ONE thing that differs between the two builds
+% =====================================================================
+\makeatletter
+\def\sw@firstof#1\textperiodcentered#2\@nil{#1}
+\newcommand{\swfirsttopic}[1]{\sw@firstof#1\textperiodcentered\@nil}
+% every topic of a question as its own chip, main topic first, 4bp apart:
+% the list is split where \examq's topics are joined, at "\textperiodcentered\ "
+\newcommand{\topicchips}[1]{\sw@chipsloop#1\textperiodcentered\ \@nil}
+\def\sw@chipsloop#1\textperiodcentered\ #2\@nil{\topicchip{#1}%
+  \if\relax\detokenize{#2}\relax\else\hspace{4bp}\sw@chipsloop#2\@nil\fi}
+\newcommand{\sw@hstrut}{\rule[-3.4bp]{0pt}{14.6bp}}
+\newcommand{\topicchip}[1]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@chip\expandafter{\sw@tmp}}
+%  The chip: a rounded tag in three shades of the topic's own colour - a
+%  tinted fill, a hairline border, and text darkened into the same hue, so it
+%  reads as a label rather than a block of paint.  The box keeps the old
+%  measurements exactly: 9bp above the baseline, 2.9bp below, 4.9bp of air
+%  either side of the text, so nothing around it moves.
+%
+%  Three knobs, if the look wants adjusting:
+%    sw@bg  fill      !60!white is a soft tint; raise towards !100 for solid
+%    sw@bd  border    a lightened version of the text colour
+%    sw@ink text      !45!black keeps it legible on any of the pastels
+%  For a solid chip instead, set sw@bg to sw@base and drop the draw= key.
+\newcommand{\sw@chip}[1]{%
+  \begingroup
+  \edef\sw@col{\ifcsname\sw@key{#1}\endcsname
+      \csname\sw@key{#1}\endcsname\else swDefault\fi}%
+  \colorlet{sw@base}{\sw@col}%
+  \colorlet{sw@ink}{sw@base!45!black}%
+  \colorlet{sw@bg}{sw@base!60!white}%
+  \colorlet{sw@bd}{sw@ink!35!white}%
+  \begin{tikzpicture}[baseline=(swchip.base)]
+    \node[anchor=base, at={(0,0)},
+          inner xsep=4.9bp, inner ysep=0bp,
+          text height=9bp, text depth=2.9bp,
+          rounded corners=2.6bp,
+          fill=sw@bg, draw=sw@bd, line width=0.4bp,
+          text=sw@ink,
+          font=\fontsize{8.6bp}{8.6bp}\selectfont\bfseries] (swchip) {#1\unskip};
+  \end{tikzpicture}%
+  \endgroup}
+
+% =====================================================================
+%  THE QUESTION HEAD
+%  Every question carries \examq{<paper id>}{<number>}{<topics>}{<marks>}.
+%  It is the single source of truth: the website splits the file on it and
+%  filters on the topic list, the contents page groups by the first topic,
+%  and \total reads the marks from it.
+%
+%  Three builds, one file:
+%     (default)    the yearly paper - the head prints NOTHING, so the page
+%                  stays a copy of the official one, page for page
+%     \swwbtrue    the printed workbook - paper id, question number and every
+%                  topic as a colour chip, main topic first; no marks
+%     \swwebtrue   the website - the full line, topics and marks included
+% =====================================================================
+\newif\ifswwb  \swwbfalse
+\newif\ifswweb \swwebfalse
+\makeatletter
+% The workbook and website builds add a head above every question, so a page
+% can no longer hold exactly what the paper's page holds.  In those builds a
+% page may break only before a question head or, in a structured paper,
+% before a part such as (b) or (ii) - never inside a question, between a stem
+% and its options, or between a part and its answer lines.  The yearly build
+% is untouched: there every \swnb is empty and every page break is the paper's.
+\newcommand{\swnb}{\ifswwb\nobreak\interlinepenalty=10000 \else
+  \ifswweb\nobreak\interlinepenalty=10000 \fi\fi}
+\newcommand{\partbreak}{\par\ifswwb\penalty\z@\else\ifswweb\penalty\z@\fi\fi}
+% the paper's page break before a question; in the head builds questions
+% simply follow on, each kept whole
+\newcommand{\swpage}{\par\newpage\pagestart}
+\makeatother
+\makeatletter
+\newcommand{\swsep}{\kern4.2bp\textendash\kern4.2bp}
+\gdef\swpaper{}\gdef\swqnum{}\gdef\swtopics{}\gdef\swmarks{}
+\newcommand{\examq}[4]{\par % ends the paragraph before, so no stray space is left in it
+  \gdef\swpaper{#1}\gdef\swqnum{#2}\gdef\swtopics{#3}\gdef\swmarks{#4}%
+  \ifswwb\sw@qhead{\sw@wbhead{#1}{#2}{#3}}\else
+  \ifswweb\sw@qhead{\sw@webhead{#1}{#2}{#3}{#4}}\fi\fi}
+\newcommand{\sw@wbhead}[3]{{\bfseries #1\swsep Q#2}\hspace{8bp}%
+  \raisebox{0.6bp}{\topicchips{#3}}}
+\newcommand{\sw@webhead}[4]{{\bfseries #1\swsep Q#2\swsep #3\swsep #4}}
+%  The head never takes space from the page, so every page of the workbook and
+%  website builds holds exactly what the paper's page holds.  A question that
+%  opens a page has its head set in the header band, under the logo (passed
+%  there as an e-TeX mark).  A question that starts part-way down a page has
+%  its head set in the gap the paper already leaves above it, 16bp above the
+%  question's first line, so the question stays where the paper puts it.
+\newif\ifsw@pending \sw@pendingfalse
+\newdimen\sw@hd
+\newcommand{\sw@qhead}[1]{%
+  \ifdim\prevdepth<-999pt \marks5{\unexpanded{#1}}%
+  \else \gdef\sw@pending{#1}\global\sw@pendingtrue \fi}
+%  #1 = the measured distance to the next element, #2 = the room it keeps below the head.
+%  The head's baseline goes #2 above the next element; when the paper's gap is
+%  too tight for that (under 29bp), the head sits in the middle of the gap
+%  instead, never closer than 13bp to the line above when there is room for it.
+%  Either way the next element lands exactly where the paper puts it.
+\newdimen\sw@rest
+\def\sw@puthead#1#2{\global\sw@pendingfalse
+  \sw@hd=\dimexpr #1bp-#2bp\relax
+  \ifdim\sw@hd<13bp
+    \sw@rest=\dimexpr #1bp/2\relax
+    \ifdim\sw@rest>13bp \sw@rest=13bp\fi
+    \ifdim\sw@hd<\sw@rest \sw@hd=\sw@rest\fi
+  \fi
+  \global\sw@rest=\dimexpr #1bp-\sw@hd\relax
+  \vskip\dimexpr\sw@hd-\prevdepth-\ht\strutbox\relax
+  \begingroup\leftskip\z@ \rightskip\z@ plus 1fil\@totalleftmargin\z@ \hangindent\z@
+  % the chip is taller than a line of text; it must not push the question down
+  \nointerlineskip\noindent\strut\raisebox{\z@}[\ht\strutbox][\dp\strutbox]{\sw@fit{\sw@pending}}%
+  \par\endgroup}
+%  one line: a head too long for the measure is scaled down to fit it
+\newcommand{\sw@fit}[1]{\setbox\z@\hbox{\fontsize{11bp}{12bp}\selectfont #1}%
+  \ifdim\wd\z@>\textwidth \resizebox{\textwidth}{!}{\box\z@}\else\box\z@\fi}
+% the mark total for the question, read from \examq so there is one number
+\makeatother
+
+% ---- the question body ----------------------------------------------
+%  Each element carries two numbers measured off the official paper: how far
+%  its baseline sits below the one above it, and the column it starts in.
+%  Blank working space needs no macro of its own - it is simply a larger
+%  distance to the next element.
+\makeatletter
+\gdef\sw@hang{0}
+%  a paragraph whose later lines line up under a phrase in the first
+\newcommand{\hang}[1]{\par\gdef\sw@hang{#1}}
+\newcommand{\sw@place}[3]{\par\swnb
+  \leftskip=\dimexpr #2bp-49.6bp\relax
+  \rightskip=\dimexpr 548.9bp-#3bp\relax
+  \@totalleftmargin=\leftskip
+  \linewidth=\dimexpr\textwidth-\leftskip-\rightskip\relax
+  \ifsw@pending \sw@puthead{#1}{16}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth-\ht\strutbox\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{\dimexpr #1bp-\ht\strutbox\relax}
+  \else \vskip\dimexpr #1bp-\prevdepth-\ht\strutbox\relax\fi\fi
+  \ifdim\sw@hang bp>0pt \hangindent=\sw@hang bp\relax\hangafter=1\relax\fi
+  \gdef\sw@hang{0}%
+  \nointerlineskip\noindent\strut\ignorespaces}
+% \prevdepth carries across \newpage, so the first element of a page would be
+% spaced from the last line of the page before.  This resets it, which also
+% tells \sw@place to set the distance from the top of the text area instead.
+\newcommand{\pagestart}{\par\prevdepth=-1000pt\relax\marks5{}}
+\newcommand{\swat}[1]{\sw@place{#1}{\sw@curx}{545.7}}
+\def\sw@curx{72.3}
+% a line of text starting in column #2
+% no \par at the end: the next element's \sw@place closes the paragraph,
+% so a line held back by \linebreak stays part of it
+\newcommand{\row}[3]{\sw@place{#1}{#2}{545.7}#3}
+% a label hanging #1 bp to the left of the text it belongs to
+\newcommand{\lab}[2]{\llap{\makebox[#1bp][l]{\strut #2}}\ignorespaces}
+% the paper's dotted answer line: 3.058bp between dots, as measured
+\def\swdots{\leavevmode\cleaders\hb@xt@ 3.058bp{\hss.\hss}\hfill\kern\z@}
+%   \dotline{gap}{from}{before the dots}{after them}{to}
+%   These macros print nothing, so each one starts with \par: otherwise the
+%   line break after it in the source would leave a space at the end of the
+%   paragraph before, and a full line would be squeezed to make room for it.
+%   \dotgrid{first dot}{last dot}{pitch}, given just before a \dotline, sets
+%   its dots where the paper prints them: on the paper's own grid, stopping at
+%   the last whole dot before the unit.  The unit then ends 5.5bp before the
+%   mark, and the mark ends at the right margin.
+\newif\ifsw@grid
+\newcommand{\dotgrid}[3]{\par\gdef\sw@gfirst{#1}\gdef\sw@glast{#2}\gdef\sw@gpitch{#3}%
+  \global\sw@gridtrue}
+\def\sw@post#1[#2]#3\sw@nil{%
+  \ifx\relax#1\relax\else{\ignorespaces#1\unskip}\fi
+  \ifx\relax#2\relax\else\kern5.5bp[#2]\fi}
+\newcommand{\dotline}[5]{\sw@place{#1}{#2}{#5}%
+  \ifsw@grid\global\sw@gridfalse
+    \rlap{\kern\dimexpr\sw@gfirst bp-#2bp\relax
+      \hbox to\dimexpr\sw@glast bp-\sw@gfirst bp+\sw@gpitch bp+0.5bp\relax
+        {\leaders\hbox to\sw@gpitch bp{.\hss}\hfill}}%
+    #3\hfill\sw@post#4[]\sw@nil
+  \else
+    \ifx\relax#3\relax\else#3\kern3.4bp\fi\swdots
+    \ifx\relax#4\relax\else\kern3.4bp#4\fi
+  \fi}
+% the mark for a part, set where the paper sets it.  Marks live only inside
+% these macros, never as loose text, so the site can count them.
+\newcommand{\swmark}[1]{\unskip\nobreak\hfill\mbox{#1}}
+\newcommand{\qmark}[2]{\sw@place{#1}{49.6}{545.7}\hfill\mbox{#2}}
+% the question total, taken from \examq so the number is written once
+\newcommand{\total}[1]{\sw@place{#1}{49.6}{545.7}\hfill\mbox{[T\kern-1.22bp otal:\ \swmarks]}}% the paper kerns "To"
+\newcommand{\gap}[1]{\par\vspace{#1bp}}
+\makeatother
+
+% ---- mathematics, placed piece by piece -----------------------------
+%  A line of mathematics - fractions, radicals, symbols set apart - is set as
+%  a \freerow: every run of letters is placed where the paper prints it,
+%  measured in bp from the column at 49.6bp and from the row's baseline (up is
+%  positive); fraction bars and the strokes of a radical sign are drawn where
+%  the paper draws them; and a glyph no free font has (a stretched bracket,
+%  MathType's own symbols) is cut out of the official PDF at its exact place.
+\makeatletter
+\newcommand{\freerow}[2]{\sw@place{#1}{49.6}{545.7}#2}
+\newcommand{\at}[3]{\rlap{\kern\dimexpr #1bp-49.6bp\relax\raisebox{#2bp}[0pt][0pt]{#3}}}
+\newcommand{\ruleat}[4]{\rlap{\kern\dimexpr #1bp-49.6bp\relax
+  \raisebox{\dimexpr #3bp-#4bp/2\relax}[0pt][0pt]{\rule{\dimexpr #2bp-#1bp\relax}{#4bp}}}}
+%  \swpath{style}{path}{clip}: a drawing, drawn through the paper's own
+%  clipping path when it has one (a radical sign is a thick stroke clipped to
+%  the sign's outline)
+\newcommand{\swpath}[3]{\rlap{\begin{tikzpicture}[overlay,x=1bp,y=1bp,baseline=0pt]
+  \begin{scope}#3\path[#1] #2;\end{scope}\end{tikzpicture}}}
+\newcommand{\swglyph}[2]{\swclip{#1}{#2}}
+% how far a band of mathematics hangs below its first baseline
+\newcommand{\swdepth}[1]{\vrule width\z@ height\z@ depth#1bp\relax}
+\makeatother
+% a glyph from the real Symbol font, by its code: \swsy{70} is pi
+\newcommand{\swsy}[1]{{\usefont{U}{psy}{m}{n}\char"#1\relax}}
+
+% ---- figures, clipped out of the official PDF at compile time --------
+%   \qfig{page}{l b r t}{caption}{above}{below}{left}
+%   above = bp from the previous baseline down to the top of the figure
+%   left  = the figure's left edge on the official page
+\newcommand{\srcpdf}{5054_s16_qp_21.pdf}
+\newcommand{\swclip}[3][]{%
+  \IfFileExists{\srcpdf}{\includegraphics[page=#2,trim=#3,clip,#1]{\srcpdf}}%
+  {\fbox{\parbox[c][22mm][c]{0.45\textwidth}{\centering\ttfamily\footnotesize
+    source PDF missing:\\\detokenize\expandafter{\srcpdf}}}}}
+\makeatletter
+\newcommand{\qfig}[7][]{\par\swnb\begingroup\setlength{\parskip}{0pt}%
+  \ifsw@pending \sw@puthead{#5}{12}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{#5bp}
+  \else \vskip\dimexpr #5bp-\prevdepth\relax\fi\fi
+  \nointerlineskip
+  \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+    \hspace*{\dimexpr #7bp-49.6bp\relax}\swclip[#1]{#2}{#3}\hfil}\par
+  \ifx\relax#4\relax\else
+    \vskip #6bp\relax\nointerlineskip
+    \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+      \makebox[\textwidth][c]{\textbf{#4}}}\par
+  \fi\endgroup}
+\makeatother
+
+% ---- the School Wits head -------------------------------------------
+%  The official paper leaves the top of the page empty apart from a centred
+%  page number, which we move to the foot. The head is built inside that
+%  margin, so the question area below it never moves.
+\newlength{\swlogoht}\setlength{\swlogoht}{14bp}
+\newlength{\swheadgap}\setlength{\swheadgap}{3bp}
+\newlength{\swqlinenow}% the line actually reserved: none in workbook mode,
+                       % so the logo drops to sit just above the question head
+\newlength{\swqline}\setlength{\swqline}{25.4bp}
+% the head of a question that opens a page sits 16bp above the question's
+% first line, the same as a head set in the gap above a question mid-page
+\newlength{\swheaddrop}\setlength{\swheaddrop}{1.05bp}
+\newcommand{\swlogofile}{3-01.png}
+%  mark then hairline. For the mark on the right instead, use:
+%    \renewcommand{\swlogoalign}{\hfil\swlogo}
+\newcommand{\swlogoalign}{\swlogo\hspace{13bp}%
+  \color{swrule}\leaders\hbox{\vrule height0.52\swlogoht depth-0.48\swlogoht width1bp}\hfil}
+\newcommand{\swlogo}{%
+  \IfFileExists{\swlogofile}%
+    {\includegraphics[height=\swlogoht]{\swlogofile}}%
+    {{\usefont{T1}{ptm}{b}{sc}\fontsize{11.5bp}{11.5bp}\selectfont School Wits}}}
+\gdef\swrunhead{}
+\makeatletter
+% The logo band always sits in the top margin at the same place.  The line
+% under it is optional: with \swrunhead empty the space is simply left blank,
+% so the logo and the body below it never move.
+\newcommand{\swheadblock}{%
+  % the head of a question that opens the page, pinned to the header's
+  % baseline: its own baseline lands 16bp above the question's first line
+  \rlap{\raisebox{-\swheaddrop}[\z@][\z@]{\sw@fit{\botmarks5}}}%
+  \parbox[b][\dimexpr\swlogoht+\swheadgap+\swqline\relax][t]{\textwidth}{%
+    \hb@xt@\textwidth{\swlogoalign}}}
+\makeatother
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\swheadblock}
+\fancyfoot[C]{\ftsize\thepage}
+
+\begin{document}
+\normalsize
+% ------------------------------------------------------- HEADER MODE --
+\swwebtrue     % website build: this is the WEB file
+% ----------------------------------------------------------------------
+\gdef\swrunhead{}
+\pagestart
+\row{0.6}{272.2}{\textbf{Section A}}
+\qfig{2}{121.98bp 711.65bp 121.56bp 88.99bp}{}{15.8}{0}{121.98}
+\examq{5054/21/M/J/16}{1}{Forces or Dynamics \textperiodcentered\ Motion or Kinematics}{5}
+\row{20.9}{72.3}{\lab{22.7}{\textbf{1 }}A sky-diver jumps from a stationar\kern0.33bp y balloon. His initial downwards acceleration is 10\,m\,/\,s\pow{2}.}
+\row{26.0}{72.3}{Fig. 1.1 shows the directions of the air resistance and the weight of the sky-diver\kern-0.55bp .}
+\qfig{2}{202.98bp 529.53bp 202.92bp 190.11bp}{}{12.9}{0}{202.98}
+\row{23.5}{278.9}{\textbf{Fig. 1.1}}
+\row{26.0}{72.3}{The mass of the sky-diver is 60\,kg and his weight is 600\,N.}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Explain, using ideas about the f\kern-0.33bp orces, wh\kern-0.33bp y his initial downwards acceleration is 10\,m\,/\,s\pow{2}.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\partbreak
+\row{39.0}{94.9}{\lab{22.6}{\textbf{(b)}}When the parachute opens, the sky-diver e\kern-0.33bp xperiences an upward acceleration f\kern-0.33bp or a shor\kern0.44bp t\linebreak}
+time.
+\row{26.0}{94.9}{Explain wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.6}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{94.9}{\lab{22.6}{\textbf{(c)}}The total f\kern-0.33bp orce of air resistance on the sky-diver and open parachute changes with their\linebreak}
+speed, as shown in Fig. 1.2.
+\qfig{3}{70.86bp 486.97bp 70.44bp 105.95bp}{}{19.8}{0}{70.86}
+\row{16.4}{416.7}{\rlap{\kern1.71bp\raisebox{6.60bp}[0pt][0pt]{speed}}\rlap{\kern6.31bp\raisebox{-6.60bp}[0pt][0pt]{m\kern1.53bp /\kern1.53bp s}}\rlap{\kern0.00bp\raisebox{2.26bp}[0pt][0pt]{\rule{32.77bp}{1.00bp}}}\kern32.77bp}
+\row{40.5}{278.9}{\textbf{Fig. 1.2}}
+\row{26.0}{94.9}{After the parachute opens, the sky-diver slows down to a terminal velocity\kern-1.10bp .}
+\row{26.0}{94.9}{The weight of the sky-diver is 600\,N.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}Using Fig. 1.2, determine the terminal velocity of the sky-diver\kern-0.55bp .}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{52.0}{258.9}{terminal velocity =}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Calculate the resultant f\kern-0.33bp orce on the sky-diver when his speed is 5.5\,m\,/\,s.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{117.0}{268.4}{resultant f\kern-0.33bp orce =}{[1]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{2}{Deformation \textperiodcentered\ Mass Weight and Density}{5}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{2 }}A student hangs various masses from the end of a spring and determines the e\kern-0.33bp xtension produced.\linebreak}
+Fig. 2.1 shows the spring hanging ver\kern0.44bp tically on its own and with an unknown mass X at one end.
+\qfig{4}{171.66bp 549.61bp 166.20bp 99.83bp}{}{13.6}{0}{171.66}
+\row{27.2}{245.6}{\textbf{Fig. 2.1 }(not to scale)}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}The student plots a graph of the e\kern-0.33bp xtension of the spring against the mass hanging on the\linebreak}
+spring. Fig. 2.2 shows the student'\kern-0.55bp s graph.
+\qfig{4}{102.18bp 214.62bp 101.04bp 378.66bp}{}{20.1}{0}{102.18}
+\row{11.2}{388.7}{mass\,/\,g}
+\row{34.0}{278.9}{\textbf{Fig. 2.2}}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{117.6}{\lab{21.7}{\textbf{(i) }}At point P on the graph, the line begins to cur\kern0.33bp ve.}
+\row{26.0}{117.6}{State the name of point P\kern-1.98bp .}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Using Fig. 2.1 and Fig. 2.2, determine the mass X.}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{91.0}{311.5}{mass =}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}The gravitational field strength {\itshape g }is 10\,N\,/\,kg.}
+\row{26.0}{117.6}{Calculate the weight of X.}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{52.0}{306.1}{weight =}{[1]}{545.6}
+\partbreak
+\row{52.0}{94.9}{\lab{22.6}{\textbf{(b)}}An identical spring is used with the original spring, as shown in Fig. 2.3.}
+\row{26.0}{94.9}{T\kern-1.32bp ogether they suppor\kern0.44bp t the mass X.}
+\qfig{5}{266.70bp 236.45bp 266.28bp 437.83bp}{}{13.6}{0}{266.70}
+\row{29.1}{245.6}{\textbf{Fig. 2.3 }(not to scale)}
+\row{39.0}{94.9}{State and e\kern-0.33bp xplain how the e\kern-0.33bp xtension in Fig. 2.3 compares with the e\kern-0.33bp xtension in Fig. 2.1.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{3}{Mass Weight and Density \textperiodcentered\ Physical Quantities and Measurements}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{3 }}Fig. 3.1 shows a thin sheet of plastic. A student tries to measure the thickness of the sheet with a\linebreak}
+ruler\kern-0.55bp , but the sheet is too thin to measure accurately\kern-1.10bp .
+\qfig{6}{215.58bp 634.93bp 214.80bp 101.27bp}{}{15.1}{0}{215.58}
+\row{25.8}{245.6}{\textbf{Fig. 3.1 }(not to scale)}
+\row{26.0}{72.3}{The student measures the mass of the sheet and obtains the value 0.12 g.}
+\partbreak
+\row{26.0}{117.6}{\lab{45.3}{\textbf{(a)}}\lab{21.7}{\textbf{(i) }}State what is meant by {\itshape mass}.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}The student is told that the density of the plastic is 0.91\,g\,/\,cm\pow{3}.}
+\row{26.0}{117.6}{Calculate the volume of the plastic sheet.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{119.3}{302.6}{volume =}{[2]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}The student measures the length and width of the sheet.\,The readings obtained are:}
+\row{26.0}{117.6}{length of sheet = 3.0\,cm\newline}
+width of sheet = 2.0\,cm
+\row{26.0}{117.6}{Calculate the thickness of the sheet.}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{117.0}{292.1}{thickness =}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}State a measuring instrument that can be used to measure the thickness of the sheet\linebreak}
+accurately\kern-1.10bp .
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{4}{Thermal Properties \& Temperature}{4}
+\partbreak
+\row{0.6}{94.9}{\lab{45.3}{\textbf{4 }}\lab{22.6}{\textbf{(a)}}Equal volumes of air\kern-0.55bp , copper and water are heated from 20\,\dg{}C to 80\,\dg{}C\kern-0.33bp . They e\kern-0.33bp xpand by\linebreak}
+diff\kern-0.33bp erent amounts.
+\row{26.0}{94.9}{Draw a line from each bo\kern-0.33bp x on the left-hand side to show which e\kern-0.33bp xpands the most and which\linebreak}
+e\kern-0.33bp xpands the least.
+\qfig{7}{146.46bp 575.05bp 145.68bp 135.95bp}{}{10.8}{0}{146.46}
+\qmark{10.1}{[1]}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Fig. 4.1 shows a mercur\kern0.33bp y thermometer\kern-0.55bp .}
+\qfig{7}{176.34bp 499.36bp 176.64bp 319.64bp}{}{16.5}{0}{176.34}
+\row{25.5}{278.9}{\textbf{Fig. 4.1}}
+\row{26.0}{94.9}{This thermometer has a suitable range f\kern-0.33bp or use in laborator\kern0.33bp y e\kern-0.33bp xperiments, but has a low\linebreak}
+sensitivity f\kern-0.33bp or some e\kern-0.33bp xperiments.
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}With ref\kern-0.33bp erence to this thermometer\kern-0.55bp , describe what is meant by}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{1.}}{\itshape range},}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{529.68}{3.0580}
+\dotline{26.0}{134.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{2.}}{\itshape low sensitivity}.}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{529.68}{3.0580}
+\dotline{26.0}{134.6}{}{[1]}{545.6}
+\partbreak
+\row{39.0}{117.6}{\lab{24.8}{\textbf{(ii) }}State one change in the design of a thermometer that increases its sensitivity\kern-1.10bp .}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{5}{General Wave Properties \textperiodcentered\ Sound}{4}
+\partbreak
+\row{0.6}{94.9}{\lab{45.3}{\textbf{5 }}\lab{22.6}{\textbf{(a)}}Light is a transverse wave. The direction of vibration is per\kern0.33bp pendicular to the direction of\linebreak}
+transf\kern-0.33bp er of the energy\kern-1.10bp .
+\row{26.0}{94.9}{Complete the table of Fig. 5.1 to show the direction of vibration and the type of wave\linebreak}
+associated with a sound wave and with a wave on the surf\kern-0.33bp ace of water in a ripple tank.
+\qfig{8}{47.10bp 572.53bp 46.68bp 139.91bp}{}{14.7}{0}{47.10}
+\qmark{19.2}{[2]}
+\row{13.0}{278.9}{\textbf{Fig. 5.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}A wave travels along a rope. Fig. 5.2 shows how the height of one point on the rope varies\linebreak}
+with time as the wave passes.
+\qfig{8}{58.26bp 289.73bp 57.48bp 360.43bp}{}{19.7}{0}{58.26}
+\row{9.8}{432.1}{time\,/\,s}
+\row{33.9}{278.9}{\textbf{Fig. 5.2}}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}Determine the amplitude of the vibration at time = 0.25\,s.}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Describe how the graph shows that the frequency of the wave is constant.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{6}{Light (Reflection/Refraction/Lenses)}{7}
+\partbreak
+\row{0.6}{94.9}{\lab{45.3}{\textbf{6 }}\lab{22.6}{\textbf{(a)}}Explain what is meant by {\itshape critical angle}.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Diamonds are attractive because of their ability to reflect light.\,The critical angle f\kern-0.33bp or diamond\linebreak}
+in air is 24\dg{}.
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}Calculate the refractive inde\kern-0.33bp x of diamond.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{130.0}{263.9}{refractive inde\kern-0.33bp x =}{[2]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}Fig. 6.1 shows two diamonds of diff\kern-0.33bp erent shapes. A ra\kern-0.33bp y of light enters each diamond, as\linebreak}
+shown.
+\qfig{9}{96.42bp 270.33bp 96.00bp 426.63bp}{}{15.4}{0}{96.42}
+\row{12.7}{278.9}{\textbf{Fig. 6.1}}
+\row{39.0}{117.6}{On Fig. 6.1 continue the path of each ra\kern-0.33bp y of light until it emerges into the air\kern-0.55bp .\swmark{[3]}}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{7}{Electro Magnetism / Electromagnetic Induction \textperiodcentered\ Sound}{6}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{7 }}Fig. 7.1 shows par\kern0.44bp t of a loudspeaker\kern-0.55bp . A coil is attached to a paper cone and is suspended freely\linebreak}
+within a cylindrical magnet.
+\qfig{10}{173.46bp 494.89bp 188.52bp 101.27bp}{}{15.1}{0}{173.46}
+\row{25.7}{278.9}{\textbf{Fig. 7.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Explain wh\kern-0.33bp y a current in the coil causes the paper cone to move.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Describe and e\kern-0.33bp xplain the movement of the cone when there is an alternating current in\linebreak}
+the coil.
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}The loudspeaker produces sound of frequency 500\,Hz. The speed of sound is 320\,m\,/\,s.\linebreak}
+Calculate the wavelength of the sound produced.
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{121.7}{282.8}{wavelength =}{[2]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{8}{Electric Circuits \textperiodcentered\ Electrical Quantities}{4}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{8 }}Fig. 8.1 shows a circuit that contains a batter\kern0.33bp y\kern-1.10bp , a fix\kern-0.33bp ed resistor of resistance 1000\,\ohms{} and a variable\linebreak}
+resistor R.
+\qfig{11}{230.34bp 589.21bp 233.16bp 101.27bp}{}{15.1}{0}{230.34}
+\row{26.1}{278.9}{\textbf{Fig. 8.1}}
+\partbreak
+\row{26.0}{117.6}{\lab{45.3}{\textbf{(a)}}\lab{21.7}{\textbf{(i) }}State the relationship between the current \makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}\sub{B} in the batter\kern0.33bp y\kern-1.10bp , the current \makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}\sub{1} in the fix\kern-0.33bp ed\linebreak}
+resistor and the current \makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}\sub{2} in the variable resistor\kern-0.55bp .
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}State an equation that relates the potential diff\kern-0.33bp erence (p\kern-0.38bp .d.) {\itshape V}\sub{B} across the batter\kern0.33bp y\kern-1.10bp , the\linebreak}
+p\kern-0.38bp .d. {\itshape V}\sub{1} across the fix\kern-0.33bp ed resistor and the p\kern-0.39bp .d. {\itshape V}\sub{2} across the variable resistor\kern-0.55bp .
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}The p\kern-0.39bp .d. across the batter\kern0.33bp y is 9.0\kern0.83bp V\kern-1.38bp .\,The resistance of R is set at 500\,\ohms{}.}
+\row{26.0}{94.9}{Calculate the current in R.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{104.0}{303.5}{current =}{[2]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{9}{Uses of Oscilloscope \textperiodcentered\ Electric Circuits}{4}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{9 }}\textbf{EITHER}}
+\row{26.0}{72.3}{Fig. 9.1 shows a cathode-ra\kern-0.33bp y oscilloscope (c.r\kern-0.55bp .o\kern-0.44bp .). An alternating voltage supply is applied to the\linebreak}
+input and the trace produced is shown.
+\row{30.2}{319.8}{1 division}
+\qfig{12}{100.38bp 422.47bp 106.80bp 144.87bp}{}{2.5}{0}{100.38}
+\row{29.0}{278.9}{\textbf{Fig. 9.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Use Fig. 9.1 to determine the maximum voltage of the supply\kern-1.10bp .}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{78.0}{302.5}{voltage =}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Describe how the trace on the screen and the controls on the c.r\kern-0.55bp .o\kern-0.44bp . are used to measure the\linebreak}
+time between any two points on the trace.
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\newpage
+\pagestart
+\row{0.6}{72.3}{\textbf{OR}}
+\row{26.0}{72.3}{The circuit diagram shown in Fig. 9.2 uses an LDR as the sensor in an automatic night light.}
+\qfig{13}{184.62bp 574.80bp 195.00bp 112.80bp}{}{13.6}{0}{184.62}
+\row{24.5}{278.9}{\textbf{Fig. 9.2}}
+\row{26.0}{72.3}{When it gets dark, the lamp turns on.}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}State the name of component A.}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Explain wh\kern-0.33bp y the lamp turns on when it gets dark.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[3]}{545.6}
+\newpage
+\pagestart
+\row{0.6}{272.2}{\textbf{Section B}}
+\qfig{14}{121.26bp 737.96bp 120.84bp 88.24bp}{}{15.0}{0}{121.26}
+\examq{5054/21/M/J/16}{10}{Thermal Properties \& Temperature \textperiodcentered\ Kinetic Model of Matter \textperiodcentered\ Transfer of Thermal Energy}{15}
+\partbreak
+\row{21.2}{117.6}{\lab{68.0}{\textbf{10}}\lab{45.3}{\textbf{(a)}}\lab{21.7}{\textbf{(i) }}State what is meant by {\itshape melting point}.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.69}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}The temperature of a liquid is between its melting point and its boiling point.}
+\row{26.0}{117.6}{{\spaceskip=2.22bp\xspaceskip=2.22bp\relax Using ideas about molecules, describe the changes that occur when the liquid e\kern-0.33bp vaporates.}\nobreak\hskip0pt minus2.11bp\kern0pt }
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.69}{3.0580}
+\dotline{26.0}{117.6}{}{[3]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}The boiling point of nitrogen is \textendash{}196\,\dg{}C\kern-0.33bp .}
+\row{26.0}{94.9}{Liquid nitrogen, below its boiling point, is stored in a vacuum flask, as shown in Fig. 10.1.}
+\qfig{14}{178.86bp 276.85bp 184.56bp 428.39bp}{}{17.2}{0}{178.86}
+\row{27.2}{275.8}{\textbf{Fig. 10.1}}
+\row{26.0}{94.9}{The flask has two glass walls with a vacuum between them.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}Suggest where, in the apparatus shown in Fig. 10.1, e\kern-0.33bp vaporation occurs.}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{117.6}{\lab{24.8}{\textbf{(ii) }}State and e\kern-0.33bp xplain the advantage of having a vacuum between the two glass walls.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[3]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}The liquid nitrogen reaches \textendash{}196\,\dg{}C\kern-0.33bp , its boiling point.\,A small piece of metal at 20\,\dg{}C is lowered\linebreak}
+slowly into the liquid nitrogen.
+\row{26.0}{94.9}{Bubbles f\kern-0.33bp orm within the liquid nitrogen as it boils.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}State what is inside the bubbles.}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}The small piece of metal has a mass of 50\,g. When it is lowered into the liquid nitrogen,\linebreak}
+the metal cools to \textendash{}196\,\dg{}C\kern-0.33bp .
+\row{26.0}{117.6}{The specific heat capacity of the metal is 0.39\,J\,/\,(g\,\dg{}C).\newline}
+The specific latent heat of vaporisation of nitrogen is 200\,J\,/\,g.
+\row{26.0}{117.6}{Calculate}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{1.}}the thermal energy (heat) lost from the metal as it cools,}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{117.0}{264.1}{thermal energy =}{[3]}{545.6}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{2.}}the mass of nitrogen that boils awa\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{117.0}{311.5}{mass =}{[2]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{11}{Electro Magnetism / Electromagnetic Induction \textperiodcentered\ Electrical Quantities}{15}
+\partbreak
+\row{0.6}{94.9}{\lab{45.3}{\textbf{11}}\lab{22.6}{\textbf{(a)}}Induced currents can be f\kern-0.33bp ormed in a coil of wire by electromagnetic induction.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}Describe how to demonstrate the f\kern-0.33bp ormation of an induced current in a coil of wire.}
+\row{26.0}{117.6}{Sketch and label a diagram of the arrangement of the apparatus.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{156.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[3]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}State two changes to the apparatus that increase the induced current.}
+\dotgrid{129.09}{541.92}{3.0580}
+\dotline{26.0}{117.6}{1.}{}{545.0}
+\dotgrid{129.09}{541.92}{3.0580}
+\dotline{26.0}{117.6}{2.}{}{545.0}
+\qmark{13.0}{[2]}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}The direction of the induced current is determined by Lenz'\kern-0.55bp s Law\kern-0.66bp .}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{1.}}State Lenz'\kern-0.55bp s Law\kern-0.66bp .}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{529.68}{3.0580}
+\dotline{26.0}{134.6}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{2.}}Describe how Lenz'\kern-0.55bp s Law applies in the e\kern-0.33bp xperiment you described in \textbf{(a)(i)}.}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{541.92}{3.0580}
+\dotline{26.0}{134.6}{}{}{545.0}
+\dotgrid{135.20}{529.68}{3.0580}
+\dotline{26.0}{134.6}{}{[2]}{545.6}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{94.9}{\lab{22.6}{\textbf{(b)}}An electrical generator supplies power to a distant f\kern-0.33bp actor\kern0.33bp y\kern-1.10bp .}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}The f\kern-0.33bp actor\kern0.33bp y receives 500\,kW of electrical power at a voltage of 33\,kV\kern-1.38bp .}
+\row{26.0}{117.6}{Calculate}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{1.}}the current in the wires supplying the power\kern-0.55bp ,}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{117.0}{303.5}{current =}{[2]}{545.6}
+\partbreak
+\row{26.0}{134.6}{\lab{17.0}{\textbf{2.}}the electrical energy supplied to the f\kern-0.33bp actor\kern0.33bp y in one hour\kern-0.55bp .}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{117.0}{304.1}{energy =}{[2]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}The 33\,kV voltage supplied to the f\kern-0.33bp actor\kern0.33bp y is ver\kern0.33bp y high.}
+\row{26.0}{117.6}{T\kern-1.32bp ransmitting electrical energy at high voltage reduces energy losses in the transmission\linebreak}
+lines.
+\row{26.0}{117.6}{Explain wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.6}
+\newpage
+\pagestart
+\examq{5054/21/M/J/16}{12}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics \textperiodcentered\ Work Energy and Power \textperiodcentered\ Pressure}{15}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{12}}The overall stopping distance of a cyclist is made up of two par\kern0.44bp ts, as shown in Fig. 12.1:}
+\row{26.0}{94.9}{\lab{22.6}{\textbf{• }}the distance the cyclist travels during the reaction time of the cyclist (the thinking distance)}
+\row{13.0}{94.9}{\lab{22.6}{\textbf{• }}the distance the cyclist travels after the brakes are applied (the braking distance)}
+\qfig{18}{106.50bp 625.85bp 110.40bp 130.15bp}{}{17.9}{0}{106.50}
+\row{28.8}{242.5}{\textbf{Fig. 12.1 }(not to scale)}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}State the energy change that occurs during braking.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}A ball rolls in front of a cyclist at time {\itshape t }= 0 and the cyclist brakes and comes to rest.}
+\row{26.0}{94.9}{Fig. 12.2 shows the speed-time graph f\kern-0.33bp or the cyclist.}
+\qfig{18}{92.82bp 198.60bp 93.48bp 394.68bp}{}{19.8}{0}{92.82}
+\row{9.4}{418.3}{time\,/\,s}
+\row{33.9}{275.8}{\textbf{Fig. 12.2}}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{117.6}{\lab{21.7}{\textbf{(i) }}Using Fig. 12.2, determine the reaction time of the cyclist.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{38.1}{274.8}{reaction time =}{[1]}{545.6}
+\partbreak
+\row{25.4}{117.6}{\lab{24.8}{\textbf{(ii) }}Using Fig. 12.2, calculate the thinking distance.}
+\dotgrid{352.32}{529.69}{3.0580}
+\dotline{101.6}{255.8}{thinking distance =}{[2]}{545.6}
+\partbreak
+\row{38.1}{117.6}{\lab{27.8}{\textbf{(iii) }}State how the braking distance is f\kern-0.33bp ound using Fig. 12.2.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{25.4}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{25.4}{117.6}{}{[1]}{545.6}
+\partbreak
+\row{38.1}{117.6}{\lab{27.8}{\textbf{(iv) }}On another occasion, the same cyclist travels at an initial speed of 5.0\,m\,/\,s. A ball rolls in\vadjust{\kern-0.30bp}\linebreak}
+front of the cycle at time {\itshape t }= 0.
+\row{25.4}{117.6}{The cyclist has the same reaction time and the deceleration of the cycle is the same as\vadjust{\kern-0.30bp}\linebreak}
+in Fig. 12.2.
+\row{25.4}{117.6}{On Fig. 12.2 draw the new speed-time graph f\kern-0.33bp or the cyclist.\swmark{[2]}}
+\partbreak
+\row{38.1}{117.6}{\lab{24.8}{\textbf{(v) }}The braking distance is longer when the cyclist stops on a wet road.}
+\row{25.4}{117.6}{Explain wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{25.4}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{25.4}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{25.4}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{25.4}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{25.4}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{25.4}{117.6}{}{[3]}{545.6}
+\qfig{19}{203.70bp 155.79bp 202.56bp 672.47bp}{}{15.1}{0}{203.70}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{94.9}{\lab{22.6}{\textbf{(c)}}Fig. 12.3 shows the h\kern-0.33bp ydraulic braking system of the cycle.}
+\row{30.2}{335.1}{brake lever}
+\qfig{20}{142.86bp 413.41bp 142.08bp 104.25bp}{}{0.9}{0}{142.86}
+\row{28.3}{242.5}{\textbf{Fig. 12.3 }(not to scale)}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}The cyclist applies a f\kern-0.33bp orce on the brake le\kern-0.33bp ver\kern-0.55bp . This increases the pressure in the oil by\linebreak}
+1.2 × 10\pow{6}\,P\kern-0.44bp a.
+\row{26.0}{117.6}{The cross-sectional area of piston R is 5.0 × 10\pow{\textendash{}5}\,m\pow{2}.}
+\row{26.0}{117.6}{Calculate the f\kern-0.33bp orce {\itshape F }applied by the brake le\kern-0.33bp ver to piston R.}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{91.0}{331.0}{{\itshape F }=}{[2]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}The f\kern-0.33bp orce applied to each of the brake pads is larger than {\itshape F}.}
+\row{26.0}{117.6}{Explain wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.6}
+\end{document}

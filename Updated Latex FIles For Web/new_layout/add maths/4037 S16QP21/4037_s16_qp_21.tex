@@ -1,0 +1,1053 @@
+% =====================================================================
+%  School Wits - Cambridge O Level Additional Mathematics 4037
+%  Paper 2, 4037/21/M/J/16
+%
+%  Keep 4037_s16_qp_21.pdf and 3-01.png beside this file (upload both to Overleaf). Nothing else is
+%  needed: the diagrams, tables and stacked fractions are clipped out of the
+%  official PDF by pdflatex itself, at the exact size and position they have
+%  in the original.
+%
+%  Build modes - uncomment one line inside the document:
+%     \swwbtrue     the printed workbook head
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[paperwidth=595.276bp, paperheight=841.89bp,
+            left=49.6bp, right=46.376bp,
+            top=62.56bp, textheight=734bp,
+            head=42.4bp, headsep=7bp, footskip=22bp]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\renewcommand{\rmdefault}{ptm}\renewcommand{\familydefault}{\rmdefault}
+% The paper is set in Times.  Nimbus Roman has Times's advances exactly; its
+% ligatures and pair kerning are switched off, as the paper has none.
+\usepackage[protrusion=false,expansion=false,kerning=false,spacing=false,tracking=false]{microtype}
+\DisableLigatures{encoding = *, family = *}
+\usepackage{amsmath}\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{calc}
+\definecolor{swrule}{gray}{0.62}
+
+% The paper sets its body at 11.5bp on a 13bp baseline.  The class would reset
+% both at \begin{document}, so \normalsize itself is pinned to the measurement.
+\makeatletter
+\renewcommand\normalsize{\@setfontsize\normalsize{11.5bp}{13bp}%
+  \abovedisplayskip\z@ \belowdisplayskip\z@
+  \abovedisplayshortskip\z@ \belowdisplayshortskip\z@}
+\makeatother
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\linespread{1}\normalbaselineskip=13bp \baselineskip=13bp
+\lineskiplimit=-\maxdimen \lineskip=0pt
+\makeatletter\def\@listi{\leftmargin\leftmargini}\makeatother
+\setlength{\topskip}{10.04bp}
+% A page that opens lower than the standard first baseline needs its offset
+% as non-discardable space: TeX throws away ordinary glue at the top.
+
+\clubpenalty=10000 \widowpenalty=10000
+\hyphenpenalty=10000 \exhyphenpenalty=10000 \tolerance=4000 \emergencystretch=0pt
+%  The paper's word space, measured: 2.875bp, stretching by up to
+%  2.85bp and shrinking by up to 1.2bp to justify a line.
+\frenchspacing
+\spaceskip=2.875bp plus 2.85bp minus 1.2bp
+\xspaceskip=2.875bp plus 2.85bp minus 1.2bp
+\hbadness=10000
+% a line the paper fills to a hair past the measure is not worth a warning
+\hfuzz=1bp
+
+% ---- symbols, set the way the paper sets them ------------------------
+\newcommand{\ftsize}{\fontsize{8bp}{9bp}\selectfont}
+\newcommand{\ohms}{{\usefont{U}{psy}{m}{n}W}}
+\newcommand{\dg}{\textdegree}
+\newcommand{\degC}{\textdegree C}
+\newcommand{\x}{\ensuremath{\times}}
+% super- and subscripts as the paper sets them: 8.05bp, 5.2bp up or 4.0bp
+% down, taking no height so a line holding one keeps its place
+\newcommand{\pow}[1]{\raisebox{5.2bp}[0pt][0pt]{\fontsize{8.05bp}{8.05bp}\selectfont #1}}
+\newcommand{\sub}[1]{\raisebox{-4.0bp}[0pt][0pt]{\fontsize{8.05bp}{8.05bp}\selectfont #1}}
+%  a nuclide symbol: mass number above, proton number below, as the paper sets it
+% a nuclide symbol: the two numbers centred over one another.  The paper's
+% own offsets and size come in the optional argument, up/down/size in bp,
+% because they differ from paper to paper: \stack[3.86/3.84/8.25]{X}{Y}
+\makeatletter
+\newcommand{\stack}[3][5.34/2.66/8]{\sw@stack#1\relax{#2}{#3}}
+\def\sw@stack#1/#2/#3\relax#4#5{\begingroup\fontsize{#3bp}{#3bp}\selectfont
+  \setbox0=\hbox{#4}\setbox2=\hbox{#5}%
+  \dimen0=\ifdim\wd0>\wd2 \wd0\else\wd2\fi
+  \rlap{\raisebox{#1bp}[0pt][0pt]{\hbox to\dimen0{\hss\box0\hss}}}%
+  \raisebox{-#2bp}[0pt][0pt]{\hbox to\dimen0{\hss\box2\hss}}\endgroup}
+\makeatother
+% a few characters the paper sets in another font - Times New Roman for Roman
+% numerals - set in that font's free clone at the paper's size: \swf{ptm}{12.00}{VII}
+\newcommand{\swf}[3]{{\fontfamily{#1}\fontsize{#2bp}{#2bp}\selectfont #3}}
+%  the paper's thin space inside units, measured: 1.44bp (LaTeX's own is 1.83bp)
+\AtBeginDocument{\renewcommand{\,}{\ifmmode\mskip\thinmuskip\else\kern1.44bp\relax\fi}}
+
+% =====================================================================
+%  TOPIC COLOURS — one definition, read by the chip and by the website
+% =====================================================================
+\definecolor{swDefault}{HTML}{D8DDE4}
+\definecolor{tp403701}{HTML}{D44949}
+\definecolor{tp403702}{HTML}{49A6D4}
+\definecolor{tp403703}{HTML}{D4C249}
+\definecolor{tp403704}{HTML}{9A49D4}
+\definecolor{tp403705}{HTML}{49D449}
+\definecolor{tp403706}{HTML}{D4498F}
+\definecolor{tp403707}{HTML}{D48F49}
+\definecolor{tp403708}{HTML}{4978D4}
+\definecolor{tp403709}{HTML}{8FD449}
+\definecolor{tp403710}{HTML}{D449D4}
+\definecolor{tp403711}{HTML}{49D4A6}
+\definecolor{tp403712}{HTML}{D46C49}
+\definecolor{tp403713}{HTML}{6049D4}
+\definecolor{tp403714}{HTML}{C9D449}
+\definecolor{tp403715}{HTML}{49C9D4}
+\definecolor{tp403716}{HTML}{D4496C}
+\definecolor{tp403717}{HTML}{49D478}
+\definecolor{tp403718}{HTML}{D4AB49}
+\definecolor{tp403719}{HTML}{4955D4}
+
+\makeatletter
+\newcommand{\sw@key}[1]{sw@tc@\expandafter\zap@space\detokenize{#1} \@empty}
+\newcommand{\deftopic}[2]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@deftopic\expandafter{\sw@tmp}{#2}}
+\newcommand{\sw@deftopic}[2]{%
+  \expandafter\xdef\csname\sw@key{#1}\endcsname{#2}}
+\makeatother
+
+\deftopic{Functions}{tp403701}
+\deftopic{Quadratic Functions}{tp403702}
+\deftopic{Factors of Polynomials}{tp403703}
+\deftopic{Equations, Inequalities \& Graphs}{tp403704}
+\deftopic{Simultaneous Equations}{tp403705}
+\deftopic{Logarithmic \& Exponential Functions}{tp403706}
+\deftopic{Straight-Line Graphs}{tp403707}
+\deftopic{Coordinate Geometry of the Circle}{tp403708}
+\deftopic{Circular Measure}{tp403709}
+\deftopic{Trigonometry}{tp403710}
+\deftopic{Permutations \& Combinations}{tp403711}
+\deftopic{Binomial Theorem}{tp403712}
+\deftopic{Arithmetic \& Geometric Progressions}{tp403713}
+\deftopic{Vectors in Two Dimensions}{tp403714}
+\deftopic{Differentiation}{tp403715}
+\deftopic{Integration}{tp403716}
+\deftopic{Calculus for Kinematics}{tp403717}
+\deftopic{Indices \& Surds}{tp403718}
+\deftopic{Excluded from the present curriculum}{tp403719}
+
+% =====================================================================
+%  THE HEADER — the ONE thing that differs between the two builds
+% =====================================================================
+\makeatletter
+\def\sw@firstof#1\textperiodcentered#2\@nil{#1}
+\newcommand{\swfirsttopic}[1]{\sw@firstof#1\textperiodcentered\@nil}
+% every topic of a question as its own chip, main topic first, 4bp apart:
+% the list is split where \examq's topics are joined, at "\textperiodcentered\ "
+\newcommand{\topicchips}[1]{\sw@chipsloop#1\textperiodcentered\ \@nil}
+\def\sw@chipsloop#1\textperiodcentered\ #2\@nil{\topicchip{#1}%
+  \if\relax\detokenize{#2}\relax\else\hspace{4bp}\sw@chipsloop#2\@nil\fi}
+\newcommand{\sw@hstrut}{\rule[-3.4bp]{0pt}{14.6bp}}
+\newcommand{\topicchip}[1]{%
+  \protected@edef\sw@tmp{#1}%
+  \expandafter\sw@chip\expandafter{\sw@tmp}}
+%  The chip: a rounded tag in three shades of the topic's own colour - a
+%  tinted fill, a hairline border, and text darkened into the same hue, so it
+%  reads as a label rather than a block of paint.  The box keeps the old
+%  measurements exactly: 9bp above the baseline, 2.9bp below, 4.9bp of air
+%  either side of the text, so nothing around it moves.
+%
+%  Three knobs, if the look wants adjusting:
+%    sw@bg  fill      !60!white is a soft tint; raise towards !100 for solid
+%    sw@bd  border    a lightened version of the text colour
+%    sw@ink text      !45!black keeps it legible on any of the pastels
+%  For a solid chip instead, set sw@bg to sw@base and drop the draw= key.
+\newcommand{\sw@chip}[1]{%
+  \begingroup
+  \edef\sw@col{\ifcsname\sw@key{#1}\endcsname
+      \csname\sw@key{#1}\endcsname\else swDefault\fi}%
+  \colorlet{sw@base}{\sw@col}%
+  \colorlet{sw@ink}{sw@base!45!black}%
+  \colorlet{sw@bg}{sw@base!60!white}%
+  \colorlet{sw@bd}{sw@ink!35!white}%
+  \begin{tikzpicture}[baseline=(swchip.base)]
+    \node[anchor=base, at={(0,0)},
+          inner xsep=4.9bp, inner ysep=0bp,
+          text height=9bp, text depth=2.9bp,
+          rounded corners=2.6bp,
+          fill=sw@bg, draw=sw@bd, line width=0.4bp,
+          text=sw@ink,
+          font=\fontsize{8.6bp}{8.6bp}\selectfont\bfseries] (swchip) {#1\unskip};
+  \end{tikzpicture}%
+  \endgroup}
+
+% =====================================================================
+%  THE QUESTION HEAD
+%  Every question carries \examq{<paper id>}{<number>}{<topics>}{<marks>}.
+%  It is the single source of truth: the website splits the file on it and
+%  filters on the topic list, the contents page groups by the first topic,
+%  and \total reads the marks from it.
+%
+%  Three builds, one file:
+%     (default)    the yearly paper - the head prints NOTHING, so the page
+%                  stays a copy of the official one, page for page
+%     \swwbtrue    the printed workbook - paper id, question number and every
+%                  topic as a colour chip, main topic first; no marks
+%     \swwebtrue   the website - the full line, topics and marks included
+% =====================================================================
+\newif\ifswwb  \swwbfalse
+\newif\ifswweb \swwebfalse
+\makeatletter
+% The workbook and website builds add a head above every question, so a page
+% can no longer hold exactly what the paper's page holds.  In those builds a
+% page may break only before a question head or, in a structured paper,
+% before a part such as (b) or (ii) - never inside a question, between a stem
+% and its options, or between a part and its answer lines.  The yearly build
+% is untouched: there every \swnb is empty and every page break is the paper's.
+\newcommand{\swnb}{\ifswwb\nobreak\interlinepenalty=10000 \else
+  \ifswweb\nobreak\interlinepenalty=10000 \fi\fi}
+\newcommand{\partbreak}{\par\ifswwb\penalty\z@\else\ifswweb\penalty\z@\fi\fi}
+% the paper's page break before a question; in the head builds questions
+% simply follow on, each kept whole
+\newcommand{\swpage}{\par\newpage\pagestart}
+\makeatother
+\makeatletter
+\newcommand{\swsep}{\kern4.2bp\textendash\kern4.2bp}
+\gdef\swpaper{}\gdef\swqnum{}\gdef\swtopics{}\gdef\swmarks{}
+\newcommand{\examq}[4]{\par % ends the paragraph before, so no stray space is left in it
+  \gdef\swpaper{#1}\gdef\swqnum{#2}\gdef\swtopics{#3}\gdef\swmarks{#4}%
+  \ifswwb\sw@qhead{\sw@wbhead{#1}{#2}{#3}}\else
+  \ifswweb\sw@qhead{\sw@webhead{#1}{#2}{#3}{#4}}\fi\fi}
+\newcommand{\sw@wbhead}[3]{{\bfseries #1\swsep Q#2}\hspace{8bp}%
+  \raisebox{0.6bp}{\topicchips{#3}}}
+\newcommand{\sw@webhead}[4]{{\bfseries #1\swsep Q#2\swsep #3\swsep #4}}
+%  The head never takes space from the page, so every page of the workbook and
+%  website builds holds exactly what the paper's page holds.  A question that
+%  opens a page has its head set in the header band, under the logo (passed
+%  there as an e-TeX mark).  A question that starts part-way down a page has
+%  its head set in the gap the paper already leaves above it, 16bp above the
+%  question's first line, so the question stays where the paper puts it.
+\newif\ifsw@pending \sw@pendingfalse
+\newdimen\sw@hd
+\newcommand{\sw@qhead}[1]{%
+  \ifdim\prevdepth<-999pt \marks5{\unexpanded{#1}}%
+  \else \gdef\sw@pending{#1}\global\sw@pendingtrue \fi}
+%  #1 = the measured distance to the next element, #2 = the room it keeps below the head.
+%  The head's baseline goes #2 above the next element; when the paper's gap is
+%  too tight for that (under 29bp), the head sits in the middle of the gap
+%  instead, never closer than 13bp to the line above when there is room for it.
+%  Either way the next element lands exactly where the paper puts it.
+\newdimen\sw@rest
+\def\sw@puthead#1#2{\global\sw@pendingfalse
+  \sw@hd=\dimexpr #1bp-#2bp\relax
+  \ifdim\sw@hd<13bp
+    \sw@rest=\dimexpr #1bp/2\relax
+    \ifdim\sw@rest>13bp \sw@rest=13bp\fi
+    \ifdim\sw@hd<\sw@rest \sw@hd=\sw@rest\fi
+  \fi
+  \global\sw@rest=\dimexpr #1bp-\sw@hd\relax
+  \vskip\dimexpr\sw@hd-\prevdepth-\ht\strutbox\relax
+  \begingroup\leftskip\z@ \rightskip\z@ plus 1fil\@totalleftmargin\z@ \hangindent\z@
+  % the chip is taller than a line of text; it must not push the question down
+  \nointerlineskip\noindent\strut\raisebox{\z@}[\ht\strutbox][\dp\strutbox]{\sw@fit{\sw@pending}}%
+  \par\endgroup}
+%  one line: a head too long for the measure is scaled down to fit it
+\newcommand{\sw@fit}[1]{\setbox\z@\hbox{\fontsize{11bp}{12bp}\selectfont #1}%
+  \ifdim\wd\z@>\textwidth \resizebox{\textwidth}{!}{\box\z@}\else\box\z@\fi}
+% the mark total for the question, read from \examq so there is one number
+\makeatother
+
+% ---- the question body ----------------------------------------------
+%  Each element carries two numbers measured off the official paper: how far
+%  its baseline sits below the one above it, and the column it starts in.
+%  Blank working space needs no macro of its own - it is simply a larger
+%  distance to the next element.
+\makeatletter
+\gdef\sw@hang{0}
+%  a paragraph whose later lines line up under a phrase in the first
+\newcommand{\hang}[1]{\par\gdef\sw@hang{#1}}
+\newcommand{\sw@place}[3]{\par\swnb
+  \leftskip=\dimexpr #2bp-49.6bp\relax
+  \rightskip=\dimexpr 548.9bp-#3bp\relax
+  \@totalleftmargin=\leftskip
+  \linewidth=\dimexpr\textwidth-\leftskip-\rightskip\relax
+  \ifsw@pending \sw@puthead{#1}{16}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth-\ht\strutbox\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{\dimexpr #1bp-\ht\strutbox\relax}
+  \else \vskip\dimexpr #1bp-\prevdepth-\ht\strutbox\relax\fi\fi
+  \ifdim\sw@hang bp>0pt \hangindent=\sw@hang bp\relax\hangafter=1\relax\fi
+  \gdef\sw@hang{0}%
+  \nointerlineskip\noindent\strut\ignorespaces}
+% \prevdepth carries across \newpage, so the first element of a page would be
+% spaced from the last line of the page before.  This resets it, which also
+% tells \sw@place to set the distance from the top of the text area instead.
+\newcommand{\pagestart}{\par\prevdepth=-1000pt\relax\marks5{}}
+\newcommand{\swat}[1]{\sw@place{#1}{\sw@curx}{545.7}}
+\def\sw@curx{72.3}
+% a line of text starting in column #2
+% no \par at the end: the next element's \sw@place closes the paragraph,
+% so a line held back by \linebreak stays part of it
+\newcommand{\row}[3]{\sw@place{#1}{#2}{545.7}#3}
+% a label hanging #1 bp to the left of the text it belongs to
+\newcommand{\lab}[2]{\llap{\makebox[#1bp][l]{\strut #2}}\ignorespaces}
+% the paper's dotted answer line: 2.875bp between dots, as measured
+\def\swdots{\leavevmode\cleaders\hb@xt@ 2.875bp{\hss.\hss}\hfill\kern\z@}
+%   \dotline{gap}{from}{before the dots}{after them}{to}
+%   These macros print nothing, so each one starts with \par: otherwise the
+%   line break after it in the source would leave a space at the end of the
+%   paragraph before, and a full line would be squeezed to make room for it.
+%   \dotgrid{first dot}{last dot}{pitch}, given just before a \dotline, sets
+%   its dots where the paper prints them: on the paper's own grid, stopping at
+%   the last whole dot before the unit.  The unit then ends 5.5bp before the
+%   mark, and the mark ends at the right margin.
+\newif\ifsw@grid
+\newcommand{\dotgrid}[3]{\par\gdef\sw@gfirst{#1}\gdef\sw@glast{#2}\gdef\sw@gpitch{#3}%
+  \global\sw@gridtrue}
+\def\sw@post#1[#2]#3\sw@nil{%
+  \ifx\relax#1\relax\else{\ignorespaces#1\unskip}\fi
+  \ifx\relax#2\relax\else\kern5.5bp[#2]\fi}
+\newcommand{\dotline}[5]{\sw@place{#1}{#2}{#5}%
+  \ifsw@grid\global\sw@gridfalse
+    \rlap{\kern\dimexpr\sw@gfirst bp-#2bp\relax
+      \hbox to\dimexpr\sw@glast bp-\sw@gfirst bp+\sw@gpitch bp+0.5bp\relax
+        {\leaders\hbox to\sw@gpitch bp{.\hss}\hfill}}%
+    #3\hfill\sw@post#4[]\sw@nil
+  \else
+    \ifx\relax#3\relax\else#3\kern3.4bp\fi\swdots
+    \ifx\relax#4\relax\else\kern3.4bp#4\fi
+  \fi}
+% the mark for a part, set where the paper sets it.  Marks live only inside
+% these macros, never as loose text, so the site can count them.
+\newcommand{\swmark}[1]{\unskip\nobreak\hfill\mbox{#1}}
+\newcommand{\qmark}[2]{\sw@place{#1}{49.6}{545.7}\hfill\mbox{#2}}
+% the question total, taken from \examq so the number is written once
+\newcommand{\total}[1]{\sw@place{#1}{49.6}{545.7}\hfill\mbox{[T\kern-1.0bp otal:\ \swmarks]}}% the paper kerns "To"
+\newcommand{\gap}[1]{\par\vspace{#1bp}}
+\makeatother
+
+% ---- mathematics, placed piece by piece -----------------------------
+%  A line of mathematics - fractions, radicals, symbols set apart - is set as
+%  a \freerow: every run of letters is placed where the paper prints it,
+%  measured in bp from the column at 49.6bp and from the row's baseline (up is
+%  positive); fraction bars and the strokes of a radical sign are drawn where
+%  the paper draws them; and a glyph no free font has (a stretched bracket,
+%  MathType's own symbols) is cut out of the official PDF at its exact place.
+\makeatletter
+\newcommand{\freerow}[2]{\sw@place{#1}{49.6}{545.7}#2}
+\newcommand{\at}[3]{\rlap{\kern\dimexpr #1bp-49.6bp\relax\raisebox{#2bp}[0pt][0pt]{#3}}}
+\newcommand{\ruleat}[4]{\rlap{\kern\dimexpr #1bp-49.6bp\relax
+  \raisebox{\dimexpr #3bp-#4bp/2\relax}[0pt][0pt]{\rule{\dimexpr #2bp-#1bp\relax}{#4bp}}}}
+%  \swpath{style}{path}{clip}: a drawing, drawn through the paper's own
+%  clipping path when it has one (a radical sign is a thick stroke clipped to
+%  the sign's outline)
+\newcommand{\swpath}[3]{\rlap{\begin{tikzpicture}[overlay,x=1bp,y=1bp,baseline=0pt]
+  \begin{scope}#3\path[#1] #2;\end{scope}\end{tikzpicture}}}
+\newcommand{\swglyph}[2]{\swclip{#1}{#2}}
+% how far a band of mathematics hangs below its first baseline
+\newcommand{\swdepth}[1]{\vrule width\z@ height\z@ depth#1bp\relax}
+\makeatother
+% a glyph from the real Symbol font, by its code: \swsy{70} is pi
+\newcommand{\swsy}[1]{{\usefont{U}{psy}{m}{n}\char"#1\relax}}
+
+% ---- figures, clipped out of the official PDF at compile time --------
+%   \qfig{page}{l b r t}{caption}{above}{below}{left}
+%   above = bp from the previous baseline down to the top of the figure
+%   left  = the figure's left edge on the official page
+\newcommand{\srcpdf}{4037_s16_qp_21.pdf}
+\newcommand{\swclip}[3][]{%
+  \IfFileExists{\srcpdf}{\includegraphics[page=#2,trim=#3,clip,#1]{\srcpdf}}%
+  {\fbox{\parbox[c][22mm][c]{0.45\textwidth}{\centering\ttfamily\footnotesize
+    source PDF missing:\\\detokenize\expandafter{\srcpdf}}}}}
+\makeatletter
+\newcommand{\qfig}[7][]{\par\swnb\begingroup\setlength{\parskip}{0pt}%
+  \ifsw@pending \sw@puthead{#5}{12}\nobreak
+    \vskip\dimexpr\sw@rest-\prevdepth\relax
+  \else
+  \ifdim\prevdepth<-999pt \vspace*{#5bp}
+  \else \vskip\dimexpr #5bp-\prevdepth\relax\fi\fi
+  \nointerlineskip
+  \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+    \hspace*{\dimexpr #7bp-49.6bp\relax}\swclip[#1]{#2}{#3}\hfil}\par
+  \ifx\relax#4\relax\else
+    \vskip #6bp\relax\nointerlineskip
+    \noindent\makebox[\linewidth][l]{\hspace*{-\@totalleftmargin}%
+      \makebox[\textwidth][c]{\textbf{#4}}}\par
+  \fi\endgroup}
+\makeatother
+
+% ---- the School Wits head -------------------------------------------
+%  The official paper leaves the top of the page empty apart from a centred
+%  page number, which we move to the foot. The head is built inside that
+%  margin, so the question area below it never moves.
+\newlength{\swlogoht}\setlength{\swlogoht}{14bp}
+\newlength{\swheadgap}\setlength{\swheadgap}{3bp}
+\newlength{\swqlinenow}% the line actually reserved: none in workbook mode,
+                       % so the logo drops to sit just above the question head
+\newlength{\swqline}\setlength{\swqline}{25.4bp}
+% the head of a question that opens a page sits 16bp above the question's
+% first line, the same as a head set in the gap above a question mid-page
+\newlength{\swheaddrop}\setlength{\swheaddrop}{1.05bp}
+\newcommand{\swlogofile}{3-01.png}
+%  mark then hairline. For the mark on the right instead, use:
+%    \renewcommand{\swlogoalign}{\hfil\swlogo}
+\newcommand{\swlogoalign}{\swlogo\hspace{13bp}%
+  \color{swrule}\leaders\hbox{\vrule height0.52\swlogoht depth-0.48\swlogoht width1bp}\hfil}
+\newcommand{\swlogo}{%
+  \IfFileExists{\swlogofile}%
+    {\includegraphics[height=\swlogoht]{\swlogofile}}%
+    {{\usefont{T1}{ptm}{b}{sc}\fontsize{11.5bp}{11.5bp}\selectfont School Wits}}}
+\gdef\swrunhead{}
+\makeatletter
+% The logo band always sits in the top margin at the same place.  The line
+% under it is optional: with \swrunhead empty the space is simply left blank,
+% so the logo and the body below it never move.
+\newcommand{\swheadblock}{%
+  % the head of a question that opens the page, pinned to the header's
+  % baseline: its own baseline lands 16bp above the question's first line
+  \rlap{\raisebox{-\swheaddrop}[\z@][\z@]{\sw@fit{\botmarks5}}}%
+  \parbox[b][\dimexpr\swlogoht+\swheadgap+\swqline\relax][t]{\textwidth}{%
+    \hb@xt@\textwidth{\swlogoalign}}}
+\makeatother
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\swheadblock}
+\fancyfoot[C]{\ftsize\thepage}
+
+\begin{document}
+\normalsize
+% ------------------------------------------------------- HEADER MODE --
+\swwebtrue     % website build: this is the WEB file
+% ----------------------------------------------------------------------
+\gdef\swrunhead{}
+\pagestart
+\freerow{-0.18}{%
+  \at{239.65}{0.00}{{\bfseries\itshape Mathematical} {\bfseries\itshape Formulae}}}
+\partbreak
+\freerow{78.0}{%
+  \at{262.65}{-0.00}{\textbf{1.}}%
+  \at{276.40}{-0.00}{\textbf{ALGEBRA}}}
+\row{26.0}{49.62}{{\itshape Quadratic} {\itshape Equation}}
+\row{26.01}{72.3}{For the equation {\itshape ax}\raisebox{4.04bp}[0pt][0pt]{\fontsize{8.62bp}{8.62bp}\selectfont 2} + {\itshape bx} + {\itshape c} = 0,}
+\qfig{2}{251.58bp 604.54bp 251.58bp 205.33bp}{}{2.9}{0}{251.58}
+\row{37.45}{49.61}{{\itshape Binomial} {\itshape Theor}\kern-0.42bp {\itshape em}}
+\freerow{18.48}{%
+  \at{218.41}{-19.31}{\swglyph{2}{218.41bp 529.30bp 373.67bp 284.91bp}}%
+  \at{222.10}{-13.00}{1}%
+  \at{229.68}{-19.31}{\swglyph{2}{229.68bp 529.30bp 362.39bp 284.91bp}}%
+  \at{272.47}{-19.31}{\swglyph{2}{272.47bp 529.30bp 319.61bp 284.91bp}}%
+  \at{276.55}{-13.00}{2}%
+  \at{283.74}{-19.31}{\swglyph{2}{283.74bp 529.30bp 308.33bp 284.91bp}}%
+  \at{354.34}{-19.31}{\swglyph{2}{354.34bp 529.30bp 237.74bp 284.91bp}}%
+  \at{359.29}{-13.00}{{\itshape r}}%
+  \at{365.61}{-19.31}{\swglyph{2}{365.61bp 529.30bp 226.46bp 284.91bp}}%
+  \at{222.10}{-0.00}{{\itshape n}}%
+  \at{276.55}{-0.00}{{\itshape n}}%
+  \at{358.66}{-0.00}{{\itshape n}}%
+  \at{147.86}{-7.52}{({\itshape a} + {\itshape b})}%
+  \at{179.26}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape n}}}%
+  \at{186.45}{-7.52}{= {\itshape a}}%
+  \at{201.56}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape n}}}%
+  \at{208.74}{-7.52}{+}%
+  \at{232.62}{-7.52}{{\itshape a}}%
+  \at{238.37}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape n}\textendash{}1}}%
+  \at{254.18}{-7.52}{{\itshape b} +}%
+  \at{286.68}{-7.52}{{\itshape a}}%
+  \at{292.43}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape n}\textendash{}2}}%
+  \at{308.24}{-7.52}{{\itshape b}}%
+  \at{313.99}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{321.18}{-7.52}{+ \swsy{BC} +}%
+  \at{368.79}{-7.52}{{\itshape a}}%
+  \at{374.54}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape n}\textendash{}{\itshape r}}}%
+  \at{389.40}{-7.52}{{\itshape b}}%
+  \at{395.15}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape r}}}%
+  \at{401.38}{-7.52}{+ \swsy{BC} + {\itshape b}}%
+  \at{440.22}{-3.50}{{\fontsize{8.62bp}{8.62bp}\selectfont {\itshape n}}}%
+  \at{444.54}{-7.52}{,}%
+  \swdepth{21.73}}
+\partbreak
+\freerow{38.66}{%
+  \at{224.03}{-19.65}{\swglyph{2}{224.03bp 490.30bp 368.04bp 323.91bp}}%
+  \at{229.09}{-13.00}{{\fontsize{11.00bp}{11.00bp}\selectfont {\itshape r}}}%
+  \at{235.31}{-19.65}{\swglyph{2}{235.31bp 490.30bp 356.76bp 323.91bp}}%
+  \at{228.48}{0.00}{{\fontsize{11.00bp}{11.00bp}\selectfont {\itshape n}}}%
+  \at{267.73}{-1.79}{{\itshape n}!}%
+  \at{72.28}{-7.86}{where {\itshape n} is a positive integer and}%
+  \at{241.36}{-7.86}{=}%
+  \at{251.76}{-14.79}{({\itshape n} \textendash{} {\itshape r})!{\itshape r}!}%
+  \swpath{draw=black,line width=0.50bp}{(202.12,-4.88)--(243.72,-4.88)}{}%
+  \swdepth{22.07}}
+\partbreak
+\freerow{85.86}{%
+  \at{241.77}{0.00}{\textbf{2.}}%
+  \at{255.94}{0.00}{\textbf{TRIGONOMETR}\kern-0.40bp \textbf{Y}}}
+\row{26.0}{49.6}{{\itshape Identities}}
+\freerow{26.0}{%
+  \at{253.93}{0.00}{sin}%
+  \at{267.36}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{274.55}{-0.00}{{\itshape A} + cos}%
+  \at{309.14}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{316.33}{-0.00}{{\itshape A} = 1}}
+\freerow{21.0}{%
+  \at{253.95}{-0.00}{sec}%
+  \at{268.63}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{275.82}{-0.00}{{\itshape A} = 1 + tan}%
+  \at{327.11}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{334.30}{-0.00}{{\itshape A}}}
+\freerow{21.0}{%
+  \at{248.52}{-0.00}{cosec}%
+  \at{274.06}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{281.25}{-0.00}{{\itshape A} = 1 + cot}%
+  \at{332.54}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{339.73}{-0.00}{{\itshape A}}}
+\row{39.0}{49.61}{{\itshape Formulae} {\itshape for} \swsy{44}{\itshape ABC}}
+\freerow{18.63}{%
+  \at{255.09}{0.00}{{\itshape a}}%
+  \at{294.60}{0.00}{{\itshape b}}%
+  \at{334.60}{0.00}{{\itshape c}}%
+  \at{274.36}{-7.37}{=}%
+  \at{314.11}{-7.37}{=}%
+  \at{246.41}{-12.99}{sin {\itshape A}}%
+  \at{285.82}{-12.99}{sin {\itshape B}}%
+  \at{325.17}{-12.99}{sin {\itshape C}}%
+  \swpath{draw=black,line width=0.50bp}{(195.84,-3.65)--(220.89,-3.65)}{}%
+  \swpath{draw=black,line width=0.50bp}{(235.12,-3.65)--(260.64,-3.65)}{}%
+  \swpath{draw=black,line width=0.50bp}{(274.87,-3.65)--(300.23,-3.65)}{}%
+  \swdepth{15.29}}
+\freerow{46.37}{%
+  \at{242.53}{0.00}{{\itshape a}}%
+  \at{248.28}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{255.46}{-0.00}{= {\itshape b}}%
+  \at{270.58}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{277.76}{-0.00}{+ {\itshape c}}%
+  \at{292.23}{4.02}{{\fontsize{8.62bp}{8.62bp}\selectfont 2}}%
+  \at{299.42}{-0.00}{\textendash{} 2{\itshape bc} cos {\itshape A}}}
+\freerow{26.0}{%
+  \at{264.17}{-0.00}{\swsy{44} =}%
+  \at{284.92}{6.49}{{\fontsize{10.00bp}{10.00bp}\selectfont 1}}%
+  \at{284.92}{-6.51}{{\fontsize{10.00bp}{10.00bp}\selectfont 2}}%
+  \at{294.27}{-0.00}{{\itshape bc} sin {\itshape A}}%
+  \swpath{draw=black,line width=0.50bp}{(234.84,3.41)--(240.79,3.41)}{}%
+  \swdepth{8.51}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{1}{Quadratic Functions}{3}
+\freerow{1.97}{%
+  \at{49.61}{-0.53}{\textbf{1}}%
+  \at{72.28}{-0.53}{Find the values of {\itshape x} for which}%
+  \at{213.94}{-3.33}{\swglyph{3}{213.94bp 763.99bp 371.65bp 65.82bp}}%
+  \at{218.19}{-0.53}{{\itshape x}}%
+  \at{226.14}{-0.05}{\swsy{2D}}%
+  \at{235.84}{-0.53}{4}%
+  \at{241.82}{-3.33}{\swglyph{3}{241.82bp 763.99bp 349.78bp 65.58bp}}%
+  \at{246.31}{-3.33}{\swglyph{3}{246.31bp 763.99bp 339.29bp 65.82bp}}%
+  \at{250.32}{-0.53}{{\itshape x}\kern2.35bp {\itshape +}\kern2.37bp 2}%
+  \at{273.94}{-3.33}{\swglyph{3}{273.94bp 763.99bp 317.65bp 65.58bp}}%
+  \at{281.30}{-0.75}{\swglyph{3}{281.30bp 766.57bp 305.74bp 66.84bp}}%
+  \at{293.12}{-0.53}{7\kern0.57bp .}%
+  \at{532.25}{-0.53}{\swmark{[3]}}}
+\examq{4037/21/M/J/16}{2}{Excluded from the present curriculum}{4}
+\freerow{208.53}{%
+  \at{49.60}{0.00}{\textbf{2}}%
+  \at{72.28}{0.00}{\textbf{(a)}}%
+  \at{94.96}{0.00}{Illustrate the statements}%
+  \at{217.33}{0.00}{{\itshape A}}%
+  \at{229.10}{0.50}{\swglyph{3}{229.10bp 559.29bp 359.37bp 276.28bp}}%
+  \at{240.55}{0.00}{{\itshape B}\kern3.72bp and\kern4.25bp {\itshape B}}%
+  \at{284.17}{0.50}{\swglyph{3}{284.17bp 559.29bp 304.31bp 276.28bp}}%
+  \at{295.37}{0.00}{{\itshape C}}%
+  \at{316.06}{0.00}{using the\kern2.67bp V\kern-1.28bp enn diagram below\kern-0.75bp .}%
+  \at{532.26}{0.00}{\swmark{[1]}}}
+\qfig{3}{189.66bp 409.03bp 189.66bp 298.98bp}{}{15.88}{0}{189.66}
+\partbreak
+\row{25.68}{94.96}{\lab{22.68}{\textbf{(b)}}It is given that}
+\freerow{13.0}{%
+  \at{117.64}{0.00}{the elements of set}%
+  \at{206.08}{-0.70}{\swglyph{3}{206.08bp 369.65bp 381.68bp 463.28bp}}%
+  \at{217.66}{0.00}{are the letters of the alphabet,}}
+\row{12.99}{117.64}{the elements of set {\itshape P}\kern4.21bp are the letters in the word {\itshape maths},\newline}
+the elements of set {\itshape Q} are the letters in the word {\itshape exam}.
+\partbreak
+\row{26.0}{117.66}{\lab{22.19}{\textbf{(i)}}W\kern-0.46bp rite the following using set notation.}
+\freerow{26.0}{%
+  \at{140.34}{-0.00}{The letter {\itshape h} is in the word {\itshape maths}.}%
+  \at{532.28}{-0.00}{\swmark{[1]}}}
+\partbreak
+\freerow{65.0}{%
+  \at{92.27}{0.00}{\textbf{(ii)}}%
+  \at{117.66}{0.00}{W\kern-0.46bp rite the following using set notation.}}
+\freerow{26.0}{%
+  \at{140.34}{-0.00}{The number of letters occurring in both of the words {\itshape maths} and {\itshape exam} is two.}%
+  \at{532.28}{-0.00}{\swmark{[1]}}}
+\partbreak
+\freerow{64.36}{%
+  \at{89.07}{-0.64}{\textbf{(iii)}}%
+  \at{117.65}{-0.64}{List the elements of the set\kern4.23bp {\itshape P}}%
+  \at{256.71}{-0.15}{\swglyph{3}{256.71bp 136.85bp 332.25bp 698.24bp}}%
+  \at{267.13}{-0.65}{{\itshape Q}}%
+  \at{276.36}{4.58}{\swglyph{3}{276.36bp 141.58bp 316.68bp 696.63bp}}%
+  \at{279.32}{-0.65}{.}%
+  \at{532.27}{-0.65}{\swmark{[1]}}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{3}{Logarithmic \& Exponential Functions}{6}
+\row{-0.18}{72.28}{\lab{22.67}{\textbf{3}}\textbf{Do} \textbf{not} \textbf{use} \textbf{a} \textbf{calculator}\kern2.67bp \textbf{in} \textbf{this} \textbf{question.}}
+\partbreak
+\freerow{26.0}{%
+  \at{72.77}{-0.00}{\textbf{(i)}}%
+  \at{94.96}{-0.00}{Find the value of}%
+  \at{182.85}{0.48}{\swsy{2D}}%
+  \at{191.18}{0.00}{log}%
+  \at{207.12}{-4.00}{{\fontsize{8.00bp}{8.00bp}\selectfont {\itshape p}}}%
+  \at{214.58}{0.00}{{\itshape p}}%
+  \at{220.90}{5.16}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{225.99}{0.00}{.}%
+  \at{532.26}{0.00}{\swmark{[1]}}%
+  \swdepth{5.60}}
+\freerow{66.56}{%
+  \at{135.59}{-23.02}{\swglyph{4}{135.59bp 653.89bp 455.77bp 158.64bp}}%
+  \at{155.61}{-23.02}{\swglyph{4}{155.61bp 653.89bp 435.99bp 158.64bp}}%
+  \at{143.79}{-4.27}{1}%
+  \at{135.59}{-23.05}{\swglyph{4}{135.59bp 653.86bp 455.77bp 158.67bp}}%
+  \at{147.69}{-23.05}{\swglyph{4}{147.69bp 653.86bp 435.99bp 158.67bp}}%
+  \at{69.57}{-11.44}{\textbf{(ii)}}%
+  \at{94.96}{-11.44}{Find\kern9.38bp lg}%
+  \at{159.86}{-11.44}{.}%
+  \at{135.59}{-22.92}{\swglyph{4}{135.59bp 653.99bp 455.77bp 158.54bp}}%
+  \at{150.71}{-14.53}{{\fontsize{8.00bp}{8.00bp}\selectfont {\itshape n}}}%
+  \at{147.69}{-22.92}{\swglyph{4}{147.69bp 653.99bp 435.99bp 158.54bp}}%
+  \at{138.64}{-19.68}{10}%
+  \at{135.59}{-23.01}{\swglyph{4}{135.59bp 653.90bp 455.77bp 158.63bp}}%
+  \at{155.61}{-23.01}{\swglyph{4}{155.61bp 653.90bp 435.99bp 158.63bp}}%
+  \ruleat{139.40}{155.27}{-7.97}{0.50}%
+  \at{532.26}{-11.44}{\swmark{[1]}}%
+  \swdepth{27.01}}
+\freerow{94.53}{%
+  \at{148.69}{-0.00}{lg\kern1.55bp 20}%
+  \at{173.54}{0.48}{\swsy{2D}}%
+  \at{183.24}{-0.00}{lg\kern1.55bp 4}%
+  \at{66.37}{-7.91}{\textbf{(iii)}}%
+  \at{94.95}{-7.91}{Show that}%
+  \at{203.22}{-7.90}{{\itshape =}}%
+  \at{214.15}{-10.47}{\swglyph{4}{214.15bp 571.91bp 377.44bp 257.90bp}}%
+  \at{217.75}{-7.91}{lg\kern1.55bp {\itshape y}}%
+  \at{233.81}{-10.47}{\swglyph{4}{233.81bp 571.91bp 357.79bp 257.90bp}}%
+  \at{237.12}{-2.56}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{242.22}{-7.91}{, where {\itshape y} is a constant to be found.}%
+  \at{158.25}{-14.38}{log}%
+  \at{173.28}{-18.38}{{\fontsize{8.00bp}{8.00bp}\selectfont 5}}%
+  \at{178.43}{-14.38}{10}%
+  \ruleat{148.12}{200.06}{-4.44}{0.50}%
+  \at{532.26}{-7.91}{\swmark{[2]}}%
+  \swdepth{19.98}}
+\partbreak
+\freerow{251.29}{%
+  \at{67.02}{-0.00}{\textbf{(iv)}}%
+  \at{94.96}{-0.00}{Solve\kern6.50bp log}%
+  \at{142.69}{-4.00}{{\fontsize{8.00bp}{8.00bp}\selectfont {\itshape r}}}%
+  \at{147.07}{-0.00}{2{\itshape x}\kern2.36bp {\itshape +}\kern2.37bp log}%
+  \at{185.50}{-4.00}{{\fontsize{8.00bp}{8.00bp}\selectfont {\itshape r}}}%
+  \at{189.88}{-0.00}{3{\itshape x}\kern3.14bp {\itshape =}\kern3.15bp log}%
+  \at{229.88}{-4.00}{{\fontsize{8.00bp}{8.00bp}\selectfont {\itshape r}}}%
+  \at{234.26}{-0.00}{600\kern0.68bp .}%
+  \at{532.26}{-0.00}{\swmark{[2]}}%
+  \swdepth{5.60}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{4}{Circular Measure}{5}
+\row{-0.18}{49.61}{\textbf{4}}
+\qfig{5}{196.50bp 567.15bp 195.78bp 75.32bp}{}{2.9}{0}{196.50}
+\row{25.91}{72.28}{The diagram shows 3 circles with centres {\itshape A}, {\itshape B} and {\itshape C}, each of radius 5\kern1.47bp cm. Each circle touches the other}
+\freerow{13.0}{%
+  \at{72.28}{0.00}{two circles.\kern2.24bp Angle {\itshape BAC} is}%
+  \at{194.57}{-0.76}{\swglyph{5}{194.57bp 527.48bp 394.62bp 305.93bp}}%
+  \at{202.26}{-0.00}{radians.}}
+\partbreak
+\freerow{26.0}{%
+  \at{72.77}{-0.00}{\textbf{(i)}}%
+  \at{94.96}{-0.00}{W\kern-0.46bp rite down the value of}%
+  \at{210.06}{-0.76}{\swglyph{5}{210.06bp 501.48bp 378.90bp 331.93bp}}%
+  \at{214.87}{-0.00}{.}%
+  \at{532.26}{-0.00}{\swmark{[1]}}}
+\partbreak
+\freerow{65.0}{%
+  \at{69.57}{-0.00}{\textbf{(ii)}}%
+  \at{94.96}{-0.00}{Find the area of the shaded region between the circles.}%
+  \at{532.26}{-0.00}{\swmark{[4]}}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{5}{Indices \& Surds}{6}
+\row{-0.18}{72.28}{\lab{22.67}{\textbf{5}}\textbf{Do} \textbf{not} \textbf{use} \textbf{a} \textbf{calculator}\kern2.67bp \textbf{in} \textbf{this} \textbf{question.}}
+\partbreak
+\freerow{19.96}{%
+  \at{159.90}{-0.00}{8}%
+  \at{72.28}{-6.04}{\textbf{(a)}}%
+  \at{94.96}{-6.04}{Express}%
+  \at{183.31}{-6.04}{in the form}%
+  \at{246.34}{-6.04}{{\itshape a}\kern2.38bp {\itshape +}}%
+  \at{272.62}{-6.04}{{\itshape b}\kern1.10bp , where {\itshape a} and {\itshape b} are integers.}%
+  \at{146.74}{-14.20}{7}%
+  \at{155.34}{-13.72}{\swsy{2D}}%
+  \at{173.02}{-14.20}{5}%
+  \ruleat{138.21}{179.34}{-2.57}{0.50}%
+  \swpath{draw=black,line width=1.80bp}{(89.88,-10.15)--(90.71,-9.66)--(93.36,-14.41)}{\clip (92.66,-4.51)--(92.66,-8.10)--(89.62,-9.90)--(89.88,-10.16)--(90.72,-9.66)--(93.36,-14.41)--(96.49,-5.01)--(102.89,-5.01)--(102.89,-4.51)--(92.66,-4.51);}%
+  \swpath{draw=black,line width=1.00bp}{(93.36,-14.41)--(96.49,-5.01)--(102.89,-5.01)}{\clip (92.66,-4.51)--(92.66,-8.10)--(89.62,-9.90)--(89.88,-10.16)--(90.72,-9.66)--(93.36,-14.41)--(96.49,-5.01)--(102.89,-5.01)--(102.89,-4.51)--(92.66,-4.51);}%
+  \swpath{draw=black,line width=1.80bp}{(103.03,4.03)--(103.87,4.53)--(106.52,-0.23)}{\clip (105.82,9.68)--(105.82,6.09)--(102.77,4.29)--(103.03,4.03)--(103.87,4.53)--(106.52,-0.23)--(109.64,9.18)--(116.05,9.18)--(116.05,9.68)--(105.82,9.68);}%
+  \swpath{draw=black,line width=1.00bp}{(106.52,-0.23)--(109.65,9.18)--(116.05,9.18)}{\clip (105.82,9.68)--(105.82,6.09)--(102.77,4.29)--(103.03,4.03)--(103.87,4.53)--(106.52,-0.23)--(109.64,9.18)--(116.05,9.18)--(116.05,9.68)--(105.82,9.68);}%
+  \swpath{draw=black,line width=1.80bp}{(116.16,-10.15)--(117.00,-9.66)--(119.64,-14.41)}{\clip (118.94,-4.51)--(118.94,-8.10)--(115.90,-9.90)--(116.16,-10.16)--(117.00,-9.66)--(119.64,-14.41)--(122.77,-5.01)--(129.18,-5.01)--(129.18,-4.51)--(118.94,-4.51);}%
+  \swpath{draw=black,line width=1.00bp}{(119.64,-14.41)--(122.77,-5.01)--(129.18,-5.01)}{\clip (118.94,-4.51)--(118.94,-8.10)--(115.90,-9.90)--(116.16,-10.16)--(117.00,-9.66)--(119.64,-14.41)--(122.77,-5.01)--(129.18,-5.01)--(129.18,-4.51)--(118.94,-4.51);}%
+  \swpath{draw=black,line width=1.80bp}{(189.47,-2.00)--(190.31,-1.50)--(192.96,-6.26)}{\clip (192.26,3.65)--(192.26,0.06)--(189.22,-1.74)--(189.47,-2.00)--(190.31,-1.50)--(192.96,-6.26)--(196.09,3.15)--(202.49,3.15)--(202.49,3.65)--(192.26,3.65);}%
+  \swpath{draw=black,line width=1.00bp}{(192.96,-6.26)--(196.09,3.15)--(202.49,3.15)}{\clip (192.26,3.65)--(192.26,0.06)--(189.22,-1.74)--(189.47,-2.00)--(190.31,-1.50)--(192.96,-6.26)--(196.09,3.15)--(202.49,3.15)--(202.49,3.65)--(192.26,3.65);}%
+  \swpath{draw=black,line width=1.80bp}{(215.76,-2.00)--(216.59,-1.50)--(219.24,-6.26)}{\clip (218.54,3.65)--(218.54,0.06)--(215.50,-1.74)--(215.76,-2.00)--(216.60,-1.50)--(219.24,-6.26)--(222.37,3.15)--(228.77,3.15)--(228.77,3.65)--(218.54,3.65);}%
+  \swpath{draw=black,line width=1.00bp}{(219.24,-6.26)--(222.37,3.15)--(228.77,3.15)}{\clip (218.54,3.65)--(218.54,0.06)--(215.50,-1.74)--(215.76,-2.00)--(216.60,-1.50)--(219.24,-6.26)--(222.37,3.15)--(228.77,3.15)--(228.77,3.65)--(218.54,3.65);}%
+  \at{532.26}{-6.04}{\swmark{[3]}}%
+  \swdepth{16.50}}
+\partbreak
+\freerow{239.51}{%
+  \at{72.28}{-0.53}{\textbf{(b)}}%
+  \at{94.96}{-0.53}{Given that\kern9.47bp 28\kern2.37bp {\itshape +}\kern2.37bp {\itshape p}}%
+  \at{191.63}{-0.53}{3\kern3.15bp {\itshape =}}%
+  \at{211.22}{-2.85}{\swglyph{6}{211.22bp 507.15bp 380.37bp 322.90bp}}%
+  \at{215.06}{-0.53}{{\itshape q}\kern2.38bp {\itshape +}\kern2.37bp 2}%
+  \at{248.29}{-0.53}{3}%
+  \at{254.25}{-3.09}{\swglyph{6}{254.25bp 506.91bp 337.34bp 322.66bp}}%
+  \at{257.81}{5.13}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{262.90}{-0.53}{, where {\itshape p} and {\itshape q} are integers, find the values of {\itshape p} and of {\itshape q}.}%
+  \swpath{draw=black,line width=1.80bp}{(134.75,3.51)--(135.59,4.01)--(138.24,-0.75)}{\clip (137.54,9.16)--(137.54,5.57)--(134.49,3.77)--(134.75,3.51)--(135.59,4.01)--(138.24,-0.75)--(141.37,8.66)--(147.77,8.66)--(147.77,9.16)--(137.54,9.16);}%
+  \swpath{draw=black,line width=1.00bp}{(138.24,-0.75)--(141.37,8.66)--(147.77,8.66)}{\clip (137.54,9.16)--(137.54,5.57)--(134.49,3.77)--(134.75,3.51)--(135.59,4.01)--(138.24,-0.75)--(141.37,8.66)--(147.77,8.66)--(147.77,9.16)--(137.54,9.16);}%
+  \swpath{draw=black,line width=1.80bp}{(191.41,3.51)--(192.25,4.01)--(194.89,-0.75)}{\clip (194.19,9.16)--(194.19,5.57)--(191.15,3.77)--(191.41,3.51)--(192.25,4.01)--(194.89,-0.75)--(198.02,8.66)--(204.43,8.66)--(204.43,9.16)--(194.19,9.16);}%
+  \swpath{draw=black,line width=1.00bp}{(194.89,-0.75)--(198.02,8.66)--(204.43,8.66)}{\clip (194.19,9.16)--(194.19,5.57)--(191.15,3.77)--(191.41,3.51)--(192.25,4.01)--(194.89,-0.75)--(198.02,8.66)--(204.43,8.66)--(204.43,9.16)--(194.19,9.16);}%
+  \at{532.26}{-0.53}{\swmark{[3]}}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{6}{Quadratic Functions \textperiodcentered\ Equations, Inequalities \& Graphs}{8}
+\freerow{3.34}{%
+  \at{49.61}{-0.53}{\textbf{6}}%
+  \at{72.77}{-0.53}{\textbf{(i)}}%
+  \at{94.96}{-0.53}{Express\kern6.65bp 4{\itshape x}}%
+  \at{149.43}{4.62}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{155.81}{-0.53}{{\itshape +}\kern2.37bp 8{\itshape x}}%
+  \at{179.69}{-0.05}{\swsy{2D}}%
+  \at{189.40}{-0.53}{5\kern6.07bp in the form\kern8.12bp {\itshape p}}%
+  \at{267.10}{-2.86}{\swglyph{7}{267.10bp 763.09bp 318.50bp 66.96bp}}%
+  \at{271.34}{-0.53}{{\itshape x}\kern2.37bp {\itshape +}\kern2.37bp {\itshape q}}%
+  \at{295.21}{-3.10}{\swglyph{7}{295.21bp 762.85bp 296.38bp 66.96bp}}%
+  \at{298.53}{4.81}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{304.91}{-0.53}{{\itshape +}\kern2.37bp {\itshape r}\kern1.27bp , where {\itshape p}, {\itshape q} and {\itshape r} are constants to be found.}%
+  \at{532.26}{-0.53}{\swmark{[3]}}}
+\partbreak
+\freerow{202.57}{%
+  \at{69.57}{-0.01}{\textbf{(ii)}}%
+  \at{94.96}{-0.01}{State the coordinates of the vertex of\kern7.78bp {\itshape y}\kern3.14bp {\itshape =}\kern5.96bp 4{\itshape x}}%
+  \at{305.42}{5.15}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{311.80}{-0.00}{{\itshape +}\kern2.36bp 8{\itshape x}}%
+  \at{335.69}{0.48}{\swsy{2D}}%
+  \at{345.39}{-0.00}{5\kern6.78bp .}%
+  \swpath{fill=black}{(241.60,-1.04) rectangle (242.10,10.46)}{}%
+  \swpath{fill=black}{(303.85,-1.04) rectangle (304.35,10.46)}{}%
+  \at{532.26}{-0.00}{\swmark{[2]}}}
+\partbreak
+\freerow{104.0}{%
+  \at{66.37}{0.00}{\textbf{(iii)}}%
+  \at{94.95}{0.00}{On\kern3.14bp the\kern3.13bp axes\kern3.13bp below\kern-0.75bp ,\kern3.13bp sketch\kern3.13bp the\kern3.13bp graph\kern3.13bp of\kern8.32bp {\itshape y}\kern3.14bp {\itshape =}\kern5.96bp 4{\itshape x}}%
+  \at{316.59}{5.15}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{322.97}{-0.00}{{\itshape +}\kern2.36bp 8{\itshape x}}%
+  \at{346.86}{0.48}{\swsy{2D}}%
+  \at{356.56}{-0.00}{5\kern3.91bp ,\kern3.13bp showing\kern3.14bp the\kern3.13bp coordinates\kern3.14bp of\kern3.13bp the\kern3.13bp points}%
+  \swpath{fill=black}{(252.77,-1.04) rectangle (253.27,10.46)}{}%
+  \swpath{fill=black}{(315.02,-1.04) rectangle (315.52,10.46)}{}}
+\row{13.0}{94.96}{where the curve meets the axes.\swmark{[3]}}
+\qfig{7}{125.22bp 114.82bp 126.66bp 415.35bp}{}{19.84}{0}{125.22}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{7}{Vectors in Two Dimensions}{7}
+\freerow{4.69}{%
+  \at{49.61}{0.00}{\textbf{7}}%
+  \at{72.28}{0.00}{{\itshape O}, {\itshape P}, {\itshape Q} and {\itshape R} are four points such that\kern6.84bp {\itshape OP}\kern3.17bp {\itshape =}\kern3.15bp \textbf{p}\kern0.60bp ,\kern6.84bp {\itshape OQ}\kern3.17bp {\itshape =}\kern3.15bp \textbf{q}\kern6.54bp and\kern6.84bp {\itshape OR}\kern3.17bp {\itshape =}\kern3.15bp 3\textbf{q}}%
+  \at{415.45}{0.48}{\swsy{2D}}%
+  \at{425.17}{0.00}{2\textbf{p}\kern0.60bp .}%
+  \swpath{fill=black}{(221.10,10.54)--(219.88,11.57)--(223.52,10.35)--(219.88,9.14)--(221.10,10.17)--(208.05,10.17)--(208.05,10.54)--(221.10,10.54)}{}%
+  \swpath{fill=black}{(268.44,10.54)--(267.23,11.57)--(270.86,10.35)--(267.23,9.14)--(268.44,10.17)--(254.24,10.17)--(254.24,10.54)--(268.44,10.54)}{}%
+  \swpath{fill=black}{(334.30,10.54)--(333.08,11.57)--(336.72,10.35)--(333.08,9.14)--(334.30,10.17)--(321.38,10.17)--(321.38,10.54)--(334.30,10.54)}{}}
+\partbreak
+\row{26.0}{94.96}{\lab{22.19}{\textbf{(i)}}Find, in terms of \textbf{p} and \textbf{q},}
+\qfig{8}{116.22bp 721.74bp 458.22bp 115.57bp}{}{12.28}{0}{116.22}
+\partbreak
+\row{9.14}{119.01}{\lab{24.04}{\textbf{(a)}}{\itshape PQ}\kern1.11bp ,\swmark{[1]}}
+\qfig{8}{116.58bp 656.74bp 458.58bp 180.45bp}{}{51.16}{0}{116.58}
+\partbreak
+\row{9.14}{118.73}{\lab{23.77}{\textbf{(b)}}{\itshape QR}\kern1.11bp .\swmark{[1]}}
+\partbreak
+\freerow{91.0}{%
+  \at{69.57}{0.00}{\textbf{(ii)}}%
+  \at{94.96}{0.00}{Justifying your answer\kern-0.46bp , what can be said about the positions of the points {\itshape P}, {\itshape Q} and {\itshape R}?}%
+  \at{532.26}{0.00}{\swmark{[2]}}}
+\partbreak
+\freerow{173.69}{%
+  \at{66.38}{-0.00}{\textbf{(iii)}}%
+  \at{94.95}{-0.00}{Given that\kern3.97bp {\itshape OP}\kern3.17bp {\itshape =}\kern3.15bp \textbf{i}\kern2.37bp {\itshape +}\kern2.36bp 3\textbf{j}\kern3.02bp and that\kern3.97bp {\itshape OQ}\kern3.17bp {\itshape =}\kern3.15bp 2\textbf{i}\kern2.37bp {\itshape +}\kern2.37bp \textbf{j}\kern0.13bp , find the unit vector in the direction\kern3.96bp {\itshape OR}\kern1.11bp .}%
+  \swpath{fill=black}{(110.60,10.53)--(109.38,11.56)--(113.02,10.35)--(109.38,9.14)--(110.60,10.17)--(97.55,10.17)--(97.55,10.53)--(110.60,10.53)}{}%
+  \swpath{fill=black}{(210.26,10.53)--(209.05,11.56)--(212.68,10.35)--(209.05,9.14)--(210.26,10.17)--(196.06,10.17)--(196.06,10.53)--(210.26,10.53)}{}%
+  \swpath{fill=black}{(435.23,10.53)--(434.02,11.56)--(437.65,10.35)--(434.02,9.14)--(435.23,10.17)--(422.31,10.17)--(422.31,10.53)--(435.23,10.53)}{}%
+  \at{532.25}{0.00}{\swmark{[3]}}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{8}{Binomial Theorem}{7}
+\freerow{3.34}{%
+  \at{49.61}{-0.53}{\textbf{8}}%
+  \at{72.28}{-0.53}{\textbf{(a)}}%
+  \at{95.45}{-0.53}{\textbf{(i)}}%
+  \at{117.64}{-0.53}{Use the Binomial\kern2.66bp Theorem to expand}%
+  \at{293.90}{-3.10}{\swglyph{9}{293.90bp 762.85bp 297.70bp 66.96bp}}%
+  \at{297.74}{-0.53}{{\itshape a}\kern2.38bp {\itshape +}\kern2.36bp {\itshape b}}%
+  \at{322.26}{-3.10}{\swglyph{9}{322.26bp 762.85bp 269.34bp 66.96bp}}%
+  \at{325.58}{4.81}{{\fontsize{8.00bp}{8.00bp}\selectfont 4}}%
+  \at{330.67}{-0.53}{, giving each term in its simplest form.}%
+  \at{532.26}{-0.53}{\swmark{[2]}}}
+\freerow{106.1}{%
+  \at{383.12}{-23.02}{\swglyph{9}{383.12bp 636.83bp 208.47bp 175.70bp}}%
+  \at{422.08}{-23.02}{\swglyph{9}{422.08bp 636.83bp 169.51bp 175.70bp}}%
+  \at{426.68}{2.00}{{\fontsize{8.00bp}{8.00bp}\selectfont 4}}%
+  \at{412.52}{-4.27}{1}%
+  \at{383.12}{-23.04}{\swglyph{9}{383.12bp 636.81bp 208.47bp 175.72bp}}%
+  \at{414.16}{-23.04}{\swglyph{9}{414.16bp 636.81bp 169.51bp 175.72bp}}%
+  \at{92.24}{-11.44}{\textbf{(ii)}}%
+  \at{117.64}{-11.44}{Hence find the term independent of {\itshape x} in the expansion of\kern7.45bp 2{\itshape x}\kern2.36bp {\itshape +}}%
+  \at{431.77}{-11.43}{.}%
+  \at{383.12}{-22.92}{\swglyph{9}{383.12bp 636.93bp 208.47bp 175.60bp}}%
+  \at{414.16}{-22.92}{\swglyph{9}{414.16bp 636.93bp 169.51bp 175.60bp}}%
+  \at{410.33}{-19.68}{5{\itshape x}}%
+  \at{383.12}{-23.01}{\swglyph{9}{383.12bp 636.84bp 208.47bp 175.69bp}}%
+  \at{422.08}{-23.01}{\swglyph{9}{422.08bp 636.84bp 169.51bp 175.69bp}}%
+  \ruleat{410.34}{421.74}{-7.97}{0.50}%
+  \at{532.26}{-11.43}{\swmark{[2]}}%
+  \swdepth{27.01}}
+\freerow{143.0}{%
+  \at{301.68}{-23.02}{\swglyph{9}{301.68bp 493.83bp 289.68bp 318.70bp}}%
+  \at{330.76}{-23.02}{\swglyph{9}{330.76bp 493.83bp 260.84bp 318.70bp}}%
+  \at{335.33}{2.00}{{\fontsize{8.00bp}{8.00bp}\selectfont {\itshape n}}}%
+  \at{324.76}{-4.28}{{\itshape x}}%
+  \at{192.81}{-6.28}{{\fontsize{8.00bp}{8.00bp}\selectfont 3}}%
+  \at{380.98}{-5.40}{5{\itshape n}}%
+  \at{301.68}{-23.04}{\swglyph{9}{301.68bp 493.81bp 289.68bp 318.72bp}}%
+  \at{323.56}{-23.04}{\swglyph{9}{323.56bp 493.81bp 260.84bp 318.72bp}}%
+  \at{72.28}{-11.44}{\textbf{(b)}}%
+  \at{94.96}{-11.44}{The\kern4.76bp coef\kern-0.20bp ficient\kern4.76bp of\kern6.26bp {\itshape x}\kern10.41bp in\kern4.76bp the\kern4.76bp expansion\kern4.76bp of\kern9.32bp 1\kern2.38bp {\itshape +}}%
+  \at{345.18}{-11.43}{equals}%
+  \at{394.14}{-11.43}{.\kern4.76bp Find\kern4.76bp the\kern4.76bp value\kern4.77bp of\kern4.76bp the\kern4.76bp positive}%
+  \at{301.68}{-22.92}{\swglyph{9}{301.68bp 493.93bp 289.68bp 318.60bp}}%
+  \at{323.56}{-22.92}{\swglyph{9}{323.56bp 493.93bp 260.84bp 318.60bp}}%
+  \at{380.98}{-17.69}{12}%
+  \at{324.11}{-19.68}{2}%
+  \at{94.96}{-24.43}{integer {\itshape n}.}%
+  \at{301.68}{-23.01}{\swglyph{9}{301.68bp 493.84bp 289.68bp 318.69bp}}%
+  \at{330.76}{-23.01}{\swglyph{9}{330.76bp 493.84bp 260.84bp 318.69bp}}%
+  \ruleat{323.80}{330.42}{-7.97}{0.50}%
+  \ruleat{380.42}{393.04}{-7.97}{0.50}%
+  \at{532.26}{-24.43}{\swmark{[3]}}%
+  \swdepth{27.01}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{9}{Trigonometry}{8}
+\freerow{-1.13}{%
+  \at{283.46}{-0.58}{\swglyph{10}{283.46bp 769.84bp 305.49bp 66.21bp}}%
+  \at{49.61}{-6.04}{\textbf{9}}%
+  \at{72.28}{-6.04}{\textbf{(a)}}%
+  \at{94.96}{-6.04}{Given that\kern7.78bp {\itshape y}\kern3.14bp {\itshape =}\kern3.15bp {\itshape a}\kern1.56bp tan\kern1.54bp {\itshape bx}\kern2.36bp {\itshape +}\kern2.36bp {\itshape c}\kern9.49bp has period}%
+  \at{293.86}{-6.04}{radians and passes through the points}%
+  \at{469.07}{-8.84}{\swglyph{10}{469.07bp 761.58bp 122.53bp 68.23bp}}%
+  \at{472.90}{-6.04}{0,}%
+  \at{484.38}{-5.56}{\swsy{2D}}%
+  \at{492.85}{-6.04}{2}%
+  \at{498.82}{-8.84}{\swglyph{10}{498.82bp 761.58bp 92.78bp 67.99bp}}%
+  \at{506.12}{-6.04}{and}%
+  \at{283.39}{-12.29}{4}%
+  \at{95.34}{-20.05}{\swglyph{10}{95.34bp 750.37bp 495.46bp 76.57bp}}%
+  \at{122.27}{-39.62}{\swglyph{10}{122.27bp 730.80bp 469.33bp 81.73bp}}%
+  \at{101.95}{-21.70}{\swglyph{10}{101.95bp 748.72bp 486.77bp 87.09bp}}%
+  \at{95.72}{-39.64}{\swglyph{10}{95.72bp 730.78bp 495.88bp 81.75bp}}%
+  \at{122.27}{-39.64}{\swglyph{10}{122.27bp 730.78bp 469.33bp 81.75bp}}%
+  \at{112.12}{-28.04}{,\kern1.20bp 0\kern4.59bp , find the value of each of the constants {\itshape a}, {\itshape b} and {\itshape c}.}%
+  \at{95.72}{-39.76}{\swglyph{10}{95.72bp 730.66bp 495.88bp 81.87bp}}%
+  \at{122.27}{-39.76}{\swglyph{10}{122.27bp 730.66bp 469.33bp 81.87bp}}%
+  \at{98.78}{-36.28}{16}%
+  \at{95.72}{-39.61}{\swglyph{10}{95.72bp 730.81bp 495.88bp 81.72bp}}%
+  \at{122.27}{-39.61}{\swglyph{10}{122.27bp 730.81bp 469.33bp 81.72bp}}%
+  \ruleat{282.64}{289.89}{-2.57}{0.50}%
+  \ruleat{99.52}{110.83}{-24.57}{0.50}%
+  \at{532.25}{-28.04}{\swmark{[3]}}%
+  \swdepth{43.61}}
+\dotgrid{185.46}{283.21}{2.8750}
+\dotline{145.04}{167.47}{{\itshape a} =}{{\itshape b} = ...................................\kern11.50bp {\itshape c} = ...................................}{545.66}
+\freerow{19.96}{%
+  \at{395.93}{-0.00}{2}%
+  \at{401.70}{-0.58}{\swglyph{10}{401.70bp 604.84bp 187.01bp 230.97bp}}%
+  \at{442.10}{-0.00}{2}%
+  \at{448.10}{-0.34}{\swglyph{10}{448.10bp 605.08bp 140.86bp 230.97bp}}%
+  \at{72.28}{-6.04}{\textbf{(b)}}%
+  \at{95.44}{-6.04}{\textbf{(i)}}%
+  \at{117.63}{-6.04}{On the axes below\kern-0.74bp , draw the graph of\kern4.91bp {\itshape y}\kern3.14bp {\itshape =}\kern3.15bp 2\kern1.56bp cos\kern1.54bp 3{\itshape x}\kern2.36bp {\itshape +}\kern2.38bp 1\kern2.56bp for}%
+  \at{386.66}{-5.56}{\swsy{2D}}%
+  \at{411.67}{-6.74}{\swglyph{10}{411.67bp 598.68bp 175.85bp 234.49bp}}%
+  \at{422.40}{-6.04}{{\itshape x}}%
+  \at{430.79}{-6.74}{\swglyph{10}{430.79bp 598.68bp 156.73bp 234.49bp}}%
+  \at{458.49}{-6.04}{radians.}%
+  \at{398.99}{-12.29}{3}%
+  \at{445.15}{-12.29}{3}%
+  \ruleat{395.37}{408.37}{-2.57}{0.50}%
+  \ruleat{441.53}{454.53}{-2.57}{0.50}%
+  \at{532.25}{-6.04}{\swmark{[3]}}%
+  \swdepth{14.59}}
+\qfig{10}{155.46bp 298.65bp 159.42bp 262.12bp}{}{25.65}{0}{155.46}
+\partbreak
+\freerow{25.82}{%
+  \at{92.25}{-0.53}{\textbf{(ii)}}%
+  \at{117.64}{-0.53}{Using your graph, or otherwise, find the exact solutions of}%
+  \at{389.93}{-3.09}{\swglyph{10}{389.93bp 269.74bp 201.67bp 560.07bp}}%
+  \at{393.77}{-0.53}{2\kern1.56bp cos\kern1.54bp 3{\itshape x}\kern2.37bp {\itshape +}\kern2.37bp 1}%
+  \at{447.58}{-3.09}{\swglyph{10}{447.58bp 269.74bp 144.02bp 560.07bp}}%
+  \at{450.89}{4.81}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{458.05}{-0.53}{{\itshape =}\kern3.15bp 1\kern2.56bp for}}
+\freerow{13.5}{%
+  \at{127.92}{0.00}{2}%
+  \at{133.93}{-0.34}{\swglyph{10}{133.93bp 258.99bp 455.03bp 577.06bp}}%
+  \at{174.08}{0.00}{2}%
+  \at{179.85}{-0.58}{\swglyph{10}{179.85bp 258.75bp 408.87bp 577.06bp}}%
+  \at{118.65}{-5.55}{\swsy{2D}}%
+  \at{143.65}{-6.73}{\swglyph{10}{143.65bp 252.60bp 444.10bp 580.57bp}}%
+  \at{154.39}{-6.03}{{\itshape x}}%
+  \at{162.78}{-6.73}{\swglyph{10}{162.78bp 252.60bp 424.74bp 580.57bp}}%
+  \at{190.48}{-6.03}{radians.}%
+  \at{130.98}{-12.28}{3}%
+  \at{177.14}{-12.28}{3}%
+  \ruleat{127.36}{140.36}{-2.56}{0.50}%
+  \ruleat{173.51}{186.51}{-2.56}{0.50}%
+  \at{532.26}{-6.03}{\swmark{[2]}}%
+  \swdepth{14.58}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{10}{Permutations \& Combinations}{8}
+\row{0.0}{117.64}{\lab{68.03}{\textbf{10}}\lab{45.36}{\textbf{(a)}}\lab{22.19}{\textbf{(i)}}Find\kern3.20bp how\kern3.20bp many\kern3.20bp 5-digit\kern3.20bp even\kern3.20bp numbers\kern3.20bp can\kern3.20bp be\kern3.20bp made\kern3.20bp using\kern3.20bp each\kern3.20bp of\kern3.20bp the\kern3.20bp digits\kern3.20bp 1,\kern3.20bp 2,\kern3.20bp 3,\kern3.20bp 4,\kern3.20bp 5\kern3.20bp once\linebreak}
+only\kern-0.75bp .\swmark{[2]}
+\partbreak
+\freerow{143.0}{%
+  \at{92.25}{-0.00}{\textbf{(ii)}}%
+  \at{117.64}{-0.00}{Find\kern3.74bp how\kern3.74bp many\kern3.74bp dif\kern-0.21bp ferent\kern3.74bp 3-digit\kern3.74bp numbers\kern3.75bp can\kern3.74bp be\kern3.74bp made\kern3.74bp using\kern3.74bp the\kern3.74bp digits\kern3.74bp 1,\kern3.74bp 2,\kern3.74bp 3,\kern3.74bp 4,\kern3.74bp 5\kern3.74bp if\kern3.74bp each}}
+\row{13.0}{117.64}{digit can be used once only\kern-0.75bp .\swmark{[2]}}
+\partbreak
+\row{169.0}{94.96}{\lab{22.68}{\textbf{(b)}}A\kern2.24bp man and two women are to sit in a row of five empty chairs. Calculate the number of ways they\linebreak}
+can be seated if
+\partbreak
+\row{26.0}{117.64}{\lab{22.19}{\textbf{(i)}}the two women must sit next to each other\kern-0.47bp ,\swmark{[2]}}
+\partbreak
+\freerow{103.99}{%
+  \at{92.25}{-0.00}{\textbf{(ii)}}%
+  \at{117.64}{-0.00}{all three people must sit next to each other\kern-0.64bp .}%
+  \at{532.26}{-0.00}{\swmark{[2]}}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{11}{Integration \textperiodcentered\ Straight-Line Graphs}{8}
+\freerow{4.4}{%
+  \at{49.61}{-2.60}{\textbf{1}\kern-0.63bp \textbf{1}}%
+  \at{72.77}{-2.60}{\textbf{(i)}}%
+  \at{94.96}{-2.60}{Find}%
+  \at{125.59}{-10.17}{\swglyph{12}{125.59bp 754.72bp 461.93bp 65.49bp}}%
+  \at{137.52}{-2.60}{3{\itshape x}}%
+  \at{151.22}{-2.12}{\swsy{2D}}%
+  \at{160.92}{-2.60}{{\itshape x}}%
+  \at{175.33}{-2.60}{d{\itshape x}\kern0.99bp .}%
+  \at{133.68}{-2.86}{\swglyph{12}{133.68bp 762.03bp 457.91bp 68.02bp}}%
+  \at{166.99}{-0.29}{{\fontsize{5.75bp}{5.75bp}\selectfont 2}}%
+  \at{166.99}{6.40}{{\fontsize{5.75bp}{5.75bp}\selectfont 3}}%
+  \at{166.17}{-3.10}{\swglyph{12}{166.17bp 761.79bp 421.10bp 67.78bp}}%
+  \ruleat{166.58}{170.27}{4.95}{0.41}%
+  \at{532.26}{-2.60}{\swmark{[2]}}%
+  \swdepth{6.97}}
+\partbreak
+\freerow{158.6}{%
+  \at{293.38}{9.00}{{\fontsize{5.75bp}{5.75bp}\selectfont 3}}%
+  \at{72.28}{0.00}{The\kern2.72bp diagram\kern2.72bp shows\kern2.71bp part\kern2.72bp of\kern2.71bp the\kern2.72bp curve\kern4.76bp {\itshape y}\kern3.14bp {\itshape =}\kern3.15bp 3{\itshape x}}%
+  \at{277.61}{0.48}{\swsy{2D}}%
+  \at{287.31}{0.00}{{\itshape x}}%
+  \at{293.38}{2.31}{{\fontsize{5.75bp}{5.75bp}\selectfont 2}}%
+  \at{305.90}{0.00}{and\kern2.72bp the\kern2.72bp lines\kern4.76bp {\itshape y}\kern3.14bp {\itshape =}\kern3.15bp 3{\itshape x}\kern9.14bp and\kern9.00bp 2{\itshape y}\kern3.14bp {\itshape =}\kern3.15bp 27}%
+  \at{472.60}{0.48}{\swsy{2D}}%
+  \at{482.30}{0.00}{3{\itshape x}\kern0.99bp .\kern2.51bp The\kern2.72bp curve}%
+  \ruleat{292.97}{296.66}{7.55}{0.41}}
+\freerow{12.99}{%
+  \at{72.28}{-0.00}{and the line\kern4.90bp {\itshape y}\kern3.14bp {\itshape =}\kern3.15bp 3{\itshape x}\kern3.87bp meet the {\itshape x}-axis at {\itshape O} and the curve and the line\kern3.73bp 2{\itshape y}\kern3.14bp {\itshape =}\kern3.15bp 27}%
+  \at{421.11}{0.47}{\swsy{2D}}%
+  \at{430.82}{-0.01}{3{\itshape x}\kern3.87bp meet the {\itshape x}-axis at {\itshape A}.}}
+\qfig{12}{124.86bp 374.41bp 128.10bp 268.44bp}{}{19.85}{0}{124.86}
+\partbreak
+\freerow{26.03}{%
+  \at{69.57}{-0.00}{\textbf{(ii)}}%
+  \at{94.96}{-0.00}{Find the coordinates of {\itshape A}.}%
+  \at{532.26}{-0.00}{\swmark{[1]}}}
+\partbreak
+\freerow{129.47}{%
+  \at{66.37}{-0.53}{\textbf{(iii)}}%
+  \at{94.95}{-0.53}{V\kern-1.28bp erify that the coordinates of {\itshape B} are}%
+  \at{259.59}{-3.34}{\swglyph{12}{259.59bp 215.57bp 332.01bp 614.24bp}}%
+  \at{263.42}{-0.53}{3, 9}%
+  \at{280.90}{-3.34}{\swglyph{12}{280.90bp 215.57bp 310.70bp 614.00bp}}%
+  \at{285.33}{-0.53}{.}%
+  \at{532.26}{-0.53}{\swmark{[1]}}}
+\newpage
+\pagestart
+\partbreak
+\freerow{0.0}{%
+  \at{67.02}{-0.00}{\textbf{(iv)}}%
+  \at{94.96}{-0.00}{Find the area of the shaded region.}%
+  \at{532.26}{-0.00}{\swmark{[4]}}}
+\newpage
+\pagestart
+\examq{4037/21/M/J/16}{12}{Differentiation}{10}
+\freerow{0.9}{%
+  \at{196.61}{-0.00}{2{\itshape x}}%
+  \at{210.31}{0.47}{\swsy{2D}}%
+  \at{220.01}{-0.00}{5}%
+  \at{49.61}{-6.04}{\textbf{12}}%
+  \at{72.28}{-6.04}{A\kern2.24bp curve has equation\kern7.78bp {\itshape y}\kern3.15bp {\itshape =}}%
+  \at{229.18}{-5.55}{\swsy{2D}}%
+  \at{238.89}{-6.04}{12{\itshape x}\kern0.99bp .}%
+  \at{199.70}{-12.29}{{\itshape x}}%
+  \at{207.65}{-11.81}{\swsy{2D}}%
+  \at{217.36}{-12.29}{1}%
+  \at{123.46}{-27.13}{d{\itshape y}}%
+  \at{72.77}{-35.04}{\textbf{(i)}}%
+  \at{94.97}{-35.04}{Find}%
+  \at{135.96}{-35.04}{.}%
+  \at{123.46}{-41.51}{d{\itshape x}}%
+  \ruleat{196.04}{226.33}{-2.57}{0.50}%
+  \ruleat{122.89}{134.86}{-31.57}{0.50}%
+  \at{532.26}{-35.04}{\swmark{[3]}}%
+  \swdepth{43.81}}
+\freerow{222.13}{%
+  \at{123.46}{-0.00}{d}%
+  \at{129.77}{5.16}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{134.33}{0.00}{{\itshape y}}%
+  \at{69.57}{-7.91}{\textbf{(ii)}}%
+  \at{94.96}{-7.91}{Find}%
+  \at{135.15}{-11.78}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{141.08}{-7.91}{.}%
+  \at{123.74}{-16.94}{d{\itshape x}}%
+  \ruleat{122.89}{139.99}{-4.44}{0.50}%
+  \at{532.26}{-7.91}{\swmark{[2]}}%
+  \swdepth{19.24}}
+\newpage
+\pagestart
+\partbreak
+\freerow{0.0}{%
+  \at{66.37}{-0.00}{\textbf{(iii)}}%
+  \at{94.95}{-0.00}{Find the coordinates of the stationary points of the curve and determine their nature.}%
+  \at{532.25}{-0.00}{\swmark{[5]}}}
+\newpage
+\pagestart
+\freerow{-0.18}{%
+  \at{260.21}{0.00}{\textbf{BLANK} \textbf{P}\kern-0.85bp \textbf{AGE}}}
+\end{document}

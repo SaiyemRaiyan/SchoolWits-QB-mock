@@ -9,8 +9,5 @@ next-env.d.ts
 
 node_modules/
 
-# Local MCP configuration
-.mcp-ASUSTUF.json
-
 # Editor/OS noise
 .DS_Store

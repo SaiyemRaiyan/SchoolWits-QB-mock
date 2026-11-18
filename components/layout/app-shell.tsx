@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const showSearch = SEARCH_ROUTES.some((route) => pathname.startsWith(route));
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="sw-portal flex min-h-screen flex-1 flex-col">
       <SiteHeader search={showSearch ? search : undefined} />
       {children}
     </div>

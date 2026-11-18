@@ -212,7 +212,7 @@ function flattenQuestion(q) {
     if (seg.heading) out.push(seg.heading);
     out.push(seg.html ?? "");
   }
-  return out.join(" ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
+  return out.join(" ").replace(/<span>\$<\/span>/g, " ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
 }
 export {
   EditError,

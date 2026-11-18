@@ -1,29 +1,23 @@
 /* Styles for the HTML lib/render emits. It produces class names, not Tailwind,
-   so these rules are the only way to reach inside that markup. Flat colours. */
+   so these rules are the only way to reach inside that markup.
+
+   Three documents, three colour families, so a student can tell at a glance
+   which one they are reading, and each part of each is its own box:
+     question   ink blue   .question-body  parts are boxes with a blue gutter
+     mark scheme green     .ms-*           one box per part, marks as chips
+     solution   bronze     .worked-solution one box per part, brass gutter
+   Gradients and shadows come from the --sw-* tokens in app/globals.css. */
+
+/* ------------------------------------------------------------------ */
+/* Question                                                            */
+/* ------------------------------------------------------------------ */
 
 .question-body {
-  font-size: 15px;
-  line-height: 1.75;
+  position: relative;
+  font-size: 15.5px;
+  line-height: 1.8;
   color: var(--foreground);
   overflow-wrap: break-word;
-}
-
-/* A figure with no uploaded image still renders an <img>; the note below it
-   says so, and a broken-image icon on top of that is just noise. */
-.question-body .qfig img[src=""] {
-  display: none;
-}
-
-/* Display math and wide tables scroll inside the question rather than
-   widening the page. */
-.question-body .katex-display,
-.worked-solution .katex-display {
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.question-body table {
-  max-width: 100%;
 }
 
 .question-body > p:first-child {
@@ -42,158 +36,262 @@
   font-weight: 600;
 }
 
-/* Parts: one bordered block each, accent colour set inline by the renderer. */
-.question-body .qpart {
-  display: flex;
-  gap: 12px;
-  margin: 16px 0;
-  padding: 16px 18px 16px 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--paccent, var(--sw-ink-soft));
-  border-radius: var(--radius-md);
+.question-body ul,
+.question-body ol,
+.worked-solution ul,
+.worked-solution ol {
+  margin: 0 0 14px;
+  padding-left: 1.4em;
 }
 
-.question-body .qpart--sub {
-  margin: 10px 0 10px 2px;
-  padding: 12px 14px 12px 12px;
-  border-left-width: 3px;
-  background: var(--muted);
+.question-body li,
+.worked-solution li {
+  margin: 3px 0;
+}
+
+.question-body .katex-display,
+.worked-solution .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+}
+
+.question-body table {
+  max-width: 100%;
+}
+
+/* A part is a box: a coloured gutter carrying its label, the text beside it,
+   and the mark as a seal at the top right. */
+.question-body .qpart {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  margin: 16px 0;
+  overflow: hidden;
+  background: var(--sw-paper);
+  border: 1px solid var(--sw-paper-edge);
+  border-radius: 14px;
+  box-shadow: var(--sw-shadow-box);
 }
 
 .question-body .pmark {
-  flex-shrink: 0;
-  min-width: 26px;
-  padding-top: 2px;
-  font-family: var(--font-serif);
-  font-style: italic;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 17px 4px;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
   font-weight: 700;
-  font-size: 15px;
-  color: var(--paccent, var(--sw-brass-dark));
+  color: #fff;
+  background: var(--sw-grad-q);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .question-body .qpart > div {
   position: relative;
-  flex: 1;
   min-width: 0;
-  padding-right: 52px;
+  padding: 16px 70px 16px 20px;
 }
 
-.question-body .qpart--choice > div {
-  padding-right: 0;
+/* A sub-part nests inside its parent's box, one shade lighter. */
+.question-body .qpart--sub {
+  grid-template-columns: 3.6rem minmax(0, 1fr);
+  margin: 14px 0 4px;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 30, 53, 0.1), 0 6px 12px -6px rgba(15, 30, 53, 0.2);
 }
 
-/* Marks badge, pinned top right of its part. */
+.question-body .qpart--sub > .pmark {
+  background: var(--sw-grad-q-soft);
+  font-size: 13.5px;
+}
+
+/* A part that only groups sub-parts has no mark of its own, so it keeps no
+   gutter for one; otherwise its sub-parts' marks sit left of the others'. */
+.question-body .qpart:has(> div > .qpart--sub) > div {
+  padding-right: 20px;
+}
+
+/* The mark: a red-and-white seal, ringed in white with a scalloped rim. */
 .question-body .marktag {
   position: absolute;
-  top: 0;
-  right: 0;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 38px;
-  padding: 4px 8px 3px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 700;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 800;
   line-height: 1;
-  color: var(--sw-marker);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-top: 2px solid var(--paccent, var(--sw-marker));
-  border-radius: 0 6px 6px 6px;
+  color: #fff;
+  background: var(--sw-grad-seal);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    inset 0 0 0 4px #b3261a,
+    0 0 0 3px rgba(192, 57, 43, 0.22),
+    0 4px 8px rgba(124, 21, 12, 0.45);
+  text-shadow: 0 1px 1px rgba(80, 8, 4, 0.6);
 }
 
-.question-body .marktag::after {
-  content: "mark";
-  margin-top: 2px;
-  font-size: 6.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.7;
+.question-body .qpart--sub .marktag {
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
 }
 
-/* Multiple choice: two columns on anything wider than a phone. */
+/* Multiple choice: each option is a card with its letter, two columns on
+   anything wider than a phone. Its own look, so the part rules above do not
+   apply. */
 .question-body .mcq-options {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px 16px;
-  margin: 16px 0;
+  gap: 12px 16px;
+  margin: 18px 0 6px;
 }
 
 @media (min-width: 640px) {
   .question-body .mcq-options {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 .question-body .qpart--choice {
+  display: flex;
   align-items: flex-start;
+  gap: 12px;
   margin: 0;
-  padding: 10px 14px;
+  padding: 12px 16px;
+  background: var(--sw-paper);
+  border: 1px solid var(--sw-paper-edge);
+  border-radius: 14px;
+  box-shadow: var(--sw-shadow-box);
+  transition:
+    transform 0.2s var(--sw-ease),
+    box-shadow 0.2s var(--sw-ease),
+    border-color 0.2s;
+}
+
+.question-body .qpart--choice:hover {
+  transform: translateY(-2px);
+  border-color: #2c63ae;
+}
+
+.question-body .qpart--choice > div {
+  padding: 0;
+}
+
+.question-body .qpart--choice > .pmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 13px;
+  background: var(--sw-grad-q);
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(10, 23, 48, 0.35);
+}
+
+.question-body .qpart--choice > div p {
+  margin: 0;
 }
 
 .question-body .mcq-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  font-size: 13px;
   color: var(--muted-foreground);
-  font-size: 13.5px;
+  background: var(--sw-wash-q);
+  border-radius: 10px;
 }
 
-/* Figures. A missing src is normal, so it reads as a note rather than an error. */
+.question-body .mcq-note i {
+  font-style: normal;
+}
+
+/* Figures: the picture centred, its label centred directly beneath it. */
 .question-body .qfig {
   display: block;
-  margin: 14px 0 16px;
-  padding: 16px;
+  margin: 16px auto 20px;
+  padding: 16px 16px 12px;
   text-align: center;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  background: var(--sw-paper);
+  border: 1px solid var(--sw-paper-edge);
+  border-radius: 14px;
+  box-shadow: var(--sw-shadow-box);
 }
 
 .question-body .qfig img {
   display: block;
   max-width: 100%;
+  max-height: 30rem;
+  width: auto;
   height: auto;
   margin: 0 auto;
   border-radius: 4px;
 }
 
-.question-body .qfig figcaption {
-  margin-top: 10px;
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 12.5px;
-  color: var(--muted-foreground);
+/* A figure with no uploaded image still renders an <img>; the note says so,
+   and a broken-image icon on top of that is only noise. */
+.question-body .qfig img[src=""] {
+  display: none;
+}
+
+.question-body .qfig figcaption,
+.question-body .fig-label {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--sw-ink);
+}
+
+.question-body .fig-label {
+  margin: -4px 0 18px;
+}
+
+.question-body .qfig figcaption strong {
+  font-weight: 700;
 }
 
 .question-body .qfig[data-missing="1"] {
   border-style: dashed;
   background: var(--muted);
+  box-shadow: none;
 }
 
 .question-body .imgmissing {
-  margin-top: 8px;
   font-size: 12.5px;
-  font-style: italic;
-  color: var(--sw-marker);
+  color: var(--muted-foreground);
 }
 
-/* Data tables inside a question body. */
 .question-body table.datatable {
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   margin: 14px 0;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 13.5px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--sw-paper-edge);
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: var(--sw-shadow-box);
 }
 
 .question-body table.datatable th {
   padding: 10px 13px;
   text-align: left;
-  background: var(--sw-ink);
+  background: var(--sw-grad-q);
   color: #fff;
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -203,7 +301,11 @@
 
 .question-body table.datatable td {
   padding: 9px 13px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--sw-paper-edge);
+}
+
+.question-body table.datatable tr:last-child td {
+  border-bottom: 0;
 }
 
 .question-body .mathblock {
@@ -211,34 +313,345 @@
   overflow-x: auto;
 }
 
-/* Worked solution segments. */
-.worked-solution .worked-solution-part + .worked-solution-part {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
+/* ------------------------------------------------------------------ */
+/* Mark scheme: one green box per part                                  */
+/* ------------------------------------------------------------------ */
+
+.ms-sheet {
+  display: grid;
+  gap: 14px;
+}
+
+.ms-cols {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) 7rem;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--sw-grad-ms);
+  border-radius: 12px;
+  box-shadow: var(--sw-shadow-box);
+}
+
+.ms-cols > span {
+  padding: 12px 14px;
+}
+
+.ms-cols > span:last-child {
+  text-align: center;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.14));
+}
+
+.ms-part {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--sw-paper);
+  border: 1px solid var(--sw-paper-edge);
+  border-radius: 14px;
+  box-shadow: var(--sw-shadow-box);
+}
+
+.ms-gutter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  color: #fff;
+  background: var(--sw-grad-ms);
+  text-align: center;
+}
+
+.ms-ref {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  word-break: break-word;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.ms-total {
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.ms-rows {
+  display: grid;
+  min-width: 0;
+}
+
+.ms-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem;
+  background: var(--sw-wash-ms);
+  background-size: 7rem 100%;
+  background-repeat: no-repeat;
+  background-position: right;
+  transition: background-color 0.15s;
+}
+
+.ms-row + .ms-row {
+  border-top: 1px solid var(--sw-paper-edge);
+}
+
+.ms-answer {
+  min-width: 0;
+  padding: 13px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  background: var(--sw-paper);
+}
+
+.ms-row:hover .ms-answer {
+  background: var(--sw-ms-tint);
+}
+
+.ms-marks {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 13px 8px;
+  background: linear-gradient(160deg, rgba(23, 148, 106, 0.2), rgba(23, 148, 106, 0.05));
+}
+
+.ms-banner {
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: var(--sw-grad-ms-soft);
+  border-radius: 10px;
+  box-shadow: 0 6px 12px -8px rgba(5, 46, 32, 0.5);
+}
+
+/* One chip per mark awarded: M method, A accuracy, B independent. */
+.ms-codes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ms-code {
+  display: inline-block;
+  min-width: 30px;
+  padding: 2px 8px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(160deg, #2a3f66, #1a2c4d);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(10, 23, 48, 0.3);
+}
+
+.ms-code[data-kind="M"] {
+  background: linear-gradient(160deg, #4a8ad0, #1f5aa0);
+}
+
+.ms-code[data-kind="A"] {
+  background: linear-gradient(160deg, #2fb487, #0f7a56);
+}
+
+.ms-code[data-kind="B"] {
+  background: linear-gradient(160deg, #e0a34a, #a8651c);
+}
+
+.ms-guidance {
+  margin-top: 6px;
+  padding-left: 10px;
+  font-size: 12.5px;
+  color: var(--muted-foreground);
+  border-left: 2px solid var(--sw-paper-edge);
+}
+
+.ms-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.ms-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ms-legend .ms-code {
+  min-width: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .ms-cols {
+    display: none;
+  }
+  .ms-part {
+    grid-template-columns: 1fr;
+  }
+  .ms-gutter {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 9px 14px;
+  }
+  .ms-row {
+    grid-template-columns: minmax(0, 1fr) 4.75rem;
+  }
+  .ms-answer {
+    padding: 11px 12px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Worked solution: one bronze box per part                             */
+/* ------------------------------------------------------------------ */
+
+.worked-solution {
+  display: grid;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.worked-solution .worked-solution-correct {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  margin: 0;
+  padding: 9px 18px;
+  font-size: 14px;
+  color: #fff;
+  background: var(--sw-grad-sol);
+  border-radius: 999px;
+  box-shadow: 0 8px 16px -8px rgba(58, 39, 7, 0.7);
+}
+
+.worked-solution .worked-solution-correct strong {
+  color: #fff;
+}
+
+/* The header's two spans are placed straight into the box's grid, so the
+   label becomes a full-height gutter and the title sits above the text. */
+.worked-solution .worked-solution-part {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  grid-template-areas:
+    "ref title"
+    "ref body";
+  margin: 0;
+  overflow: hidden;
+  background: var(--sw-paper);
+  border: 1px solid var(--sw-paper-edge);
+  border-radius: 14px;
+  box-shadow: var(--sw-shadow-box);
+}
+
+.worked-solution .worked-solution-part:not(:has(.ws-ref)) {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "title"
+    "body";
 }
 
 .worked-solution .worked-solution-head {
-  margin: 0 0 8px;
+  display: contents;
+  margin: 0;
+}
+
+.worked-solution .ws-ref {
+  grid-area: ref;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sw-grad-sol);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  word-break: break-word;
+}
+
+.worked-solution .ws-title {
+  grid-area: title;
+  padding: 14px 20px 0;
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--sw-ink);
 }
 
-.worked-solution .worked-solution-correct {
-  margin: 0 0 14px;
-  color: var(--sw-brass-dark);
+.worked-solution .ws-body {
+  grid-area: body;
+  min-width: 0;
+  padding: 14px 20px 16px;
+  background: var(--sw-wash-sol);
+  background-size: 100% 100%;
+}
+
+.worked-solution .ws-body > :last-child {
+  margin-bottom: 0;
 }
 
 .worked-solution p {
   margin: 0 0 12px;
-  line-height: 1.75;
 }
 
-/* Guidance from the 4-column papers, shown under the expected answer. */
-.ms-guidance {
-  margin-top: 6px;
-  font-size: 12.5px;
-  color: var(--muted-foreground);
+.worked-solution .qfig img {
+  max-width: 100%;
+  height: auto;
+}
+
+.worked-solution .ws-cap > :first-child::first-letter {
+  text-transform: uppercase;
+}
+
+/* On a phone the gutters give back their width to the text. */
+@media (max-width: 640px) {
+  .question-body .qpart {
+    grid-template-columns: 2.6rem minmax(0, 1fr);
+  }
+  .question-body .qpart--sub {
+    grid-template-columns: 2.9rem minmax(0, 1fr);
+  }
+  .question-body .qpart > div {
+    padding: 14px 54px 14px 14px;
+  }
+  .question-body .qpart:has(> div > .qpart--sub) > div {
+    padding-right: 10px;
+  }
+  .question-body .marktag {
+    top: 12px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+  .worked-solution .worked-solution-part {
+    grid-template-columns: 2.9rem minmax(0, 1fr);
+  }
+  .worked-solution .ws-body {
+    padding: 12px 14px 14px;
+  }
+  .worked-solution .ws-title {
+    padding: 12px 14px 0;
+  }
 }

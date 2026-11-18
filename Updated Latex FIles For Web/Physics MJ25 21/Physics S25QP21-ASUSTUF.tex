@@ -1,0 +1,523 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,top=2.4cm,bottom=2.2cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\graphicspath{{./}}
+\usepackage{array}
+\usepackage{makecell}
+\renewcommand{\arraystretch}{1.25}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+
+\newcommand{\ohms}{\ensuremath{\Omega}}
+\newcommand{\degC}{\ensuremath{^{\circ}}C}
+\newcommand{\dg}{\ensuremath{^{\circ}}}
+\newcommand{\pow}[1]{\ensuremath{^{#1}}}
+
+\newcommand{\topiclabel}[1]{{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}}
+
+\newlength{\anslineskip}
+\setlength{\anslineskip}{8mm}
+
+\newcounter{ansln}
+\newcommand{\Alines}[2]{%
+  \par\vspace{1mm}%
+  \setcounter{ansln}{1}%
+  \loop\ifnum\value{ansln}<#1\relax
+    \noindent\mbox{}\dotfill\par\vspace{\anslineskip}%
+    \stepcounter{ansln}%
+  \repeat
+  \noindent\mbox{}\dotfill\hspace{0.6em}\mbox{#2}\par
+  \vspace{1mm}%
+}
+
+\newcommand{\plainline}{\par\noindent\mbox{}\dotfill\par\vspace{\anslineskip}}
+
+\newcommand{\labelline}[1]{\par\vspace{1mm}\noindent #1\hspace{0.5em}\dotfill\par\vspace{\anslineskip}}
+
+\newcommand{\ansval}[3]{%
+  \par\vspace{5mm}%
+  \noindent\hspace*{3.5cm}#1\hspace{0.5em}\dotfill\hspace{0.5em}#2\hspace{0.5em}\makebox[1.1cm][r]{#3}\par
+  \vspace{3mm}%
+}
+
+\renewcommand{\markright}[1]{\par\nopagebreak\noindent\hspace*{\fill}\mbox{#1}\par\vspace{1mm}}
+
+% Per-question head: \examq{paper-id}{number}{topics}{marks}
+% Renders: paper-id - Q<number> - topics - marks  (one line, same font).
+% Same command and same rendered line as the answer paper.
+\newcommand{\swmarks}{}
+\newcommand{\examq}[4]{%
+  \gdef\swmarks{#4}%
+  \par\addvspace{16pt}\noindent
+  {\large\bfseries #1 - Q#2 - #3 - #4}\par\vspace{5pt}%
+}
+% \total now takes NO argument: it prints the marks stored by \examq.
+\newcommand{\total}{\par\vspace{2mm}\noindent\hspace*{\fill}[Total:\ \swmarks]\par\vspace{2mm}}
+
+\newcommand{\qfig}[3][0.5\linewidth]{%
+  \par\vspace{2mm}
+  \begin{center}%
+    \IfFileExists{#2}%
+      {\includegraphics[width=#1]{#2}}%
+      {\fbox{\parbox[c][26mm][c]{#1}{\centering\ttfamily\footnotesize #2}}}\\[4pt]
+    \textbf{#3}%
+  \end{center}%
+  \vspace{2mm}\par
+}
+
+\newlist{parts}{enumerate}{1}
+\setlist[parts]{label=\textbf{(\alph*)},leftmargin=2.1em,labelsep=0.6em,itemsep=10pt,topsep=6pt,parsep=4pt}
+
+\newlist{subparts}{enumerate}{1}
+\setlist[subparts]{label=\textbf{(\roman*)},leftmargin=2.3em,labelsep=0.6em,itemsep=10pt,topsep=6pt,parsep=4pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize 5054/21/M/J/25}
+\fancyhead[C]{\footnotesize Cambridge O Level Physics -- Paper 2}
+\fancyhead[R]{\footnotesize May/June 2025}
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+%============================== QUESTION 1 ==============================
+\examq{5054/21/M/J/25}{1}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics}{9}
+Fig. 1.1 shows a skydiver falling vertically through the air.
+
+\qfig[0.42\linewidth]{5054_21_M_J_25_fig1.png}{Fig. 1.1}
+
+In the first part of the fall, her speed increases and her acceleration decreases.
+
+In the second part of the fall, her speed is constant.
+
+\begin{parts}
+  \item On Fig. 1.2 sketch the speed--time graph for the skydiver.
+
+  On your graph, mark \textbf{one} point where the speed of the skydiver is increasing with an A and \textbf{one} point where the speed of the skydiver is constant with a B.
+
+  \qfig[0.55\linewidth]{5054_21_M_J_25_fig2.png}{Fig. 1.2}
+  \markright{[2]}
+
+  \item Explain how the graph shows that the acceleration decreases as the speed increases.
+  \Alines{3}{[1]}
+
+  \item During the first part of the fall, there is a resultant vertical force acting downwards on the skydiver.
+  \begin{subparts}
+    \item One of the vertical forces acting on the skydiver is her weight.
+
+    State the name of the other vertical force that acts on the skydiver.
+    \Alines{1}{[1]}
+
+    \item Explain why the resultant vertical force eventually becomes zero.
+    \Alines{4}{[2]}
+  \end{subparts}
+
+  \item At one instant, the vertical force on the skydiver is 400\,N downwards.
+
+  At the same instant, the wind causes an additional horizontal force of 100\,N to the right to act on the skydiver.
+
+  Draw a vector diagram to determine the resultant of the 400\,N vertical force and the 100\,N horizontal force. Place an arrow on all of the forces to show their directions.
+
+  Determine the magnitude (size) of this resultant force and its direction to the vertical.
+
+  \vspace{7.5cm}
+
+  \ansval{magnitude of resultant =}{N}{}
+  \ansval{direction =}{\dg{} to vertical}{}
+  \markright{[3]}
+\end{parts}
+\total
+
+%============================== QUESTION 2 ==============================
+\examq{5054/21/M/J/25}{2}{Mass Weight and Density \textperiodcentered\ Turning Effect of Forces}{8}
+\begin{parts}
+  \item State the principle of moments.
+  \Alines{3}{[2]}
+
+  \item An airline passenger wishes to check the weight of a suitcase that he carries as hand luggage onto an aeroplane.
+
+  He uses a uniform plank of wood, pivoted at its centre, as shown in Fig. 2.1.
+
+  \qfig[0.85\linewidth]{5054_21_M_J_25_fig3.png}{Fig. 2.1}
+
+  The plank is balanced with the suitcase on one side of the pivot and three bags of sugar, each of mass 2.0\,kg, on the other side.
+
+  The distances are shown on Fig. 2.1.
+
+  \begin{subparts}
+    \item Calculate the weight of \textbf{one} bag of sugar.
+
+    \vspace{2.5cm}
+    \ansval{weight =}{N}{[1]}
+
+    \item The maximum weight of a suitcase that can be carried onto the aeroplane is 67\,N.
+
+    Determine whether the weight of the suitcase exceeds the maximum allowed.
+
+    Show a calculation in your answer.
+
+    \vspace{4cm}
+    \Alines{2}{[2]}
+  \end{subparts}
+
+  \item A tall bus is tested for stability.
+
+  Fig. 2.2 shows the bus on a slope.
+
+  The centre of gravity of the bus is marked.
+
+  \qfig[0.5\linewidth]{5054_21_M_J_25_fig4.png}{Fig. 2.2}
+
+  \begin{subparts}
+    \item State what is meant by the `centre of gravity' of an object.
+    \Alines{2}{[1]}
+
+    \item When the slope is made very steep, the bus falls over by rotating about point P.
+
+    Explain why the bus falls over.
+    \Alines{4}{[2]}
+  \end{subparts}
+\end{parts}
+\total
+
+%============================== QUESTION 3 ==============================
+\examq{5054/21/M/J/25}{3}{Work Energy and Power}{8}
+A battery, a pulley and a motor are used to lift a load as shown in Fig. 3.1.
+
+\qfig[0.45\linewidth]{5054_21_M_J_25_fig5.png}{Fig. 3.1}
+
+\begin{parts}
+  \item Describe the transfers between energy stores that occur as the load is lifted.
+  \Alines{4}{[3]}
+
+  \item The efficiency of the motor, pulley and load system is less than 100\%.
+  \begin{subparts}
+    \item By comparing the input energy and the useful output energy, explain why the efficiency is less than 100\%.
+    \Alines{2}{[1]}
+
+    \item Explain how the principle of conservation of energy applies in lifting the load.
+    \Alines{3}{[2]}
+  \end{subparts}
+
+  \item The input power to the motor is 15\,W. The motor is used for 20\,s. The efficiency of the motor is 60\%.
+
+  Calculate the energy supplied to the load.
+
+  \vspace{4cm}
+  \ansval{energy =}{J}{[2]}
+\end{parts}
+\total
+
+%============================== QUESTION 4 ==============================
+\examq{5054/21/M/J/25}{4}{Thermal Properties \& Temperature \textperiodcentered\ Transfer of Thermal Energy}{7}
+\begin{parts}
+  \item Evaporation of water from the surface of the skin causes cooling.
+  \begin{subparts}
+    \item Describe, using ideas about particles, how evaporation causes cooling.
+    \Alines{3}{[2]}
+
+    \item State \textbf{one} difference between evaporation and boiling.
+    \Alines{2}{[1]}
+  \end{subparts}
+
+  \item When a refrigerator is switched on, cooling coils placed at the top of the space inside the refrigerator become cold. This causes a convection current which cools the air inside the refrigerator. The refrigerator is shown in Fig. 4.1.
+
+  \qfig[0.7\linewidth]{5054_21_M_J_25_fig6.png}{Fig. 4.1}
+
+  \begin{subparts}
+    \item Explain how the cooling coils cause a convection current in the air inside the refrigerator.
+    \Alines{3}{[2]}
+
+    \item The food in the refrigerator is initially at a temperature of 20.0\,\degC. The food has a mass of 3.6\,kg and a specific heat capacity of 3000\,J/(kg\,\degC).
+
+    Calculate the final temperature of the food after 160\,000\,J of thermal energy is removed from it.
+
+    \vspace{4cm}
+    \ansval{final temperature =}{\degC}{[2]}
+  \end{subparts}
+\end{parts}
+\total
+
+%============================== QUESTION 5 ==============================
+\examq{5054/21/M/J/25}{5}{General Wave Properties \textperiodcentered\ Sound}{8}
+\begin{parts}
+  \item Fig. 5.1 is a diagram showing the arrangement of air particles as a longitudinal wave passes through them.
+
+  \qfig[0.9\linewidth]{5054_21_M_J_25_fig7.png}{Fig. 5.1}
+
+  \begin{subparts}
+    \item On Fig. 5.1, mark the centre of a compression with the letter C, and mark the centre of a rarefaction with the letter R.
+    \markright{[1]}
+
+    \item Describe the difference between a compression and a rarefaction.
+    \Alines{3}{[1]}
+  \end{subparts}
+
+  \item In a ripple tank, a water wave is produced by a wooden bar moving up and down on the surface of water.
+  \begin{subparts}
+    \item The wooden bar makes 45 complete oscillations in 1.0 minute.
+
+    Calculate the frequency of the wave produced.
+
+    \vspace{3.5cm}
+    \ansval{frequency =}{Hz}{[1]}
+
+    \item The frequency of the water wave is increased by moving the wooden bar up and down more quickly.
+
+    State what happens to the speed and what happens to the wavelength of the wave produced.
+
+    \labelline{speed}
+    \labelline{wavelength}
+    \markright{[2]}
+
+    \item The crests of the water wave move into the shallow region shown in Fig. 5.2.
+
+    \qfig[0.75\linewidth]{5054_21_M_J_25_fig8.png}{Fig. 5.2}
+
+    On Fig. 5.2, draw the crests in the shallow region.
+    \markright{[2]}
+  \end{subparts}
+
+  \item Describe what is meant by the diffraction of a water wave.
+  \Alines{3}{[1]}
+\end{parts}
+\total
+
+%============================== QUESTION 6 ==============================
+\examq{5054/21/M/J/25}{6}{Electrical Quantities \textperiodcentered\ Electric Circuits}{10}
+A student sets up a circuit to determine the resistance of a length of wire.
+
+The circuit contains a battery of unknown e.m.f., a length of a wire used to make a resistor X, an ammeter, a voltmeter and a variable resistor R.
+
+\begin{parts}
+  \item Fig. 6.1 shows part of the circuit diagram.
+
+  \qfig[0.6\linewidth]{5054_21_M_J_25_fig9.png}{Fig. 6.1}
+
+  \begin{subparts}
+    \item On Fig. 6.1, complete the circuit diagram by adding \textbf{one} voltmeter and \textbf{one} ammeter in suitable places to allow the determination of the resistance of X.
+    \markright{[1]}
+
+    \item Explain how X and R act as a variable potential divider.
+    \Alines{4}{[2]}
+  \end{subparts}
+
+  \item The student determines the resistance of the resistor X for five different lengths of the wire making it. The lengths of wire range from 20\,cm to 60\,cm. The type of wire and the cross-sectional area of the wire are kept constant.
+
+  Fig. 6.2 shows a graph of the results.
+
+  \qfig[0.7\linewidth]{5054_21_M_J_25_fig10.png}{Fig. 6.2}
+
+  \begin{subparts}
+    \item State the relationship between the resistance of the wire and the length of the wire.
+    \Alines{1}{[1]}
+
+    \item Calculate the current in a 90\,cm length of the wire when there is a potential difference (p.d.) of 9.0\,V across it.
+
+    Show your working.
+
+    \vspace{3.5cm}
+    \ansval{current =}{A}{[3]}
+
+    \item The p.d. across the wire making the resistor X is kept constant for all the measurements of resistance.
+
+    Describe the relationship between the current in the wire and the length of the wire.
+    \Alines{2}{[2]}
+  \end{subparts}
+
+  \item State how the resistance of a wire depends upon the cross-sectional area of the wire.
+  \Alines{1}{[1]}
+\end{parts}
+\total
+
+%============================== QUESTION 7 ==============================
+\examq{5054/21/M/J/25}{7}{Electro Magnetism / Electromagnetic Induction \textperiodcentered\ Uses of Oscilloscope}{9}
+Fig. 7.1 shows an alternating current (a.c.) power supply connected to a transformer.
+
+\qfig[0.8\linewidth]{5054_21_M_J_25_fig11.png}{Fig. 7.1}
+
+\begin{parts}
+  \item Explain how an alternating current in the primary coil produces an alternating output voltage.
+  \Alines{5}{[3]}
+
+  \item A student uses a voltmeter set on a 0--10\,V range to measure the input and output voltages. She obtains the values shown in Table 7.1.
+
+  \begin{center}
+  \textbf{Table 7.1}\\[5pt]
+  \begin{tabular}{|c|c|}
+    \hline
+    input voltage/V & output voltage/V\\
+    \hline
+    1.2 & 2.4\\
+    \hline
+    2.3 & 4.6\\
+    \hline
+    4.8 & 9.6\\
+    \hline
+    6.4 & no reading\\
+    \hline
+  \end{tabular}
+  \end{center}
+
+  \begin{subparts}
+    \item Suggest why no output voltage reading is obtained with this voltmeter when the input voltage is 6.4\,V.
+    \Alines{2}{[1]}
+
+    \item The number of turns on the primary coil is 48.
+
+    Calculate the number of turns on the secondary coil.
+
+    \vspace{3.5cm}
+    \ansval{number of turns =}{}{[2]}
+  \end{subparts}
+
+  \item The student uses an oscilloscope to display an alternating output voltage from the transformer.
+
+  Fig. 7.2 shows the front of the oscilloscope before it is connected to the transformer.
+
+  \qfig[0.75\linewidth]{5054_21_M_J_25_fig12.png}{Fig. 7.2}
+
+  When the oscilloscope is connected to the output of the transformer, a trace representing the alternating output voltage is displayed on the screen.
+
+  \begin{subparts}
+    \item On Fig. 7.2, draw a trace representing an alternating output voltage on the screen.
+    \markright{[1]}
+
+    \item Describe how to use the trace to measure the maximum value of the output voltage.
+    \Alines{4}{[2]}
+  \end{subparts}
+\end{parts}
+\total
+
+%============================== QUESTION 8 ==============================
+\examq{5054/21/M/J/25}{8}{The Nuclear Atom \textperiodcentered\ Radioactivity}{11}
+Plutonium-239 ($^{239}_{\phantom{2}94}$Pu) is an isotope that is used as the fuel in some nuclear reactors.
+
+\begin{parts}
+  \item State the names of the types of particles found in a nucleus of plutonium-239, and state how many there are of each type.
+  \Alines{3}{[2]}
+
+  \item Fig. 8.1 shows the nuclear fission process that occurs within the fuel rods of the nuclear reactor.
+
+  \qfig[0.7\linewidth]{5054_21_M_J_25_fig13.png}{Fig. 8.1}
+
+  \begin{subparts}
+    \item Explain how the fission process produces a chain reaction.
+    \Alines{4}{[2]}
+
+    \item Explain how control rods are used to increase and decrease the rate of the chain reaction in a nuclear reactor.
+    \Alines{4}{[2]}
+  \end{subparts}
+
+  \item Plutonium-239 decays by the emission of an alpha particle ($\alpha$-particle).
+
+  State \textbf{two} differences between an alpha particle and a beta particle ($\beta$-particle).
+
+  \labelline{difference 1}
+  \plainline
+  \labelline{difference 2}
+  \Alines{1}{[2]}
+
+  \item Alpha particles from the radioactive source are detected in a cloud chamber or with a spark counter.
+  \begin{subparts}
+    \item Draw a labelled diagram of \textbf{either} a cloud chamber \textbf{or} a spark counter.
+
+    Label the position of the radioactive source with an S.
+
+    \vspace{8.5cm}
+    \markright{[2]}
+
+    \item State what causes the tracks in a cloud chamber \textbf{or} state what causes the sparks in a spark counter.
+    \Alines{2}{[1]}
+  \end{subparts}
+\end{parts}
+\total
+
+%============================== QUESTION 9 ==============================
+\examq{5054/21/M/J/25}{9}{The Stars \& Universe}{10}
+\begin{parts}
+  \item The life cycle of a star begins with a large cloud of dust and gas which collapses.
+
+  Five later stages of the life cycle of a \textbf{very} massive star are:
+
+  \begin{center}
+  \textbf{black hole}\hspace{1.2cm}\textbf{protostar}\hspace{1.2cm}\textbf{red supergiant}\hspace{1.2cm}\textbf{stable star}\hspace{1.2cm}\textbf{supernova}
+  \end{center}
+
+  Place these stages in Table 9.1 in the order in which they occur.
+
+  \begin{center}
+  \textbf{Table 9.1}\\[6pt]
+  {\footnotesize earlier time $\downarrow$}\\[3pt]
+  \begin{tabular}{|c|}
+    \hline
+    cloud of dust and gas\\
+    \hline
+    \makebox[6.5cm]{\dotfill}\\
+    \hline
+    \makebox[6.5cm]{\dotfill}\\
+    \hline
+    \makebox[6.5cm]{\dotfill}\\
+    \hline
+    \makebox[6.5cm]{\dotfill}\\
+    \hline
+    \makebox[6.5cm]{\dotfill}\\
+    \hline
+  \end{tabular}\\[3pt]
+  {\footnotesize later time}
+  \end{center}
+  \markright{[2]}
+
+  \item The original collapse of the cloud of dust and gas that formed the Sun was caused by an inward force.
+  \begin{subparts}
+    \item State the name of the inward force.
+    \Alines{1}{[1]}
+
+    \item Further collapse is prevented by an outward force. The Sun will remain in the stable stage of its life cycle for a few billion years.
+
+    Describe what causes the outward force.
+    \Alines{2}{[1]}
+  \end{subparts}
+
+  \item One of the first supernovas ever observed is known as SN185. It was formed from the explosion of a star in the Milky Way galaxy.
+
+  The remnants of SN185 are at a distance of 8200 light-years from Earth.
+
+  \begin{subparts}
+    \item State what is meant by a `light-year'.
+    \Alines{2}{[1]}
+
+    \item State the time that passed between the explosion that formed SN185 and the electromagnetic radiation from the explosion reaching Earth.
+    \Alines{1}{[1]}
+
+    \item A recently observed supernova is SN2014J.
+
+    The remnants of SN2014J are 12 million light-years from Earth, outside the Milky Way.
+
+    There is \textbf{no} redshift seen in the electromagnetic radiation from the remnants of SN185 but a large redshift is seen in the electromagnetic radiation from the remnants of SN2014J.
+
+    Explain this difference.
+    \Alines{4}{[2]}
+  \end{subparts}
+
+  \item Most of the atoms found in the early Universe were hydrogen and helium.
+
+  The Universe now contains atoms of heavier elements.
+
+  Explain how the heavier elements are formed.
+  \Alines{3}{[2]}
+\end{parts}
+\total
+
+\end{document}

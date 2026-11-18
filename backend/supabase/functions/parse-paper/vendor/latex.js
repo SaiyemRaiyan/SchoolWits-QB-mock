@@ -325,6 +325,22 @@ function protectMath(src) {
       i += 2;
       continue;
     }
+    if (ch === "\\" && src.startsWith("\\begin{", i)) {
+      const env = /^\\begin\{(align|equation|gather)(\*?)\}/.exec(src.slice(i, i + 24));
+      if (env) {
+        const close = `\\end{${env[1]}${env[2]}}`;
+        const end = src.indexOf(close, i);
+        if (end !== -1) {
+          const body = src.slice(i + env[0].length, end);
+          const inner = env[1] === "align" ? "aligned" : env[1] === "gather" ? "gathered" : "";
+          const raw = inner ? `\\[\\begin{${inner}}${body}\\end{${inner}}\\]` : `\\[${body}\\]`;
+          slots.push({ raw });
+          out += `${MATH_OPEN}${slots.length - 1}${MATH_CLOSE}`;
+          i = end + close.length;
+          continue;
+        }
+      }
+    }
     if (ch === "\\" && (next === "(" || next === "[")) {
       const closer = next === "[" ? "\\]" : "\\)";
       const end = src.indexOf(closer, i + 2);
@@ -414,9 +430,38 @@ var SYMBOLS = [
   [/\\le\b/g, "\u2264"],
   [/\\pm\b/g, "\xB1"]
 ];
+var DIAGRAM_ENV = /\\begin\{(tikzpicture|pgfpicture|picture)\*?\}[\s\S]*?\\end\{\1\*?\}/g;
+function stripDiagrams(src) {
+  return src.replace(DIAGRAM_ENV, "");
+}
+function countDiagrams(src) {
+  return (src.match(DIAGRAM_ENV) ?? []).length;
+}
+function listsToHtml(src) {
+  const token = /\s*\\(begin|end)\{(itemize|enumerate)\}(?:\[[^\]]*\])?\s*|\s*\\item\b(?:\[[^\]]*\])?\s*/g;
+  const stack = [];
+  const out = src.replace(token, (m, kind, env) => {
+    if (kind === "begin") {
+      const tag = env === "enumerate" ? "ol" : "ul";
+      stack.push({ tag, open: false });
+      return `<${tag}>`;
+    }
+    if (kind === "end") {
+      const top2 = stack.pop();
+      if (!top2) return "";
+      return `${top2.open ? "</li>" : ""}</${top2.tag}>`;
+    }
+    const top = stack[stack.length - 1];
+    if (!top) return "";
+    const prefix = top.open ? "</li>" : "";
+    top.open = true;
+    return `${prefix}<li>`;
+  });
+  return out + stack.reverse().map((t) => `${t.open ? "</li>" : ""}</${t.tag}>`).join("");
+}
 function inlineToHtml(src) {
-  const { text, slots } = protectMath(src);
-  let out = escapeHtml(text);
+  const { text, slots } = protectMath(stripDiagrams(src));
+  let out = listsToHtml(escapeHtml(text));
   out = out.replace(/\\newline\b/g, "<br>");
   out = out.replace(/\\\\(\[[^\]]*\])?/g, "<br>");
   out = wrapCommand(out, "textbf", "<strong>", "</strong>");
@@ -433,12 +478,20 @@ function inlineToHtml(src) {
   out = wrapCommand(out, "text", "", "");
   for (const [re, rep] of SYMBOLS) out = out.replace(re, rep);
   out = out.replace(/\\&amp;/g, "&amp;");
-  out = out.replace(/\\([%$#_{}])/g, "$1");
+  out = out.replace(/\\\$/g, "<span>$</span>");
+  out = out.replace(/\\([%#_{}])/g, "$1");
   out = out.replace(/\\[,;:!]/g, " ");
+  out = out.replace(/\\[ \t\n]/g, " ");
+  out = out.replace(/\\[\/@-]/g, "");
   out = out.replace(/\\quad\b/g, " ");
   out = out.replace(/\\qquad\b/g, " ");
   out = out.replace(/~/g, " ");
   out = out.replace(/---/g, "\u2014").replace(/--/g, "\u2013");
+  out = out.replace(/\\(?:begin|end)\{(?:minipage|tabularx?\*?|multicols)\}(?:\[[^\]]*\])?(?:\{[^{}]*\})?/g, "");
+  out = out.replace(/\\(?:begin|end)\{[a-zA-Z*]+\}(?:\[[^\]]*\])?/g, "");
+  out = out.replace(/\\(?:makebox|framebox)\[[^\]]*\](?:\[[^\]]*\])?\{\s*(?:\\(?:dotfill|hrulefill))?\s*\}/g, "");
+  out = out.replace(/\\rule(?:\[[^\]]*\])?\{[^{}]*\}\{[^{}]*\}/g, "");
+  out = out.replace(/\\(?:dotfill|hrulefill|hfill)\b/g, "");
   out = out.replace(/\\[a-zA-Z]+\*?\s?/g, "");
   out = out.replace(/[{}]/g, "");
   out = out.replace(/[ \t]{2,}/g, " ").trim();
@@ -518,7 +571,11 @@ function tabularToHtml(body) {
   return `<table>${html}</table>`;
 }
 function paragraphs(raw) {
-  return raw.split(/\n\s*\n/).map((p) => inlineToHtml(p)).filter((html) => html.length > 0).map((html) => ({ type: "text", html }));
+  const joined = raw.replace(
+    /\\begin\{(itemize|enumerate)\}[\s\S]*?\\end\{\1\}/g,
+    (list2) => list2.replace(/\n\s*\n/g, "\n")
+  );
+  return joined.split(/\n\s*\n/).map((p) => inlineToHtml(p)).filter((html) => html.length > 0).map((html) => ({ type: "text", html }));
 }
 function figureBlock(arg, optional, caption, images) {
   const clip = parseClipOptions(optional);
@@ -755,12 +812,26 @@ function isBlocking(warning) {
 }
 var LAYOUT_COMMAND = /\\(?:mcq|stem|choice|optrow|freerow|row|dotline|dotgrid|at|lab)\s*\{/g;
 var LAYOUT_THRESHOLD = 5;
-function detectLayoutDialect(body) {
-  const hits = body.match(LAYOUT_COMMAND)?.length ?? 0;
-  if (hits < LAYOUT_THRESHOLD) return null;
+function isLayoutDialect(body) {
+  return (body.match(LAYOUT_COMMAND)?.length ?? 0) >= LAYOUT_THRESHOLD;
+}
+var list = (numbers) => numbers.slice(0, 10).map((n) => `Q${n}`).join(", ") + (numbers.length > 10 ? ", \u2026" : "");
+function unreadableMaths(numbers, unknown) {
+  if (numbers.length === 0 && unknown.length === 0) return null;
+  const why = [
+    numbers.length ? `${numbers.length} question${numbers.length === 1 ? "" : "s"} (${list(numbers)}) contain maths drawn from symbol images or paths, which cannot be read as an equation` : "",
+    unknown.length ? `commands the parser does not know (${unknown.slice(0, 8).map((c) => `\\${c}`).join(", ")})` : ""
+  ].filter(Boolean);
   return {
     code: "unsupported-layout",
-    message: `This file positions its text on the page (${hits} commands such as \\mcq, \\row, \\at) instead of using the documented question format, so the text cannot be read reliably. It cannot be saved. See templates/README.md for the format the site accepts.`
+    message: `This paper cannot be saved: ${why.join("; and ")}.`
+  };
+}
+function positionedMaths(numbers) {
+  if (numbers.length === 0) return null;
+  return {
+    code: "positioned-maths",
+    message: `${list(numbers)}: a line was rebuilt from pieces placed on the page (fractions, options in a row). Check these against the paper before saving.`
   };
 }
 function visibleText(html) {
@@ -786,16 +857,401 @@ function detectGarbledText(questions) {
   };
 }
 
+// src/latex/layout.ts
+var ELEMENTS = {
+  mcq: 3,
+  stem: 2,
+  choice: 3,
+  optrow: 5,
+  row: 3,
+  prow: 3,
+  dotline: 5,
+  qmark: 2,
+  freerow: 2,
+  qfig: 6
+};
+var SKIPPED = {
+  partbreak: 0,
+  pagestart: 0,
+  swpage: 0,
+  newpage: 0,
+  gap: 1,
+  hang: 1,
+  total: 1,
+  dotgrid: 3,
+  swdepth: 1
+};
+function readGroups(src, from, count) {
+  const args = [];
+  let i = from;
+  for (let n = 0; n < count; n++) {
+    while (/\s/.test(src[i] ?? "")) i++;
+    const g = readGroup(src, i);
+    if (!g) return null;
+    args.push(g.value);
+    i = g.end;
+  }
+  return { args, end: i };
+}
+function tokenize(body) {
+  const out = [];
+  let text = "";
+  const flush = () => {
+    if (text.trim()) out.push({ name: "text", raw: text.trim() });
+    text = "";
+  };
+  let i = 0;
+  while (i < body.length) {
+    const m = body[i] === "\\" ? /^\\([a-zA-Z]+)/.exec(body.slice(i, i + 24)) : null;
+    const name = m?.[1];
+    if (name && name in ELEMENTS) {
+      let j = i + m[0].length;
+      const opt = name === "qfig" ? readOptional(body, j) : null;
+      if (opt) j = opt.end;
+      const read = readGroups(body, j, ELEMENTS[name]);
+      if (read) {
+        flush();
+        out.push({ name, args: read.args, optional: opt?.value ?? null });
+        i = read.end;
+        continue;
+      }
+    } else if (name && name in SKIPPED) {
+      let j = i + m[0].length;
+      const wanted = name === "total" && body[j] !== "{" ? 0 : SKIPPED[name];
+      j = readGroups(body, j, wanted)?.end ?? j;
+      i = j;
+      continue;
+    }
+    text += body[i];
+    i++;
+  }
+  flush();
+  return out;
+}
+var SYMBOL = {
+  "57": "\u03A9",
+  "70": "\u03C0",
+  "6D": "\u03BC",
+  "6C": "\u03BB",
+  "71": "\u03B8",
+  "61": "\u03B1",
+  "62": "\u03B2",
+  "67": "\u03B3",
+  "44": "\u0394",
+  "72": "\u03C1",
+  "77": "\u03C9",
+  "66": "\u03C6",
+  "73": "\u03C3",
+  "74": "\u03C4",
+  "65": "\u03B5",
+  "53": "\u03A3",
+  B0: "\xB0",
+  B4: "\xD7",
+  B8: "\xF7",
+  B1: "\xB1",
+  "2D": "\u2212",
+  D7: "\xB7",
+  A3: "\u2264",
+  B3: "\u2265",
+  BB: "\u2248",
+  B9: "\u2260",
+  AE: "\u2192",
+  D6: "\u221A",
+  A5: "\u221E",
+  B5: "\u221D"
+};
+var KNOWN_INLINE = /* @__PURE__ */ new Set([
+  "textbf",
+  "textit",
+  "emph",
+  "textsuperscript",
+  "textsubscript",
+  "pow",
+  "ohms",
+  "degC",
+  "dg",
+  "times",
+  "newline",
+  "mbox",
+  "text",
+  "ldots",
+  "dots",
+  "ge",
+  "le",
+  "pm",
+  "textperiodcentered",
+  "underline",
+  "qfig",
+  "dfrac",
+  "mathrm"
+]);
+function cleanInline(src, notes) {
+  let s = src;
+  s = s.replace(
+    /\\swclip\{([^{}]*)\}\{([^{}]*)\}/g,
+    (_, page, trim) => `\\qfig[page=${page.trim()},trim=${trim.trim()},clip]{source.pdf}{}`
+  );
+  if (/\\(?:swglyph|swpath)\b/.test(s)) notes.unreadable = true;
+  s = s.replace(/\\swglyph\{[^{}]*\}\{[^{}]*\}/g, "");
+  s = s.replace(/\\vadjust\{[^{}]*\}/g, "").replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, "").replace(/\\x?spaceskip=-?[\d.]+bp/g, "").replace(/\\hskip-?[\d.]+pt(?:\s*minus\s*[\d.]+bp)?/g, "").replace(/\\(?:relax|nobreak|strut|ignorespaces|unskip|hfill)\b ?/g, "").replace(/\\linebreak\b/g, " ").replace(/\\kern(-?[\d.]+)(?:bp|pt) ?/g, (_, n) => Number(n) >= 2 ? " " : "").replace(/\\raisebox\{[^{}]*\}(?:\[[^\]]*\])*/g, "").replace(/\\(?:makebox|rlap|llap)(?:\[[^\]]*\])*/g, "").replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t) => t === "I" ? "\\textit{I}" : t).replace(/\\vI\b/g, "\\textit{I}").replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}\\selectfont\s*/g, "").replace(/\{\\itshape\s*/g, "\\textit{").replace(/\{\\bfseries\s*/g, "\\textbf{").replace(/\\(?:stack(?:\[[^\]]*\])?|nuc)\{([^{}]*)\}\{([^{}]*)\}/g, "\\textsuperscript{$1}\\textsubscript{$2}").replace(/\\sub\{/g, "\\textsubscript{").replace(/\\swsy\{([0-9A-Fa-f]+)\}/g, (_, hex) => {
+    const symbol = SYMBOL[hex.toUpperCase()];
+    if (!symbol) notes.unknown.add(`swsy{${hex}}`);
+    return symbol ?? "";
+  }).replace(/\\x(?![a-zA-Z])/g, "\xD7").replace(/\\textendash(?:\{\})?/g, "\u2013").replace(/\\textminus(?:\{\})?/g, "\u2212").replace(/\\textdegree(?:\{\})?/g, "\xB0").replace(/\\swbul\b/g, "\u2022");
+  for (const m of s.matchAll(/\\([a-zA-Z]+)/g)) {
+    if (!KNOWN_INLINE.has(m[1])) notes.unknown.add(m[1]);
+  }
+  return s.replace(/[ \t]{2,}/g, " ").trim();
+}
+function plain(raw) {
+  return raw.replace(/\\kern-?[\d.]+bp ?/g, "").replace(/\\[a-zA-Z]+/g, "").replace(/[{}\s]/g, "");
+}
+var ROMAN2 = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
+function takeLabel(text) {
+  const t = text.trimStart();
+  const lab = /^\\lab\s*/.exec(t);
+  if (lab) {
+    const read = readGroups(t, lab[0].length, 2);
+    if (read) return { label: plain(read.args[1]), rest: t.slice(read.end) };
+  }
+  if (t.startsWith("\\textbf{")) {
+    const g = readGroup(t, 7);
+    if (g && /^\([a-z]{1,4}\)$/.test(plain(g.value))) return { label: plain(g.value), rest: t.slice(g.end) };
+  }
+  return null;
+}
+function toMath(text) {
+  const m = text.replace(/\\textit\{([^{}]*)\}/g, "$1").replace(/\\textsuperscript\{([^{}]*)\}/g, "^{$1}").replace(/\\textsubscript\{([^{}]*)\}/g, "_{$1}").replace(/\\pow\{([^{}]*)\}/g, "^{$1}").replace(/\\,/g, " ");
+  if (/[\\$]/.test(m)) return null;
+  return m.trim().replace(/[A-Za-z]{2,}/g, (word) => `\\mathrm{${word}}`).replace(/\s+/g, "\\,");
+}
+function parseLayoutQuestion(body, questionNumber, images = {}) {
+  const notes = { unknown: /* @__PURE__ */ new Set(), unreadable: false };
+  let positioned = false;
+  const stem = [];
+  const parts = [];
+  const options = [];
+  let hasFigure = false;
+  let part = null;
+  let sub = null;
+  let topRoman = false;
+  let append = null;
+  const target = () => sub ?? part;
+  const addMarks = (n) => {
+    const t = target();
+    if (t) t.marks = (t.marks ?? 0) + n;
+  };
+  const newDraft = (label, parentRef) => ({
+    label,
+    ref: `${parentRef}(${label})`,
+    raw: [],
+    marks: null,
+    lines: 0,
+    value: null,
+    subs: []
+  });
+  const openLabel = (label) => {
+    const roman = ROMAN2.includes(label);
+    if (!part && roman) topRoman = true;
+    const continuesLetters = part !== null && part.subs.length === 0 && label.length === 1 && label.charCodeAt(0) === part.label.charCodeAt(0) + 1;
+    const asSub = part !== null && (topRoman ? !roman : roman && !continuesLetters);
+    if (asSub) {
+      sub = newDraft(label, part.ref);
+      part.subs.push(sub);
+    } else {
+      part = newDraft(label, String(questionNumber));
+      parts.push(part);
+      sub = null;
+    }
+  };
+  const addPara = (raw) => {
+    const text = raw.trim();
+    if (!text) return;
+    const list2 = target()?.raw ?? stem;
+    list2.push(text);
+    const at = list2.length - 1;
+    append = (more) => {
+      list2[at] += ` ${more}`;
+    };
+  };
+  const takeMarks = (raw) => raw.replace(/\\swmark\{\s*\[(\d+)\]\s*\}/g, (_, n) => {
+    pendingMarks.push(Number(n));
+    return "";
+  });
+  const addLine = (raw) => {
+    let text = takeMarks(raw);
+    for (let found = takeLabel(text); found; found = takeLabel(text)) {
+      const inner = /^\(([a-z]+)\)$/.exec(found.label);
+      text = found.rest;
+      if (inner) openLabel(inner[1]);
+      else if (!/^\d+$/.test(found.label)) {
+        text = `\\textbf{${found.label}} ${found.rest}`;
+        break;
+      }
+    }
+    addPara(cleanInline(text, notes));
+    pendingMarks.splice(0).forEach(addMarks);
+  };
+  const pendingMarks = [];
+  const compose = (pieces, rules, base) => {
+    const used = /* @__PURE__ */ new Set();
+    const tokens = [];
+    const join = (list2) => list2.sort((a, b) => a.x - b.x).map((p) => cleanInline(p.raw, notes)).join(" ");
+    for (const rule of rules) {
+      const over = pieces.filter((p) => p.x >= rule.x1 - 6 && p.x <= rule.x2 + 3);
+      const top = over.filter((p) => p.y > rule.y);
+      const bottom = over.filter((p) => p.y < rule.y);
+      if (!top.length || !bottom.length) continue;
+      [...top, ...bottom].forEach((p) => used.add(p));
+      const [n, d] = [join(top), join(bottom)];
+      const [mn, md] = [toMath(n), toMath(d)];
+      tokens.push({ x: rule.x1, text: mn && md ? `$\\dfrac{${mn}}{${md}}$` : `(${n}) / (${d})` });
+    }
+    for (const p of pieces) {
+      if (used.has(p)) continue;
+      const small = /\\fontsize\{([\d.]+)bp\}/.exec(p.raw);
+      const text = cleanInline(p.raw, notes);
+      if (!text) continue;
+      const raised = small && Number(small[1]) <= 8.5 ? p.y - base : 0;
+      tokens.push({
+        x: p.x,
+        text: raised > 2.5 ? `\\textsuperscript{${text}}` : raised < -1.2 ? `\\textsubscript{${text}}` : text
+      });
+    }
+    return tokens.sort((a, b) => a.x - b.x).map((t) => t.text).join(" ").replace(/ (\\textsuperscript|\\textsubscript)/g, "$1").replace(/\s+([,.;:)])/g, "$1");
+  };
+  const freerow = (inner) => {
+    positioned = true;
+    if (/\\(?:swglyph|swpath)\b/.test(inner)) notes.unreadable = true;
+    const pieces = [];
+    const rules = [];
+    for (const m of inner.matchAll(/\\(at|ruleat)\s*(?=\{)/g)) {
+      const read = readGroups(inner, m.index + m[0].length, m[1] === "at" ? 3 : 4);
+      if (!read) continue;
+      const [a, b, c] = read.args;
+      if (m[1] === "at") pieces.push({ x: Number(a), y: Number(b), raw: c });
+      else rules.push({ x1: Number(a), x2: Number(b), y: Number(c) });
+    }
+    const isLetter = (p) => /^\\textbf\{\s*[A-D]\s*\}$/.test(p.raw.trim());
+    const letters = pieces.filter(isLetter).sort((a, b) => a.x - b.x);
+    if (letters.length >= 2) {
+      letters.forEach((letter, i) => {
+        const end = letters[i + 1]?.x ?? Infinity;
+        const within = (x) => x >= letter.x && x < end;
+        const content = compose(
+          pieces.filter((p) => !isLetter(p) && within(p.x)),
+          rules.filter((r) => within(r.x1)),
+          letter.y
+        );
+        options.push({ label: plain(letter.raw), content: inlineToHtml(content) });
+      });
+      append = null;
+      return;
+    }
+    const counts = /* @__PURE__ */ new Map();
+    for (const p of pieces) counts.set(Math.round(p.y), (counts.get(Math.round(p.y)) ?? 0) + 1);
+    const base = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 0;
+    const body2 = [];
+    for (const p of pieces.sort((a, b) => a.x - b.x)) {
+      const mark = /\\swmark\{\s*\[(\d+)\]\s*\}/.exec(p.raw);
+      const label = /^\\textbf\{[^{}]*\}$/.test(p.raw.trim()) ? plain(p.raw) : "";
+      const inner2 = /^\(([a-z]+)\)$/.exec(label);
+      if (mark) pendingMarks.push(Number(mark[1]));
+      else if (inner2) openLabel(inner2[1]);
+      else if (/^\d+$/.test(label) && Number(label) === questionNumber) continue;
+      else body2.push(p);
+    }
+    addPara(compose(body2, rules, base));
+    pendingMarks.splice(0).forEach(addMarks);
+  };
+  for (const token of tokenize(body)) {
+    if (token.name === "text") {
+      const more = cleanInline(takeMarks(token.raw), notes);
+      if (append) append(more);
+      else addPara(more);
+      pendingMarks.splice(0).forEach(addMarks);
+      continue;
+    }
+    const { name, args, optional } = token;
+    if (name === "mcq") addLine(args[2]);
+    else if (name === "stem") addLine(args[1]);
+    else if (name === "row" || name === "prow") addLine(args[2]);
+    else if (name === "freerow") freerow(args[1]);
+    else if (name === "qmark") {
+      const m = /\[(\d+)\]/.exec(args[1]);
+      if (m) addMarks(Number(m[1]));
+    } else if (name === "choice") {
+      const item = { label: plain(args[1]), content: inlineToHtml(cleanInline(args[2], notes)) };
+      options.push(item);
+      append = (more) => {
+        item.content = inlineToHtml(`${item.content} ${more}`);
+      };
+    } else if (name === "optrow") {
+      ["A", "B", "C", "D"].forEach((label, i) => {
+        options.push({ label, content: inlineToHtml(cleanInline(args[i + 1], notes)) });
+      });
+      append = null;
+    } else if (name === "dotline") {
+      const before = args[2].trim();
+      const labelled = takeLabel(before);
+      const mark = /\[(\d+)\]/.exec(args[3]);
+      if (labelled || before && !/=\s*$/.test(plain(before))) addLine(before);
+      const t = target();
+      if (t) {
+        t.lines++;
+        if (!labelled && /=\s*$/.test(plain(before)) && !t.value) {
+          t.value = {
+            label: inlineToHtml(cleanInline(before, notes)),
+            unit: inlineToHtml(cleanInline(args[3].replace(/\[\d+\]/, ""), notes))
+          };
+        }
+      }
+      if (mark) addMarks(Number(mark[1]));
+      append = null;
+    } else if (name === "qfig") {
+      hasFigure = true;
+      const trim = args[1].trim().replace(/\s+/g, " ");
+      const extra = optional ? `,${optional}` : "";
+      const list2 = target()?.raw ?? stem;
+      list2.push(`\\qfig[page=${args[0].trim()},trim=${trim},clip${extra}]{source.pdf}{${cleanInline(args[2], notes)}}`);
+      append = null;
+    }
+  }
+  const finish = (d) => {
+    const subparts = d.subs.map(finish);
+    const known = subparts.map((p) => p.marks).filter((m) => m !== null);
+    const answerSpace = d.value ? { kind: "value", ...d.value } : d.lines > 0 ? { kind: "lines", lines: d.lines } : d.marks !== null ? { kind: "markright" } : null;
+    return {
+      label: d.label,
+      ref: d.ref,
+      // A grouping part has no marks of its own; they live on the subparts.
+      marks: subparts.length > 0 ? known.length ? known.reduce((a, b) => a + b, 0) + (d.marks ?? 0) : d.marks : d.marks,
+      answerSpace,
+      content: toBlocks(d.raw.join("\n\n"), images),
+      subparts
+    };
+  };
+  return {
+    stem: toBlocks(stem.join("\n\n"), images),
+    parts: parts.map(finish),
+    options: options.length ? { source: "choices", items: options } : hasFigure ? { source: "figure", items: [] } : null,
+    positioned,
+    unreadable: notes.unreadable,
+    unknown: [...notes.unknown]
+  };
+}
+
 // src/latex/markscheme.ts
 function stripRowDecoration(row) {
   return row.replace(/\\hline/g, "").replace(/\\cline\{[^}]*\}/g, "").replace(/\\rowcolor\{[^}]*\}/g, "").replace(/\\arrayrulecolor\{[^}]*\}/g, "").trim();
 }
 function parseLabelCellDetailed(cell) {
   const cleaned = stripRowDecoration(cell);
+  const spaced = (label) => label.replace(/\\[,;:! ]|~/g, " ").replace(/\s+/g, " ").trim();
   const mr = /\\multirow\{(-?)\d+\}\{[^}]*\}\{([^}]*)\}/.exec(cleaned);
-  if (mr) return { label: mr[2].trim(), direction: mr[1] === "-" ? "up" : "down" };
-  const plain = cleaned.replace(/\\[a-zA-Z]+\s*/g, "").trim();
-  return { label: plain.length > 0 ? plain : null, direction: "down" };
+  if (mr) return { label: spaced(mr[2]), direction: mr[1] === "-" ? "up" : "down" };
+  const plain2 = spaced(cleaned.replace(/\\[a-zA-Z]+\s*/g, ""));
+  return { label: plain2.length > 0 ? plain2 : null, direction: "down" };
 }
 function parseLabelCell(cell) {
   return parseLabelCellDetailed(cell).label;
@@ -871,6 +1327,7 @@ function extractMarkScheme(body, columns = 3, images = {}) {
 
 // src/latex/solutions.ts
 var MARKER = /^\s*(\((?:[a-z]+|[ivx]+)\)(?:\((?:[ivx]+)\))?)\s*/;
+var FOR_MARKER = /^\s*For\s+(\([a-z]+\))(\([ivx]+\))?\d*\s*[,:]\s*/;
 function parseAnsbox(body, questionNumber) {
   const lines = body.split("\n");
   const segments = [];
@@ -887,12 +1344,34 @@ function parseAnsbox(body, questionNumber) {
     });
     buffer = [];
   };
-  for (const line of lines) {
+  let lastLetter = "";
+  const ROMAN3 = /^\((?:i{1,3}|iv|vi{0,3}|ix|x)\)$/;
+  const qualify = (label) => {
+    const pair = /^(\([a-z]\))(\([ivx]+\))$/.exec(label);
+    if (pair) {
+      lastLetter = pair[1];
+      return label;
+    }
+    if (ROMAN3.test(label)) return lastLetter ? `${lastLetter}${label}` : label;
+    if (/^\([a-z]\)$/.test(label)) lastLetter = label;
+    return label;
+  };
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/^(\s*)\\textbf\{(\([a-z]+\)(?:\([ivx]+\))?)\}/, "$1$2");
+    const sentence = FOR_MARKER.exec(line);
+    if (sentence) {
+      flush();
+      lastLetter = sentence[1];
+      currentRef = `${questionNumber}${sentence[1]}${sentence[2] ?? ""}`;
+      currentHeading = null;
+      buffer = [line.slice(sentence[0].length)];
+      continue;
+    }
     const m = MARKER.exec(line);
     if (m) {
       flush();
       const suffix = line.slice(m[0].length);
-      currentRef = `${questionNumber}${m[1]}`;
+      currentRef = `${questionNumber}${qualify(m[1])}`;
       const headingEnd = suffix.search(/\\\\/);
       const headingRaw = headingEnd === -1 ? suffix : suffix.slice(0, headingEnd);
       currentHeading = headingRaw.trim() ? inlineToHtml(headingRaw) : null;
@@ -952,7 +1431,7 @@ function flattenQuestion(q) {
     if (seg.heading) out.push(seg.heading);
     out.push(seg.html ?? "");
   }
-  return out.join(" ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
+  return out.join(" ").replace(/<span>\$<\/span>/g, " ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
 }
 
 // src/latex/index.ts
@@ -965,9 +1444,19 @@ function looksLikeMcqPaper(questions) {
   const allSingleMark = questions.every((q) => q.parts.length === 0 && q.marks <= 1);
   return allSingleMark && real >= Math.max(3, questions.length * 0.5);
 }
+function diagramWarning(body, file) {
+  const n = countDiagrams(body);
+  if (!n) return [];
+  return [
+    {
+      code: "diagram-omitted",
+      message: `${n} TikZ diagram${n === 1 ? "" : "s"} in the ${file} file cannot be shown in the browser and ${n === 1 ? "was" : "were"} left out. Use a figure image or a PDF clip for anything that must appear.`
+    }
+  ];
+}
 function parseQuestionPaper(tex, images = {}) {
   const { body } = splitDocument(tex);
-  const cleaned = normalizeWhitespace(stripLayoutNoise(body));
+  const cleaned = normalizeWhitespace(stripLayoutNoise(stripDiagrams(body)));
   const blocks = splitQuestions(cleaned);
   const warnings = [];
   if (blocks.length === 0) {
@@ -984,8 +1473,19 @@ function parseQuestionPaper(tex, images = {}) {
       message: `Could not read paper id "${blocks[0].paperId}" (expected e.g. 5054/21/M/J/25).`
     });
   }
+  const layout = isLayoutDialect(body);
+  const positioned = [];
+  const unreadable = [];
+  const unknown = /* @__PURE__ */ new Set();
   const drafts = blocks.map((block) => {
     const marks = parseMarks(block.marksRaw);
+    if (layout) {
+      const q = parseLayoutQuestion(block.body, block.number, images);
+      if (q.unreadable) unreadable.push(block.number);
+      else if (q.positioned) positioned.push(block.number);
+      q.unknown.forEach((name) => unknown.add(name));
+      return { block, marks, stem: q.stem, parts: q.parts, options: q.parts.length === 0 ? q.options : null };
+    }
     const { stem, parts } = parseStructure(block.body, block.number, images);
     return {
       block,
@@ -1028,16 +1528,22 @@ function parseQuestionPaper(tex, images = {}) {
       answer: null
     };
   });
-  for (const problem of [detectLayoutDialect(body), detectGarbledText(questions)]) {
+  const problems = [
+    positionedMaths(positioned),
+    detectGarbledText(questions),
+    unreadableMaths(unreadable, [...unknown])
+  ];
+  for (const problem of problems) {
     if (problem) warnings.unshift(problem);
   }
+  warnings.push(...diagramWarning(body, "questions"));
   const sourcePdf = findSourcePdf(tex);
   return { paper, questions, warnings, ...sourcePdf ? { sourcePdf } : null };
 }
 function parseAnswerPaper(tex, images = {}) {
   const { preamble, body } = splitDocument(tex);
   const columns = detectMstabColumns(preamble);
-  const cleaned = normalizeWhitespace(stripLayoutNoise(body));
+  const cleaned = normalizeWhitespace(stripLayoutNoise(stripDiagrams(body)));
   const blocks = splitQuestions(cleaned);
   const warnings = [];
   if (blocks.length === 0) {
@@ -1054,6 +1560,7 @@ function parseAnswerPaper(tex, images = {}) {
       correct: extractCorrectOption(block.body)
     });
   }
+  warnings.push(...diagramWarning(body, "answers"));
   return {
     paper: blocks.length > 0 ? parsePaperId(blocks[0].paperId) : null,
     byNumber,

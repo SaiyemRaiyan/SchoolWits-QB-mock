@@ -82,7 +82,12 @@ interface Span {
 
 /** Split a plain run into paragraph text blocks on blank lines. */
 function paragraphs(raw: string): Block[] {
-  return raw
+  // A blank line inside a list is still the same list.
+  const joined = raw.replace(
+    /\\begin\{(itemize|enumerate)\}[\s\S]*?\\end\{\1\}/g,
+    (list) => list.replace(/\n\s*\n/g, '\n'),
+  );
+  return joined
     .split(/\n\s*\n/)
     .map((p) => inlineToHtml(p))
     .filter((html) => html.length > 0)

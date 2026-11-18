@@ -1,0 +1,321 @@
+/**
+ * Editable leaves of a parsed question.
+ *
+ * ## Why this exists
+ *
+ * `parse-paper` never accepts `content` from a client — it re-parses the
+ * .tex on commit, so the database can only ever hold something the parser
+ * actually produced. Question editing deliberately relaxes that, and this
+ * module is what replaces the guarantee.
+ *
+ * The relaxation is as small as it can be: **a client never posts a content
+ * tree.** It posts a list of `{ path, value }` edits, and the server applies
+ * them to the content already in the database. A path must land on a leaf
+ * this file says is editable, and the value must be a string. So the
+ * *shape* of every stored question is still exactly what the parser
+ * produced — only leaf text can differ. Adding a part, deleting a mark
+ * scheme row, or changing `kind` are not expressible in this format at all,
+ * rather than being rejected by a check someone could forget to write.
+ *
+ * ## Why the UI does not walk the tree itself
+ *
+ * `collectLeaves` is served to the browser (the Edge Function returns it for
+ * a question id) instead of being reimplemented in js/. A second copy in the
+ * browser would be a second opinion about what is editable, and the two
+ * would drift the way flattenQuestion's two copies did.
+ */
+
+/** A path segment: an object key or an array index. */
+export type PathSegment = string | number;
+
+export interface Leaf {
+  /** Where this value lives in `content`, e.g. ['parts',2,'content',0,'html']. */
+  path: PathSegment[];
+  /** Human label for the modal, e.g. "1(c)(ii) · body". */
+  label: string;
+  /** Drives which editor the modal shows and how it previews. */
+  kind: 'text' | 'caption' | 'image' | 'markscheme' | 'code' | 'guidance' | 'solution' | 'heading' | 'option';
+  value: string;
+}
+
+/**
+ * Which keys are editable, per kind of container. Everything absent from
+ * here is structural and is only ever rewritten by a re-upload.
+ *
+ * `marks` is deliberately NOT editable. Part marks must sum to the
+ * question's stated total, and mark-scheme rows must sum to their part —
+ * the parser raises `marks-mismatch` warnings when they do not. Letting the
+ * modal edit one number in isolation would silently break that invariant.
+ * Fixing marks means fixing the .tex and re-uploading.
+ */
+const BLOCK_KEYS = { text: 'html', figure: 'caption' } as const;
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function blockLeaves(
+  blocks: unknown,
+  basePath: PathSegment[],
+  labelPrefix: string,
+  out: Leaf[],
+): void {
+  if (!Array.isArray(blocks)) return;
+  blocks.forEach((block, i) => {
+    if (!isPlainObject(block)) return;
+    const type = block.type;
+    // A table block is pre-rendered HTML with structure inside it, not a
+    // sentence. It is shown read-only in the modal and changed by re-upload.
+    if (type !== 'text' && type !== 'figure') return;
+    const key = BLOCK_KEYS[type];
+    const value = block[key];
+    if (typeof value !== 'string') return;
+    out.push({
+      path: [...basePath, i, key],
+      label: type === 'figure' ? `${labelPrefix} · figure caption` : `${labelPrefix} · text`,
+      kind: type === 'figure' ? 'caption' : 'text',
+      value,
+    });
+    // A missing figure image is offered as an empty editable value.
+    if (type === 'figure' && (typeof block.src === 'string' || block.src === null)) {
+      out.push({
+        path: [...basePath, i, 'src'],
+        label: `${labelPrefix} · figure image`,
+        kind: 'image',
+        value: block.src ?? '',
+      });
+    }
+  });
+}
+
+function partLeaves(parts: unknown, basePath: PathSegment[], out: Leaf[]): void {
+  if (!Array.isArray(parts)) return;
+  parts.forEach((part, i) => {
+    if (!isPlainObject(part)) return;
+    const ref = typeof part.ref === 'string' && part.ref ? part.ref : `part ${i + 1}`;
+    blockLeaves(part.content, [...basePath, i, 'content'], ref, out);
+    partLeaves(part.subparts, [...basePath, i, 'subparts'], out);
+  });
+}
+
+export function collectLeaves(content: unknown): Leaf[] {
+  const out: Leaf[] = [];
+  if (!isPlainObject(content)) return out;
+
+  blockLeaves(content.stem, ['stem'], 'Stem', out);
+  partLeaves(content.parts, ['parts'], out);
+
+  const options = content.options;
+  if (isPlainObject(options) && Array.isArray(options.items)) {
+    options.items.forEach((item, i) => {
+      if (!isPlainObject(item)) return;
+      if (typeof item.content !== 'string') return;
+      const label = typeof item.label === 'string' ? item.label : String(i + 1);
+      out.push({
+        path: ['options', 'items', i, 'content'],
+        label: `Option ${label}`,
+        kind: 'option',
+        value: item.content,
+      });
+    });
+  }
+
+  const answer = content.answer;
+  if (isPlainObject(answer)) {
+    if (Array.isArray(answer.markScheme)) {
+      answer.markScheme.forEach((row, i) => {
+        if (!isPlainObject(row)) return;
+        const ref = typeof row.ref === 'string' && row.ref ? row.ref : `row ${i + 1}`;
+        if (typeof row.answer === 'string') {
+          out.push({
+            path: ['answer', 'markScheme', i, 'answer'],
+            label: `${ref} · mark scheme`,
+            kind: 'markscheme',
+            value: row.answer,
+          });
+        }
+        if (typeof row.code === 'string') {
+          out.push({
+            path: ['answer', 'markScheme', i, 'code'],
+            label: `${ref} · code`,
+            kind: 'code',
+            value: row.code,
+          });
+        }
+        // Guidance is `string | null`; a null one is offered as an empty
+        // field so an admin can add guidance that the .tex never had.
+        if (typeof row.guidance === 'string' || row.guidance === null) {
+          out.push({
+            path: ['answer', 'markScheme', i, 'guidance'],
+            label: `${ref} · guidance`,
+            kind: 'guidance',
+            value: row.guidance ?? '',
+          });
+        }
+      });
+    }
+    if (Array.isArray(answer.workedSolution)) {
+      answer.workedSolution.forEach((seg, i) => {
+        if (!isPlainObject(seg)) return;
+        const ref = typeof seg.ref === 'string' && seg.ref ? seg.ref : `segment ${i + 1}`;
+        if (typeof seg.heading === 'string' || seg.heading === null) {
+          out.push({
+            path: ['answer', 'workedSolution', i, 'heading'],
+            label: `${ref} · solution heading`,
+            kind: 'heading',
+            value: seg.heading ?? '',
+          });
+        }
+        if (typeof seg.html === 'string') {
+          out.push({
+            path: ['answer', 'workedSolution', i, 'html'],
+            label: `${ref} · worked solution`,
+            kind: 'solution',
+            value: seg.html,
+          });
+        }
+      });
+    }
+  }
+
+  return out;
+}
+
+export interface Edit {
+  path: PathSegment[];
+  value: string;
+}
+
+/** A block array a figure may be appended to. */
+export interface FigureContainer {
+  path: PathSegment[];
+  label: string;
+}
+
+/**
+ * Where a figure could be added, derived from the document the same way
+ * collectLeaves derives editable paths.
+ *
+ * Adding a figure is the one thing editing may create that is not already
+ * in the tree, so it is not expressed as a path the client invents: the
+ * client picks one of these, and addFigure accepts nothing else.
+ */
+export function listFigureContainers(content: unknown): FigureContainer[] {
+  const out: FigureContainer[] = [];
+  if (!isPlainObject(content)) return out;
+
+  if (Array.isArray(content.stem)) out.push({ path: ['stem'], label: 'Stem' });
+
+  const walk = (parts: unknown, basePath: PathSegment[]): void => {
+    if (!Array.isArray(parts)) return;
+    parts.forEach((part, i) => {
+      if (!isPlainObject(part)) return;
+      const ref = typeof part.ref === 'string' && part.ref ? part.ref : `part ${i + 1}`;
+      if (Array.isArray(part.content)) {
+        out.push({ path: [...basePath, i, 'content'], label: ref });
+      }
+      walk(part.subparts, [...basePath, i, 'subparts']);
+    });
+  };
+  walk(content.parts, ['parts']);
+
+  return out;
+}
+
+/**
+ * Append an empty figure to one of those containers.
+ *
+ * The block's shape is fixed here, not sent by the client, so this stays
+ * within the rule the rest of this file enforces: a client never posts a
+ * content tree. It names a place; the server decides what goes there. The
+ * image and caption are then ordinary leaves, edited like any other field.
+ */
+export function addFigure(
+  content: unknown,
+  containerPath: unknown,
+): { content: unknown; path: PathSegment[]; index: number } {
+  if (!Array.isArray(containerPath)) throw new EditError('addFigure needs a container path.');
+
+  const key = containerPath.join(' ');
+  const allowed = listFigureContainers(content).find((c) => c.path.join(' ') === key);
+  if (!allowed) {
+    throw new EditError(`Not a place a figure can be added: ${JSON.stringify(containerPath)}`);
+  }
+
+  const next = structuredClone(content) as Record<string, unknown>;
+  let cursor: any = next;
+  for (const segment of allowed.path) cursor = cursor[segment];
+
+  if (!Array.isArray(cursor)) throw new EditError('That container is not a block list.');
+  if (cursor.length >= 50) throw new EditError('That container already holds 50 blocks.');
+
+  // src null is what the parser emits for "no image yet", which is what the
+  // renderer and collectLeaves both already understand.
+  cursor.push({ type: 'figure', file: '', caption: '', src: null });
+
+  return { content: next, path: allowed.path, index: cursor.length - 1 };
+}
+
+export class EditError extends Error {}
+
+/** Longest value a single leaf may hold, so one field cannot bloat a row. */
+const MAX_VALUE_LENGTH = 20000;
+
+/**
+ * Apply edits to a content tree, returning a new tree.
+ *
+ * Every path is checked against `collectLeaves(content)` rather than
+ * against a pattern — the set of editable paths is *derived from the
+ * document itself*, so a path can only be accepted if it already exists
+ * and already holds an editable leaf. That is what makes it impossible to
+ * create structure by posting a path into thin air.
+ */
+export function applyEdits(content: unknown, edits: unknown): { content: unknown; applied: number } {
+  if (!Array.isArray(edits)) throw new EditError('edits must be an array.');
+  if (edits.length === 0) throw new EditError('No edits supplied.');
+  if (edits.length > 500) throw new EditError('Too many edits in one request.');
+
+  const allowed = new Map(collectLeaves(content).map((leaf) => [leaf.path.join(' '), leaf]));
+
+  // Deep clone so a rejected request leaves the caller's object untouched.
+  const next = structuredClone(content) as Record<string, unknown>;
+  let applied = 0;
+
+  for (const raw of edits) {
+    if (!isPlainObject(raw)) throw new EditError('Each edit must be an object.');
+    const { path, value } = raw as { path?: unknown; value?: unknown };
+    if (!Array.isArray(path)) throw new EditError('Each edit needs a path array.');
+    if (typeof value !== 'string') throw new EditError('Each edit needs a string value.');
+    if (value.length > MAX_VALUE_LENGTH) {
+      throw new EditError(`A value exceeds ${MAX_VALUE_LENGTH} characters.`);
+    }
+
+    const key = path.join(' ');
+    const leaf = allowed.get(key);
+    if (!leaf) throw new EditError(`Not an editable field: ${JSON.stringify(path)}`);
+
+    // An image leaf holds a Storage public URL (or is cleared back to no
+    // image) — never anything a client could turn into an executable
+    // reference by posting a crafted string here.
+    if (leaf.kind === 'image' && value.trim() !== '' && !/^https:\/\//.test(value)) {
+      throw new EditError('A figure image must be an https:// URL.');
+    }
+
+    if (value === leaf.value) continue; // no-op, do not count it
+
+    // Walk to the parent. Safe by construction: the path came out of
+    // collectLeaves, so every segment already resolves.
+    let cursor: any = next;
+    for (let i = 0; i < path.length - 1; i++) cursor = cursor[path[i] as PathSegment];
+    const last = path[path.length - 1] as PathSegment;
+
+    // A guidance/heading/image field that is cleared goes back to null
+    // rather than "", because that is what the parser emits for "absent"
+    // and what js/render checks for when deciding whether to draw it.
+    const nullable = leaf.kind === 'guidance' || leaf.kind === 'heading' || leaf.kind === 'image';
+    cursor[last] = nullable && value.trim() === '' ? null : value;
+    applied++;
+  }
+
+  return { content: next, applied };
+}

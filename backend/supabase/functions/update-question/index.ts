@@ -6,16 +6,9 @@
  *
  *   { id }                        -> what is editable on the bank question
  *   { id, edits }                 -> edit the bank question
- *   { id, addFigure }             -> append an empty figure, then edit it
  *   { id, moduleId }              -> what is editable on that module's copy
  *   { id, moduleId, edits }       -> edit that module's copy only
- *   { id, moduleId, addFigure }   -> append a figure to that module's copy
  *   { id, moduleId, reset: true } -> drop the copy, back to the paper
- *
- * `addFigure` is `{ container: [...] }`, and the container must be one that
- * listFigureContainers() derived from the stored content. It is the only
- * request that adds to the tree, and even it does not carry the block: the
- * server decides what an empty figure looks like.
  *
  * ## Module copies
  *
@@ -62,14 +55,7 @@
  */
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import {
-  addFigure,
-  applyEdits,
-  collectLeaves,
-  EditError,
-  flattenQuestion,
-  listFigureContainers,
-} from './vendor/edit.js';
+import { applyEdits, collectLeaves, EditError, flattenQuestion } from './vendor/edit.js';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -104,13 +90,7 @@ Deno.serve(async (req: Request) => {
   if (adminError) return json({ error: `Admin check failed: ${adminError.message}` }, 500);
   if (!isAdmin) return json({ error: 'Admins only.' }, 403);
 
-  let payload: {
-    id?: unknown;
-    moduleId?: unknown;
-    edits?: unknown;
-    reset?: unknown;
-    addFigure?: unknown;
-  };
+  let payload: { id?: unknown; moduleId?: unknown; edits?: unknown; reset?: unknown };
   try {
     payload = await req.json();
   } catch {
@@ -175,33 +155,6 @@ Deno.serve(async (req: Request) => {
         saved: true,
         content: row.content,
         leaves: collectLeaves(row.content),
-        figureContainers: listFigureContainers(row.content),
-      });
-    }
-
-    if (payload.addFigure !== undefined) {
-      let withFigure: unknown;
-      try {
-        ({ content: withFigure } = addFigure(base, (payload.addFigure as { container?: unknown }).container));
-      } catch (err) {
-        if (err instanceof EditError) return json({ error: err.message }, 422);
-        throw err;
-      }
-      const { error: addError } = await asCaller
-        .from('module_questions')
-        .update({ content_override: withFigure })
-        .eq('module_id', moduleId)
-        .eq('question_id', id);
-      if (addError) return json({ error: `Saving failed: ${addError.message}` }, 500);
-      return json({
-        id: row.id,
-        ref: row.ref,
-        moduleId,
-        saved: true,
-        edited: true,
-        content: withFigure,
-        leaves: collectLeaves(withFigure),
-        figureContainers: listFigureContainers(withFigure),
       });
     }
 
@@ -212,7 +165,6 @@ Deno.serve(async (req: Request) => {
         moduleId,
         edited: link.content_override !== null,
         leaves: collectLeaves(base),
-        figureContainers: listFigureContainers(base),
       });
     }
 
@@ -258,7 +210,6 @@ Deno.serve(async (req: Request) => {
       edited: true,
       content: moduleUpdated,
       leaves: collectLeaves(moduleUpdated),
-      figureContainers: listFigureContainers(moduleUpdated),
     });
   }
 
@@ -267,37 +218,8 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'reset only applies to a module copy — pass moduleId.' }, 400);
   }
 
-  if (payload.addFigure !== undefined) {
-    let withFigure: unknown;
-    try {
-      ({ content: withFigure } = addFigure(row.content, (payload.addFigure as { container?: unknown }).container));
-    } catch (err) {
-      if (err instanceof EditError) return json({ error: err.message }, 422);
-      throw err;
-    }
-    const c0 = withFigure as Record<string, any>;
-    const { error: addError } = await asCaller
-      .from('questions')
-      .update({ content: withFigure, q_text: flattenQuestion(c0) })
-      .eq('id', id);
-    if (addError) return json({ error: `Saving failed: ${addError.message}` }, 500);
-    return json({
-      id: row.id,
-      ref: row.ref,
-      saved: true,
-      content: withFigure,
-      leaves: collectLeaves(withFigure),
-      figureContainers: listFigureContainers(withFigure),
-    });
-  }
-
   if (payload.edits === undefined) {
-    return json({
-      id: row.id,
-      ref: row.ref,
-      leaves: collectLeaves(row.content),
-      figureContainers: listFigureContainers(row.content),
-    });
+    return json({ id: row.id, ref: row.ref, leaves: collectLeaves(row.content) });
   }
 
   let updated: unknown;
@@ -333,6 +255,5 @@ Deno.serve(async (req: Request) => {
     saved: true,
     content: updated,
     leaves: collectLeaves(updated),
-    figureContainers: listFigureContainers(updated),
   });
 });

@@ -199,3 +199,9 @@ describe('detectMstabColumns', () => {
     expect(detectMstabColumns('')).toBe(3);
   });
 });
+
+describe('parseLabelCell — thin spaces in an EITHER/OR label', () => {
+  it('turns 9\\,E\\,(a) into 9 E (a)', () => {
+    expect(parseLabelCell('\\multirow{-2}{1.9cm}{9\\,E\\,(a)}')).toBe('9 E (a)');
+  });
+});

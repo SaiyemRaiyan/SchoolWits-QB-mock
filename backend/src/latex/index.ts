@@ -16,7 +16,9 @@ import { parseMarks, parsePaperId, splitQuestions, splitTopics } from './blocks.
 import { parseStructure } from './structure.js';
 import { parseOptions } from './options.js';
 import { findSourcePdf } from './clip.js';
-import { detectGarbledText, detectLayoutDialect } from './guard.js';
+import { countDiagrams, stripDiagrams } from './inline.js';
+import { detectGarbledText, isLayoutDialect, positionedMaths, unreadableMaths } from './guard.js';
+import { parseLayoutQuestion } from './layout.js';
 import { extractMarkScheme } from './markscheme.js';
 import { extractCorrectOption, extractSolution } from './solutions.js';
 import type { ImageMap, Options, ParsedPaper, Question, Warning } from './types.js';
@@ -60,9 +62,23 @@ function looksLikeMcqPaper(
   return allSingleMark && real >= Math.max(3, questions.length * 0.5);
 }
 
+/** One non-blocking warning when drawn diagrams were left out of a file. */
+function diagramWarning(body: string, file: 'questions' | 'answers'): Warning[] {
+  const n = countDiagrams(body);
+  if (!n) return [];
+  return [
+    {
+      code: 'diagram-omitted',
+      message: `${n} TikZ diagram${n === 1 ? '' : 's'} in the ${file} file cannot be shown in the browser and ${
+        n === 1 ? 'was' : 'were'
+      } left out. Use a figure image or a PDF clip for anything that must appear.`,
+    },
+  ];
+}
+
 export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPaper {
   const { body } = splitDocument(tex);
-  const cleaned = normalizeWhitespace(stripLayoutNoise(body));
+  const cleaned = normalizeWhitespace(stripLayoutNoise(stripDiagrams(body)));
   const blocks = splitQuestions(cleaned);
   const warnings: Warning[] = [];
 
@@ -84,8 +100,21 @@ export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPa
 
   // First pass: structure only. Classification needs to see the whole paper
   // before it can tell a figure-only MCQ from a 1-mark diagram question.
+  // Papers written as a copy of the official page need their own reader.
+  const layout = isLayoutDialect(body);
+  const positioned: number[] = [];
+  const unreadable: number[] = [];
+  const unknown = new Set<string>();
+
   const drafts = blocks.map((block) => {
     const marks = parseMarks(block.marksRaw);
+    if (layout) {
+      const q = parseLayoutQuestion(block.body, block.number, images);
+      if (q.unreadable) unreadable.push(block.number);
+      else if (q.positioned) positioned.push(block.number);
+      q.unknown.forEach((name) => unknown.add(name));
+      return { block, marks, stem: q.stem, parts: q.parts, options: q.parts.length === 0 ? q.options : null };
+    }
     const { stem, parts } = parseStructure(block.body, block.number, images);
     return {
       block,
@@ -140,10 +169,16 @@ export function parseQuestionPaper(tex: string, images: ImageMap = {}): ParsedPa
 
   // Last, so a file in another format is named as such rather than being
   // mistaken for a paper with a few odd questions.
-  for (const problem of [detectLayoutDialect(body), detectGarbledText(questions)]) {
+  const problems = [
+    positionedMaths(positioned),
+    detectGarbledText(questions),
+    unreadableMaths(unreadable, [...unknown]),
+  ];
+  for (const problem of problems) {
     if (problem) warnings.unshift(problem);
   }
 
+  warnings.push(...diagramWarning(body, 'questions'));
   const sourcePdf = findSourcePdf(tex);
   return { paper, questions, warnings, ...(sourcePdf ? { sourcePdf } : null) };
 }
@@ -158,7 +193,7 @@ export function parseAnswerPaper(tex: string, images: ImageMap = {}): ParsedAnsw
   const { preamble, body } = splitDocument(tex);
   // The column count lives in the preamble and nowhere else — see markscheme.ts.
   const columns = detectMstabColumns(preamble);
-  const cleaned = normalizeWhitespace(stripLayoutNoise(body));
+  const cleaned = normalizeWhitespace(stripLayoutNoise(stripDiagrams(body)));
   const blocks = splitQuestions(cleaned);
   const warnings: Warning[] = [];
 
@@ -178,6 +213,7 @@ export function parseAnswerPaper(tex: string, images: ImageMap = {}): ParsedAnsw
     });
   }
 
+  warnings.push(...diagramWarning(body, 'answers'));
   return {
     paper: blocks.length > 0 ? parsePaperId(blocks[0].paperId) : null,
     byNumber,

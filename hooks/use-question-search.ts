@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { hasAnyFilter, searchQuestions, type Question, type SearchFilters } from "@/lib/supabase";
+import { resultsReady, searchQuestions, type Question, type SearchFilters } from "@/lib/supabase";
 
 export type SearchState = { questions: Question[]; loading: boolean; active: boolean };
 
@@ -13,11 +13,12 @@ export type SearchState = { questions: Question[]; loading: boolean; active: boo
 export function useQuestionSearch(filters: SearchFilters, debounceMs = 180): SearchState {
   const [result, setResult] = useState<{ key: string; questions: Question[] } | null>(null);
   const key = JSON.stringify(filters);
-  const active = hasAnyFilter(filters);
+  // Below the gate nothing is fetched: see resultsReady().
+  const active = resultsReady(filters);
 
   useEffect(() => {
-    // Nothing chosen yet means no fetch: an unfiltered search pulls every
-    // question in the bank with its full content blob.
+    // Below the gate means no fetch: a bare subject pulls every question the
+    // bank holds for it, each with its full content blob.
     if (!active) return;
 
     const timer = setTimeout(() => {

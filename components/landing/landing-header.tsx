@@ -1,9 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
+import { LandingMenu } from "./landing-menu";
 
 /**
- * The floating pill header. Static, so it stays a server component: the
- * landing page's only interactive parts are the picker and its combobox.
+ * The floating pill header. Static apart from its menu, which is the one small
+ * client component it needs for a phone.
  */
 export function LandingHeader() {
   return (
@@ -16,9 +16,7 @@ export function LandingHeader() {
             <span className="landing-brand-sub">Cambridge Question Bank</span>
           </div>
         </div>
-        <nav className="landing-header-links">
-          <Link href="/browse">Skip to Browse</Link>
-        </nav>
+        <LandingMenu />
       </header>
     </div>
   );

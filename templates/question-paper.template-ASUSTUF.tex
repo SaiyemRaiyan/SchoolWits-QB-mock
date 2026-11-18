@@ -1,0 +1,194 @@
+% =====================================================================
+% School Wits — QUESTION PAPER (QP) template
+%
+% This is the canonical preamble shared by every QP file in
+% "Updated Latex FIles For Web/". Copy this file, keep the preamble
+% BYTE-IDENTICAL, and write only inside \begin{document}...\end{document}.
+%
+% The preamble is not decoration — the parser keys off these exact macro
+% names to turn the paper into JSON. Renaming \examq or \qfig, or
+% hand-rolling a question heading with \section instead, means that
+% question will not be extracted.
+%
+% See README.md in this folder for the macro reference and the JSON
+% shape each macro maps to.
+% =====================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,top=2.4cm,bottom=2.2cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\graphicspath{{./}}
+\usepackage{array}
+\usepackage{makecell}
+\renewcommand{\arraystretch}{1.25}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+
+% ---- Subject-specific shorthands -------------------------------------
+% These four are all any QUESTION paper uses — the Add Maths shorthands
+% (\dd, \dydx, \ncr, \npr, \cosec) appear only in mark schemes, so they
+% live in answer-paper.template.tex instead. Anything you add here must
+% also be taught to KaTeX in js/app.js's KATEX_MACROS, or it will render
+% as raw source in the browser.
+\newcommand{\ohms}{\ensuremath{\Omega}}
+\newcommand{\degC}{\ensuremath{^{\circ}}C}
+\newcommand{\dg}{\ensuremath{^{\circ}}}
+\newcommand{\pow}[1]{\ensuremath{^{#1}}}
+
+\newcommand{\topiclabel}[1]{{\hfill\normalfont\small\itshape\textcolor{black!55}{#1}}}
+
+% ---- Answer-space macros (layout only, no content) -------------------
+% These exist so the printed PDF has writing space. The parser treats
+% them as "blank answer space" and uses only the mark value in the last
+% argument, e.g. \Alines{3}{[1]} contributes marks "1".
+\newlength{\anslineskip}
+\setlength{\anslineskip}{8mm}
+
+\newcounter{ansln}
+\newcommand{\Alines}[2]{%
+  \par\vspace{1mm}%
+  \setcounter{ansln}{1}%
+  \loop\ifnum\value{ansln}<#1\relax
+    \noindent\mbox{}\dotfill\par\vspace{\anslineskip}%
+    \stepcounter{ansln}%
+  \repeat
+  \noindent\mbox{}\dotfill\hspace{0.6em}\mbox{#2}\par
+  \vspace{1mm}%
+}
+
+\newcommand{\plainline}{\par\noindent\mbox{}\dotfill\par\vspace{\anslineskip}}
+
+\newcommand{\labelline}[1]{\par\vspace{1mm}\noindent #1\hspace{0.5em}\dotfill\par\vspace{\anslineskip}}
+
+% \ansval{label}{unit}{[marks]} — a right-aligned "x = ....... [2]" line.
+\newcommand{\ansval}[3]{%
+  \par\vspace{5mm}%
+  \noindent\hspace*{3.5cm}#1\hspace{0.5em}\dotfill\hspace{0.5em}#2\hspace{0.5em}\makebox[1.1cm][r]{#3}\par
+  \vspace{3mm}%
+}
+
+% \markright{[2]} — a right-aligned mark tag for a part with no ruled
+% answer space (e.g. one answered by drawing on a figure).
+\renewcommand{\markright}[1]{\par\nopagebreak\noindent\hspace*{\fill}\mbox{#1}\par\vspace{1mm}}
+
+% ---- THE ONE MACRO THAT MATTERS --------------------------------------
+% \examq{paper-id}{number}{topics}{marks}
+%   paper-id : syllabus code + variant + session + year, e.g. 5054/21/M/J/25
+%   number   : question number, bare integer, no parentheses
+%   topics   : one or more topic names joined by \textperiodcentered\
+%   marks    : total marks for the question, bare integer
+% This is the ONLY question delimiter. Everything between one \examq and
+% the next belongs to that question.
+\newcommand{\swmarks}{}
+\newcommand{\examq}[4]{%
+  \gdef\swmarks{#4}%
+  \par\addvspace{16pt}\noindent
+  {\large\bfseries #1 - Q#2 - #3 - #4}\par\vspace{5pt}%
+}
+
+% \total takes NO argument: it prints the marks stored by \examq.
+% Put it as the last line of every structured question.
+\newcommand{\total}{\par\vspace{2mm}\noindent\hspace*{\fill}[Total:\ \swmarks]\par\vspace{2mm}}
+
+% \qfig[width]{filename}{caption} — caption may be empty: {}
+% The filename must exist next to the .tex file.
+\newcommand{\qfig}[3][0.5\linewidth]{%
+  \par\vspace{2mm}
+  \begin{center}%
+    \IfFileExists{#2}%
+      {\includegraphics[width=#1]{#2}}%
+      {\fbox{\parbox[c][26mm][c]{#1}{\centering\ttfamily\footnotesize #2}}}\\[4pt]
+    \textbf{#3}%
+  \end{center}%
+  \vspace{2mm}\par
+}
+
+% ---- Part numbering --------------------------------------------------
+% parts    -> (a) (b) (c)     subparts -> (i) (ii) (iii)
+% subparts may only be nested INSIDE a parts \item.
+\newlist{parts}{enumerate}{1}
+\setlist[parts]{label=\textbf{(\alph*)},leftmargin=2.1em,labelsep=0.6em,itemsep=10pt,topsep=6pt,parsep=4pt}
+
+\newlist{subparts}{enumerate}{1}
+\setlist[subparts]{label=\textbf{(\roman*)},leftmargin=2.3em,labelsep=0.6em,itemsep=10pt,topsep=6pt,parsep=4pt}
+
+% ---- MCQ papers only -------------------------------------------------
+% Multiple-choice option list -> A B C D.
+% Use this for EVERY multiple-choice question. Do not hand-roll options
+% with \textbf{A}\hspace{...} or a bare tabular — see README.md, issue #1.
+\newlist{choices}{enumerate}{1}
+\setlist[choices]{label=\textbf{\Alph*},leftmargin=2.1em,labelsep=0.9em,itemsep=2pt,topsep=5pt,parsep=0pt}
+
+% ---- Running head: update these three lines per paper ----------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize 5054/21/M/J/25}
+\fancyhead[C]{\footnotesize Cambridge O Level Physics -- Paper 2}
+\fancyhead[R]{\footnotesize May/June 2025}
+\fancyfoot[C]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+%============================== QUESTION 1 ==============================
+% A STRUCTURED question: stem -> figure -> parts -> subparts -> \total
+\examq{5054/21/M/J/25}{1}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics}{9}
+Fig. 1.1 shows a skydiver falling vertically through the air.
+
+\qfig[0.42\linewidth]{5054_21_M_J_25_fig1.png}{Fig. 1.1}
+
+In the first part of the fall, her speed increases and her acceleration decreases.
+
+\begin{parts}
+  % (a) — answered by drawing on a figure, so \markright supplies the mark
+  \item On Fig. 1.2 sketch the speed--time graph for the skydiver.
+
+  \qfig[0.55\linewidth]{5054_21_M_J_25_fig2.png}{Fig. 1.2}
+  \markright{[2]}
+
+  % (b) — ruled answer space: 3 lines, worth 1 mark
+  \item Explain how the graph shows that the acceleration decreases as the speed increases.
+  \Alines{3}{[1]}
+
+  % (c) — a part that contains subparts (i), (ii)
+  \item During the first part of the fall, there is a resultant vertical force
+  acting downwards on the skydiver.
+  \begin{subparts}
+    \item State the name of the other vertical force that acts on the skydiver.
+    \Alines{1}{[1]}
+
+    \item Explain why the resultant vertical force eventually becomes zero.
+    \Alines{4}{[2]}
+  \end{subparts}
+
+  % (d) — a numeric answer with a labelled value line
+  \item At one instant, the vertical force on the skydiver is 400\,N downwards.
+
+  Determine the resultant force.
+  \ansval{resultant $=$}{N}{[3]}
+\end{parts}
+\total
+
+%============================== QUESTION 2 ==============================
+% An MCQ question. Note: NO \begin{parts}, NO \total — marks are always 1.
+\examq{5054/11/M/J/25}{2}{Momentum (Dynamics)}{1}
+What is a unit for momentum?
+
+\begin{choices}
+  \item kg\,m\,/\,s
+  \item kg\,m\,/\,s\pow{2}
+  \item N\,m
+  \item N\,/\,m\pow{2}
+\end{choices}
+
+\end{document}

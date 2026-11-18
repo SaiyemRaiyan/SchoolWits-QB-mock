@@ -51,7 +51,7 @@ export function EditQuestionDialog(props: EditQuestionDialogProps) {
   // carrying the previous question's draft.
   return (
     <Dialog open={Boolean(props.question)} onOpenChange={(open) => !open && props.onClose()}>
-      <DialogContent className="flex max-h-[88vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden rounded-3xl p-0 shadow-[var(--sw-shadow-3)] sm:max-w-4xl">
         {props.question && <EditForm key={props.question.pk} {...props} question={props.question} />}
       </DialogContent>
     </Dialog>
@@ -148,9 +148,14 @@ function EditForm({
 
   return (
     <>
-      <DialogHeader className="border-b px-6 py-4">
-        <DialogTitle>Edit question {question.id}</DialogTitle>
-        <DialogDescription>
+      <DialogHeader className="gap-1 bg-[var(--sw-ink)] px-6 py-5 text-white">
+        <p className="font-mono text-[11px] tracking-[0.18em] text-[var(--sw-brass-light)] uppercase">
+          Edit panel{moduleId != null ? " · module copy" : ""}
+        </p>
+        <DialogTitle className="font-serif text-2xl font-bold text-white">
+          Question {question.id}
+        </DialogTitle>
+        <DialogDescription className="text-white/70">
           {loaded
             ? `${loaded.ref ?? `#${question.pk}`} · ${leaves.length} editable field${leaves.length === 1 ? "" : "s"}`
             : "Loading the editable fields…"}
@@ -158,7 +163,7 @@ function EditForm({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid min-h-0 flex-1 gap-6 overflow-x-hidden overflow-y-auto px-6 py-5">
+      <div className="grid min-h-0 flex-1 gap-5 overflow-x-hidden overflow-y-auto bg-muted/40 px-6 py-5">
         {moduleId != null && (
           <p className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
             <strong className="text-foreground">Editing this module&rsquo;s own copy.</strong> The
@@ -172,9 +177,23 @@ function EditForm({
           <p className="text-sm text-muted-foreground">This question has no editable text fields.</p>
         )}
 
+        {!loaded && !error && (
+          <div className="grid gap-3" aria-busy="true">
+            <div className="sw-skeleton h-24" />
+            <div className="sw-skeleton h-24" />
+          </div>
+        )}
+
         {groupLeaves(leaves).map((group) => (
-          <section key={group.name} className="grid min-w-0 gap-4 rounded-lg border p-4">
-            <h3 className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
+          <section
+            key={group.name}
+            className="sw-rise grid min-w-0 gap-4 rounded-2xl border-l-[5px] bg-card p-4 shadow-[var(--sw-shadow-1)] ring-1 ring-foreground/10"
+            style={{ borderLeftColor: groupColour(group.name) }}
+          >
+            <h3
+              className="font-mono text-xs font-semibold tracking-wider uppercase"
+              style={{ color: groupColour(group.name) }}
+            >
               {group.name}
             </h3>
             {group.items.map((leaf) => (
@@ -206,7 +225,7 @@ function EditForm({
         )}
       </div>
 
-      <DialogFooter className="items-center gap-3 border-t px-6 py-4 sm:justify-between">
+      <DialogFooter className="items-center gap-3 border-t bg-card px-6 py-4 sm:justify-between">
         <div className="flex items-center gap-2 text-xs">
           {edits.length > 0 && (
             <Badge variant="secondary">
@@ -254,6 +273,14 @@ function EditForm({
 /** The path identifies a field; the label only groups it on screen. */
 function key(leaf: Leaf) {
   return leaf.path.join("\u0000");
+}
+
+/** The same colour the reader sees for that document, so an editor knows
+    which side of the question they are changing. */
+function groupColour(name: string) {
+  if (/mark/i.test(name)) return "var(--sw-ms)";
+  if (/solution|worked/i.test(name)) return "var(--sw-sol)";
+  return "var(--sw-q)";
 }
 
 function groupLeaves(leaves: Leaf[]) {

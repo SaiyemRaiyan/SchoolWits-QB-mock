@@ -55,10 +55,13 @@ export interface LabelCell {
 
 export function parseLabelCellDetailed(cell: string): LabelCell {
   const cleaned = stripRowDecoration(cell);
+  // A label such as 9\,E\,(a) (question 9, EITHER part (a)) is spaced with
+  // thin-space macros, which are layout, not part of the reference.
+  const spaced = (label: string) => label.replace(/\\[,;:! ]|~/g, ' ').replace(/\s+/g, ' ').trim();
   const mr = /\\multirow\{(-?)\d+\}\{[^}]*\}\{([^}]*)\}/.exec(cleaned);
-  if (mr) return { label: mr[2].trim(), direction: mr[1] === '-' ? 'up' : 'down' };
+  if (mr) return { label: spaced(mr[2]), direction: mr[1] === '-' ? 'up' : 'down' };
 
-  const plain = cleaned.replace(/\\[a-zA-Z]+\s*/g, '').trim();
+  const plain = spaced(cleaned.replace(/\\[a-zA-Z]+\s*/g, ''));
   return { label: plain.length > 0 ? plain : null, direction: 'down' };
 }
 

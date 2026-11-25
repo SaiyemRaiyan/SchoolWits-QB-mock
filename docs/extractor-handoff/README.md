@@ -10,11 +10,10 @@ another machine. Branch: `paper-extractor`.
 
 ## Set up
 
-1. Clone the repo and check out `paper-extractor`.
-2. Put the papers in `~/Documents/Question_Papers/` with these three folders.
-   They are not in git:
-   `Physics_5054/` (46 papers), `Chem_5070/` (91), `Add_Maths_4037/` (84).
-   Each paper folder holds `*_qp_*.tex`, `*_qa_*.tex` and `*_qp_*.pdf`.
+1. Check out the `paper-extractor` branch.
+2. `./docs/extractor-handoff/get-papers.sh` fetches the 221 papers from the
+   `question-papers` branch (204 MB) into `~/Documents/Question_Papers/`:
+   `Physics_5054/` (46), `Chem_5070/` (91), `Add_Maths_4037/` (84).
    Two Chemistry papers (S26 41 and 42) have no answers file.
 3. Install `pdftotext` and `pdftoppm` (package `poppler-utils`), and Python 3
    with Pillow and numpy.

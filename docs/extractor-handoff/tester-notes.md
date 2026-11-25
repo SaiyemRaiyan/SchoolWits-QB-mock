@@ -72,3 +72,18 @@ Crops that cut a line off, so the expected text was finished from the LaTeX or p
 - subclass overriding test (needs the writer's PaperExtractor method names)
 - SymbolTable unit tests (constructor not known yet); Physics 5054 nuclides (${}^3_1H) in S16 22
 - a test that a passed question still shows its line (best effort), beyond the one in maths.test.ts
+
+## Decisions (coordinator, 25 Nov 2026, second session)
+
+These settle the open questions so writer and tester agree. `ParsedPaper` does not change.
+- **EITHER/OR:** the alternatives stay in `q.parts`, in printed order (a, b, a, b). The word EITHER or OR is a
+  bold paragraph at the start of the first part of its alternative. `q.marks` counts ONE alternative. A part before
+  EITHER counts once.
+- **Units:** a thin space printed between a number and its unit ("20 g", "52 000 J") is read as one ordinary space.
+- **Section headings and rubrics** ("Section B", "Answer one question from this section") between questions are page
+  furniture, like BLANK PAGE (doc rule 8). They are not question text.
+- **Baseline:** the current reader's output for all 221 papers is in the session scratchpad,
+  `.../scratchpad/baseline/<subject>/<paper>.json` (made by `.../scratchpad/baseline.ts`). It is for diffing "no worse
+  than the current reader", never a source of expected test values.
+- **katex** is not installed in backend/; Node finds the repo root's copy (0.19.0) from `backend/scripts`. Read the
+  site macros from `lib/katex.ts` without editing it.

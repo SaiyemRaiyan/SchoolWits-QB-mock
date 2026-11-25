@@ -30,3 +30,18 @@
 
 ## Next
 symbols (Chemistry only first), flow, questions, extractor, check-papers; then fractions; Add Maths roots/matrices last.
+
+## Decisions (coordinator, 25 Nov 2026, second session)
+
+These settle the open questions so writer and tester agree. `ParsedPaper` does not change.
+- **EITHER/OR:** the alternatives stay in `q.parts`, in printed order (a, b, a, b). The word EITHER or OR is a
+  bold paragraph at the start of the first part of its alternative. `q.marks` counts ONE alternative. A part before
+  EITHER counts once.
+- **Units:** a thin space printed between a number and its unit ("20 g", "52 000 J") is read as one ordinary space.
+- **Section headings and rubrics** ("Section B", "Answer one question from this section") between questions are page
+  furniture, like BLANK PAGE (doc rule 8). They are not question text.
+- **Baseline:** the current reader's output for all 221 papers is in the session scratchpad,
+  `.../scratchpad/baseline/<subject>/<paper>.json` (made by `.../scratchpad/baseline.ts`). It is for diffing "no worse
+  than the current reader", never a source of expected test values.
+- **katex** is not installed in backend/; Node finds the repo root's copy (0.19.0) from `backend/scripts`. Read the
+  site macros from `lib/katex.ts` without editing it.

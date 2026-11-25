@@ -5,7 +5,7 @@ pair and, on confirm, writes the paper and its questions.
 
 ## Why the parser is vendored
 
-`vendor/latex.js` is a **generated** bundle of `backend/src/latex/`. Do not
+`vendor/extract.js` is a **generated** bundle of `backend/src/extract/`. Do not
 edit it — edit the source and run `npm run build:function`.
 
 It exists because Deno resolves import specifiers literally, and the
@@ -24,7 +24,7 @@ cd backend
 npm run deploy:function
 ```
 
-That rebuilds `vendor/latex.js` from source and deploys. It needs the
+That rebuilds `vendor/extract.js` from source and deploys. It needs the
 Supabase CLI, authenticated once:
 
 ```sh

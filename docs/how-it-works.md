@@ -221,7 +221,7 @@ and the answers added later.
 
 **It has no dependencies.** The folder uses no outside libraries and nothing
 specific to Node. That is deliberate: the same files are bundled into one
-file (`vendor/latex.js`) and run inside the Edge Function, which is a
+file (`vendor/extract.js`) and run inside the Edge Function, which is a
 different environment (Deno). A change to the parser only reaches the live
 site after `npm run deploy:function` in `backend/`.
 

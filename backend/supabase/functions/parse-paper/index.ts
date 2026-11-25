@@ -2,14 +2,15 @@
  * parse-paper — the ingest endpoint behind upload.html.
  *
  * The .tex parser runs here rather than in the browser so there is only one
- * copy of it. backend/src/latex/ has no dependencies and no node: imports
- * precisely so the same code runs unmodified under Deno.
+ * copy of it. backend/src/extract/ (and src/latex/, which it builds on) has no
+ * dependencies and no node: imports precisely so the same code runs unmodified
+ * under Deno.
  *
- * It is imported from vendor/latex.js, a GENERATED bundle of that folder
+ * It is imported from vendor/extract.js, a GENERATED bundle of that folder
  * (`npm run build:function`). The bundle exists for two reasons: the
  * TypeScript sources use ".js" import specifiers that only resolve after a
  * compile step, and shipping one file keeps deploys from silently missing a
- * module. Never edit vendor/ — edit src/latex/ and rebuild.
+ * module. Never edit vendor/ — edit src/extract/ and rebuild.
  *
  * Two phases, both POSTs to this same endpoint:
  *
@@ -29,12 +30,7 @@
  */
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import {
-  flattenQuestion,
-  mergePaper,
-  parseAnswerPaper,
-  parseQuestionPaper,
-} from './vendor/latex.js';
+import { extractPaper, flattenQuestion } from './vendor/extract.js';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -95,12 +91,7 @@ Deno.serve(async (req: Request) => {
   const { qpTex, qaTex, subject, images = {}, commit = false } = payload;
   if (!qpTex) return json({ error: 'qpTex is required.' }, 400);
 
-  const parsed = mergePaper(
-    parseQuestionPaper(qpTex, images),
-    qaTex
-      ? parseAnswerPaper(qaTex, images)
-      : { paper: null, byNumber: new Map(), warnings: [] },
-  );
+  const parsed = extractPaper({ questions: qpTex, answers: qaTex, images });
 
   if (!parsed.paper) {
     return json(
@@ -114,7 +105,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // Serious warnings (see src/latex/guard.ts) are returned and shown, but the
+  // Serious warnings (see src/extract, check()) are returned and shown, but the
   // admin decides whether to save.
   if (!commit) return json({ ...parsed, committed: false });
 

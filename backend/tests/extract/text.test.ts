@@ -264,8 +264,12 @@ point $O$, is given by\kern3.72bp $v$\kern3.14bp $=$\kern3.15bp 4e\kern0.55bp \r
 \row{26.0}{95.0}{\lab{22.7}{\textbf{(\kern-0.41bp\relax c\kern0.20bp\relax )\kern-0.41bp\relax }}Use\kern-0.21bp\relax \ t\kern0.41bp\relax he\kern-0.21bp\relax \ e\kern-0.21bp\relax q\kern0.41bp\relax ua\kern-0.21bp\relax t\kern0.41bp\relax io\kern0.20bp\relax n}
 \row{2.8}{95.0}{\lab{22.7}{\textbf{(\kern-0.41bp\relax d)\kern-0.41bp\relax }}A\kern-0.21bp\relax no\kern0.20bp\relax t\kern0.41bp\relax he\kern-0.21bp\relax r st\kern0.41bp\relax ud\kern0.41bp\relax e\kern-0.21bp\relax nt\kern0.41bp\relax \ sa\kern-0.21bp\relax ys t\kern0.41bp\relax ha\kern-0.21bp\relax t\kern0.41bp\relax \ t\kern0.41bp\relax he\kern-0.21bp\relax \ a\kern-0.21bp\relax c\kern0.41bp\relax t\kern0.41bp\relax ua\kern-0.21bp\relax l p\kern0.41bp\relax re\kern-0.21bp\relax ssure\kern-0.21bp\relax \ d\kern0.41bp\relax ue\kern-0.21bp\relax \ t\kern0.41bp\relax o\kern0.20bp\relax \ t\kern0.41bp\relax he\kern-0.21bp\relax \ w\kern0.40bp\relax e\kern-0.21bp\relax ig\kern0.20bp\relax ht\kern0.41bp\relax \ o\kern0.20bp\relax f\kern0.20bp\relax \ t\kern0.41bp\relax he\kern-0.21bp\relax \ b\kern0.41bp\relax lo\kern0.20bp\relax c\kern0.41bp\relax k\kern0.21bp\relax \ o\kern0.20bp\relax n t\kern0.41bp\relax he\kern-0.21bp\relax \ t\kern0.41bp\relax a\kern-0.21bp\relax b\kern0.41bp\relax le\kern-0.21bp\relax \ is\linebreak}
 g\kern0.20bp\relax re\kern-0.21bp\relax a\kern-0.21bp\relax t\kern0.41bp\relax e\kern-0.21bp\relax r t\kern0.41bp\relax ha\kern-0.21bp\relax n t\kern0.41bp\relax he\kern-0.21bp\relax \ va\kern-0.21bp\relax lue\kern-0.21bp\relax \ c\kern0.41bp\relax a\kern-0.21bp\relax lc\kern0.41bp\relax ula\kern-0.21bp\relax t\kern0.41bp\relax e\kern-0.21bp\relax d\kern0.41bp\relax \ in \textbf{(\kern-0.41bp\relax c\kern0.20bp\relax )\kern-0.41bp\relax }.`);
-    expect(question(paper, 3).parts.map((p) => p.ref)).toEqual(['3(c)']);
+    // The excerpt holds the (c) and (d) rows; pages 7 and 8 print both labels.
+    expect(question(paper, 3).parts.map((p) => p.ref)).toEqual(['3(c)', '3(d)']);
     expect(sentences(part(question(paper, 3), 'c').content)).toEqual(['Use the equation']);
+    expect(sentences(part(question(paper, 3), 'd').content).join(' ')).toBe(
+      'Another student says that the actual pressure due to the weight of the block on the table is greater than the value calculated in (c).',
+    );
   });
 });
 

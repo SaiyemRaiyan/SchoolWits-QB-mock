@@ -173,3 +173,50 @@ fractions, minus signs, tables, marks) was re-read at 170 dpi and matched. `samp
 - **Typed maths that prints oddly** (`\mathrm{change} \mathrm{in}` -> "changeinvelocity"): rule 4 wins, never rewritten.
   The tester may record it; it is not counted as an extractor error.
 - The stricter dot test (5070 S26 21 Q5(f): •/· only, not ".") is accepted.
+
+## Round 2 (tester): the 14 failing tests judged against the page
+
+`npx vitest run tests/extract` had 14 failures (src = ab7d21d + writer's uncommitted changes, 25 Nov ~17:40 UTC).
+Format: test | page prints | test wanted | verdict.
+- chemistry "C8H18 to C4H10" (5070 S16 12 Q39 p14) | C₂H₄ with the 4 lowered | C$_2$H$_4$ | CODE WRONG (we show "2C₂H4")
+- chemistry "photosynthesis" (5070 S18 12 Q18 p8) | 6CO₂ + 6H₂O → 6O₂ + C₆H₁₂O₆ | same | CODE WRONG (last 6 not lowered)
+- maths modulus "one pair" (4037 W18 23 Q1 p3) | |5x − 3| = −3x + 13 | same | CODE WRONG (bars dropped, no pass)
+- maths modulus "two pairs" (4037 S17 22 Q1 p3) | |5x + 3| = |1 − 3x| | same | CODE WRONG
+- maths modulus "a pair around an expression with a power" (4037 S16 21 Q6(ii) p7) | y = |4x² + 8x − 5| | same | CODE WRONG
+- maths modulus "only the first of two graphs" (4037 S17 11 Q8 p10) | y = |2x − 5| and 9y = 80x − 16x² | same | CODE WRONG
+- maths "a root over a difference of roots" (4037 S16 21 Q5(a) p6) | √8/(√7 − √5) | same | CODE WRONG (numerator "8" thrown to the front, no pass)
+- maths "two fractions and a root" (4037 S18 12 Q10 p12) | sin 60° = √3/2, cos 60° = 1/2, tan 60° = √3 | same | CODE WRONG (garbled, no pass)
+- maths "two lines of prose with Symbol-font pi" (4037 W22 22 Q8 p8) | the two lines AND, under the figure, "The diagram shows
+  a solid object ... The total surface area of the object is 300 cm²." | only the two lines | TEST WRONG: the fixture holds that
+  row too. Expected value extended; it now passes.
+- maths "a power of a power ... top index on a line of its own" (4037 S16 12 Q8(i) p10) | y = Ab^{x²} | same | CODE WRONG (shows Ab^x, no pass)
+- maths "a fraction as a power below a bar" (4037 W18 22 Q5 p6) | BOTH equations, 8^{p+1}/4^q = 2^{11}, and 3^{2p+5}/27^{1/3} = 9^{3q}. |
+  only the second | TEST WRONG: the fixture holds both lines. Expected value extended; it now passes.
+- symbols "an intersection sign is not a Delta" (4037 S17 21 p7) | P′∩Q∩R | ∩ or null | CODE WRONG (table reads Δ)
+- extractor "a picture of a size no table knows is flagged" | synthetic | a pass | TEST UNREALISTIC: the 25 x 22 bp picture is
+  bigger than any of the 3535 inline \swglyph pictures in the 221 papers in both directions (big ones are tall brackets, ~4 x 30),
+  so treating it as a drawing is fair. Replaced by a character-sized unknown picture (9.0 x 10.4 bp): must pass (it does);
+  and a new test keeps the 25 x 22 case: shown as a figure or flagged, never dropped (it is).
+  Note for the writer: no real \swglyph reaches the >=18 x 14 "drawing" rule, so the rule is untested by real papers.
+- text "a label with kerns between its brackets and its letter" (5054 S18 42 Q3 p7-8) | (c) "Use the equation" on p7 and
+  (d) "Another student says that ... calculated in (c)." on p8 | only 3(c) | TEST WRONG (the writer was right): expects
+  ['3(c)', '3(d)'] now and checks the (d) sentence; it passes.
+Result: 10 code wrong, 3 test wrong (fixed), 1 unrealistic (replaced, intent kept). Now 10 failing, all code.
+
+### Subclass test (`subclass.test.ts`, 4 tests, green)
+Real line 4037 S20 11 Q1(b) "Solve f(x) ⩽ 0." (⩽ is an unreadable same-box picture). The base passes it; a MathsExtractor
+subclass overriding symbolReader() is asked and reads it (no pass, same shape); a subclass adding a counting reader through
+readers() has it run on the lines and gives a result identical to the base; extract() keeps subject, paper, passes and shape.
+
+### Sample score (details: .../scratchpad/tester/score/score-table.md, dump.txt, dump.ts, src-snapshot/)
+right / flagged / wrong, new extractor vs current reader:
+Physics 10/1/1 vs 9/1/2; Chemistry 10/2/0 vs 6/1/5; Maths 5/7/0 vs 3/0/9; all 36: 25/10/1 vs 18/2/16.
+The one new WRONG: 5054 S16 42 Q1(d): the page prints [4] under Fig. 1.6 (the graph (ii) asks for) and [1] for (iv); we show
+(ii) [null] and (iv) [5] with Fig. 1.6 inside (iv). Same in the current reader.
+Also seen: flagged Maths lines show □ for every unread picture and lose order ("□π Solve the equation cot □2x + − √3 = 0, ...
+terms 3 of π") — flagged, but barely readable as a fallback; stray figure labels ("glue", "plate", "200 300") print as
+paragraphs in 3 Physics questions (both readers).
+Pages actually re-rendered this round for the verdicts: 5070 S18 12 p8; 4037 W18 23 p3, S17 22 p3, S16 21 p7, W18 22 p6,
+W22 22 p8; 5054 S18 42 p7-8. Taken from round-1 renders: 4037 S16 21 p6, S16 12 p10, S17 21 p7. NOT re-rendered (the output
+is garbled or unlowered whatever the exact page says): 5070 S16 12 Q39 p14 (crop showed Q38 only), 4037 S18 12 Q10 p12,
+4037 S17 11 Q8 p10.

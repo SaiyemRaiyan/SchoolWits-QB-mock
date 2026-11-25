@@ -327,8 +327,11 @@ describe('maths: roots and fractions must be read', () => {
 \row{28.8}{72.28}{The\kern4.49bp diagram\kern4.50bp shows\kern4.49bp a\kern4.49bp solid\kern4.50bp object\kern4.49bp in\kern4.49bp the\kern4.49bp shape\kern4.49bp of\kern4.50bp a\kern4.49bp cylinder\kern4.49bp of\kern4.50bp base\kern4.49bp radius\kern4.48bp $r$\kern4.49bp and\kern4.49bp height\kern4.48bp $h$,\kern4.50bp with\kern4.49bp a\linebreak}
 hemisphere of radius $r$ on top.\kern2.68bp The total surface area of the object is\kern3.49bp 300\kern1.56bp cm\kern0.55bp $^{2}$\kern1.10bp .`);
     correct(paper, 8, stem(question(paper, 8)),
+      // The excerpt also holds the row under the figure, which page 8 prints.
       String.raw`The volume of a cylinder with radius r and height h is $\pi r^2h$ and its curved surface area is $2\pi rh$.
-       The volume of a sphere with radius r is $\frac43\pi r^3$ and its surface area is $4\pi r^2$.`);
+       The volume of a sphere with radius r is $\frac43\pi r^3$ and its surface area is $4\pi r^2$.
+       The diagram shows a solid object in the shape of a cylinder of base radius r and height h, with a
+       hemisphere of radius r on top. The total surface area of the object is 300 cm$^2$.`);
   });
 });
 
@@ -929,7 +932,9 @@ describe('maths: harder equations are right or flagged', () => {
   \ruleat{226.70}{231.20}{-10.33}{0.41}%
   \at{532.85}{-5.19}{\swmark{[5]}}%
   \swdepth{22.08}}`);
-    correctOrPassed(paper, 5, stem(question(paper, 5)), String.raw`$\frac{3^{2p+5}}{27^{\frac13}}=9^{3q}$.`);
+    // Page 6 prints both equations; the first is typed, the second drawn.
+    correctOrPassed(paper, 5, stem(question(paper, 5)),
+      String.raw`$\frac{8^{p+1}}{4^q}=2^{11}$, $\frac{3^{2p+5}}{27^{\frac13}}=9^{3q}$.`);
   });
 
   it('a fraction at the start of the second of two lines', () => {

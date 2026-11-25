@@ -263,11 +263,23 @@ describe('extractor: commands nobody has seen before', () => {
   });
 
   it('a picture of a size no table knows is flagged', () => {
+    // Character-sized (9.0 x 10.4 bp, like the real pictures in a line of text), but no table has that size.
+    const paper = paperOf(MATHS, asQuestion('4037/12/M/J/16', 3, 1, String.raw`\freerow{0.0}{%
+  \at{72.28}{0.00}{Find the value of}%
+  \at{170.00}{-2.00}{\swglyph{4}{170.00bp 700.00bp 416.28bp 131.49bp}}%
+  \at{182.00}{0.00}{{\itshape x}.}}`));
+    expect(passesOf(paper, 3)).not.toEqual([]);
+  });
+
+  it('a picture too big to be a character is shown, never dropped', () => {
+    // 25 x 22 bp: no \swglyph in the 221 papers is this large in both directions, so this is a drawing, not a letter.
     const paper = paperOf(MATHS, asQuestion('4037/12/M/J/16', 3, 1, String.raw`\freerow{0.0}{%
   \at{72.28}{0.00}{Find the value of}%
   \at{170.00}{-2.00}{\swglyph{4}{170.00bp 700.00bp 400.00bp 120.00bp}}%
   \at{200.00}{0.00}{{\itshape x}.}}`));
-    expect(passesOf(paper, 3)).not.toEqual([]);
+    const q = question(paper, 3);
+    const shown = [...q.stem, ...q.parts.flatMap((p) => p.content)].some((b) => b.type === 'figure');
+    expect(shown || passesOf(paper, 3).length > 0, 'shown as a figure, or flagged').toBe(true);
   });
 });
 

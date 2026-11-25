@@ -107,24 +107,6 @@ export function whatIsMissing(f: SearchFilters): { subject: boolean; more: numbe
   };
 }
 
-/** A fully specified paper, which is what unlocks the full-paper view. */
-export function activePaperKey(f: SearchFilters): string | null {
-  if (f.subject && f.paper && f.variant && f.session && f.year) {
-    return paperKeyOf(f as Required<SearchFilters>);
-  }
-  return null;
-}
-
-export function paperKeyOf(p: {
-  subject: string;
-  paper: string;
-  variant: string;
-  session: string;
-  year: string | number;
-}): string {
-  return [slug(p.subject), p.paper, p.variant, slug(p.session), p.year].join("|");
-}
-
 export function paperLabel(p: {
   subjectCode?: string;
   paper: string;
@@ -133,12 +115,4 @@ export function paperLabel(p: {
   year: string | number;
 }): string {
   return `${p.subjectCode ? p.subjectCode + "/" : ""}${p.paper}${p.variant}/${p.session}/${String(p.year).slice(-2)}`;
-}
-
-function slug(s: string): string {
-  return String(s || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }

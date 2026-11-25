@@ -122,7 +122,7 @@ function UploadWorkspace() {
 
         setResult(parsed);
         // A paper of another syllabus takes its own subject: one left over from
-        // the last paper would file it under, and overwrite, the wrong paper.
+        // the last paper would file it under the wrong subject.
         // Within a syllabus, what the admin typed stays.
         const code = parsed.paper?.subjectCode ?? "";
         const changed = code !== subjectCode.current;

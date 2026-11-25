@@ -25,7 +25,6 @@ export {
   type ScopedFacets,
 } from "./facets";
 export {
-  activePaperKey,
   getPaperKeysForTopic,
   getQuestionsByPaperKey,
   hasAnyFilter,
@@ -33,7 +32,6 @@ export {
   narrowingCount,
   resultsReady,
   whatIsMissing,
-  paperKeyOf,
   paperLabel,
   searchQuestions,
   type SearchFilters,

@@ -1,10 +1,9 @@
 /**
  * Cambridge syllabus code -> subject name.
  *
- * Names must be unique: the database identifies a paper by subject name, paper,
- * variant, session and year (papers.paper_key), NOT by code. Two codes sharing
- * a name would overwrite each other's papers, so the level is part of the name
- * everywhere except O Level, whose plain names are already in the bank.
+ * The level is part of the name everywhere except O Level, whose plain names are
+ * already in the bank: the browse page filters by subject name, so one name for
+ * two syllabuses would list their papers together.
  */
 const O_LEVEL: Record<string, string> = {
   "1123": "English Language",

@@ -41,7 +41,7 @@ export type PaperMeta = {
 };
 
 // Ported from js/store.js's `slug()` — must stay byte-for-byte identical to
-// how papers.paper_key is generated in SQL (0001_papers.sql), since this is
+// how papers.paper_key is generated in SQL (0021), since this is
 // only used for *display* (paperLabel below); the actual paper_key value
 // itself is computed by Postgres as a generated column, not by this code.
 function slug(s: string): string {

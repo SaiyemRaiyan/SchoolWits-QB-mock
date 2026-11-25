@@ -471,3 +471,13 @@ describe('chemistry: a Roman numeral set in a serif font is upright (round 4)', 
     notItalic(b.content, 'V');
   });
 });
+
+describe('chemistry: a pictured l inside a formula (round 5)', () => {
+  it('NaClO has no gap after the l', () => {
+    // 5070/41/O/N/19 Q5, page 9 (300 dpi): "...sodium chlorate(I), NaClO, in J." The LaTeX has NaC\swcut{...}\,O.
+    const paper = paperOf(CHEMISTRY, String.raw`\examq{5070/41/O/N/19}{5}{Redox}{1}
+\row{26.0}{72.3}{A student does an experiment to determine the concentration of sodium chlorate(\swf{ptm}{11.00}{I}), NaC\swcut{3.08}{2.64}{9}{501.53bp 740.37bp 90.67bp 89.42bp}\,O, in \textbf{J}.}`);
+    correct(paper, 5, stem(question(paper, 5)),
+      'A student does an experiment to determine the concentration of sodium chlorate(I), NaClO, in <strong>J</strong>.');
+  });
+});

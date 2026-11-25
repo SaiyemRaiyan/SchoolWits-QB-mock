@@ -297,3 +297,10 @@ Subclasses: `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor`, `Generic
 
 ### Totals after round 4 (clean / rebuilt / passed / suspicious)
 - Physics 841 / 23 / 1 / 206. Chemistry 1604 / 77 / 16 / 347. Add Maths 398 / 148 / 400 / 0 (366 unknown-symbol).
+
+### Last fix (round 4, tester's final round)
+- After a pictured Latin letter (TextPiece.pictured, set by SymbolPictures), a gap no wider than 0.2em before another
+  letter is not a word gap: `NaC\swcut{..}\,O` -> NaClO. The `\,` makes up for the clip's box. Typed letters
+  ("kJ\,mol"), numbers before units and pictured Greek letters ("θ radians") keep their space. Changed: 5070 W19 41
+  Q5 (NaClO, 5 places) and W16 21 Q5 (KClO₃) only. 5070 S17 11 Q6 / S17 12 Q7 "HCl N₂" are a list of molecules
+  placed 44-56bp apart in the LaTeX: the space is right there.

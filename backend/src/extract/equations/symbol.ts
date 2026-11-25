@@ -33,6 +33,8 @@ export class SymbolPictures implements EquationReader {
         y: host && host.size >= 0.8 * size && Math.abs(host.y - y) < 0.2 * size ? host.y : y,
         // Set in the same weight as the letters it is set against (Cl in a bold heading).
         bold: touching.length > 0 && touching.every((t) => t.bold), italic: known?.italic ?? false, underline: false,
+        // A Latin letter stands in for part of a word; a Greek one is a symbol of its own.
+        ...(/^[A-Za-z]$/.test(char) ? { pictured: true } : null),
       });
     }
     return gone.length ? context.read(without(line, gone, put)) : null;

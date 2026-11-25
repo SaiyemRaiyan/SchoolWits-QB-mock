@@ -293,3 +293,23 @@ Failures now: 2 (upright Roman numeral, upright iodine), both code.
 Run times: sample dump 18:19:07 and bracket diff 18:19:26 are on clean 7e04583; the answer diff (18:20:49), marks-beside-figure
 list (18:22:47) and the italic count ran after the writer started editing paper-extractor.ts (18:19:53), brackets.ts and
 symbol.ts again, so those three may include part of that work in progress.
+
+## Round 5 (tester, final), against ddbe328 (src stable)
+- Sample (seed 20261125): new 27/9/0 vs current reader 17/2/17 (Physics 11/1/0, Chemistry 10/2/0, Maths 6/6/0).
+  score/score-table-r5.md.
+- Integrals (r5.ts, r5.json: 36 questions gained \int, 18 of them now read with no pass). Seed 20261201, 6 on the page:
+  S23 21 Q7(b)(i),(ii), S26 11 Q4 ∫₀ᵃ, W25 22 Q7(b), S23 11 Q10(b), W23 23 Q9(c) ∫₀² 2xe^{2x}dx, S17 22 Q11(i): 6 RIGHT.
+  (S16 11 Q5 "\int_0^{1n2}" is the paper's own typed "1n": typed maths, not counted.)
+- Matrices: 5 questions with a matrix now read (S17 12 Q9, S16 12 Q3, S17 22 Q8, S25 11 Q1, W22 23 Q8): every matrix
+  value matches the page; S17 12 Q9 fully RIGHT; the other 4 still pass honestly (vector arrows over AE, PQ, PR, RQ are
+  unknown-shape; other pictures unknown-symbol).
+- Figure labels into captions (cap.ts, cap.json: 58). Seed 20261202, 6 on the page: S17 21 Q9 "electrical energy output",
+  S22 21 Q3 "time", S18 22 Q6 "1cm", S16 21 Q1 speed/(m/s), S23 21 Q10 "time / years", S17 21 Q5 "voltmeter V₃": each a
+  label inside that figure; the body lost exactly the moved text and nothing else; marks kept (S22 21 Q3 (b)(i) [2]).
+  Minor: S17 21 Q5 "voltmeter V₂" sits above the figure and is still a body paragraph (a stray label, nothing lost).
+- Italic: phosphoric(V) and ¹²⁵₅₃I upright, I_B and V × I × t italic (tests pass); 0 bracketed numerals and 0 nuclide
+  symbols italic in Physics + Chemistry. Seed 20261203, 5 more serif capitals (S17 41 Q6 chlorate(V), S17 21 Q8 iodine(I),
+  S19 21 Q8 phosphorus(V), W19 41 Q5 chlorate(I), W19 11 Q20 vanadium(V)): all upright on the page and in our output.
+- One WRONG found on the way: 5070 W19 41 Q5 page "NaClO" / LaTeX NaC\swcut{...}\,O / we "NaCl O" (gap after the pictured
+  l before a capital, from the thin space). Test added (fails). Same pattern possibly in 5070 S17 11 Q6, S17 12 Q7 ("Cl N").
+Failures now: 1 (NaClO gap, code).

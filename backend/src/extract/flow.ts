@@ -193,6 +193,8 @@ interface Token {
   leads?: boolean;
   /** Set in a serif face inside a sans-serif paper. */
   serif?: boolean;
+  /** A letter read from a picture. */
+  pictured?: boolean;
 }
 
 function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambiguous: false }): string {
@@ -209,7 +211,12 @@ function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambigu
   for (let i = 0; i < items.length; i++) {
     const { p, script } = items[i];
     if (script === null) {
-      if (p.kind === 'text') tokens.push({ x: p.x, end: right(p), text: p.text, style: styleOf(p), loose, ...(p.serif ? { serif: true } : null) });
+      if (p.kind === 'text') {
+        tokens.push({
+          x: p.x, end: right(p), text: p.text, style: styleOf(p), loose,
+          ...(p.serif ? { serif: true } : null), ...(p.pictured ? { pictured: true } : null),
+        });
+      }
       else if (p.kind === 'math') {
         loose ||= !isComposite(p);
         tokens.push({ x: p.x, end: right(p), math: p.tex, loose: !isComposite(p) });
@@ -337,6 +344,9 @@ function needsSpace(prev: Token, token: Token, base: number, next?: Token): bool
   if (attachedScript(prev, token, next, base)) return false;
   const before = prev.text ?? '';
   const after = token.text ?? '';
+  // After a pictured letter, a gap no wider than a thin space before another
+  // letter makes up for the picture's box (NaC\swcut\,O): one word.
+  if (prev.pictured && /^\p{L}/u.test(after) && token.x - prev.end <= 0.2 * base) return false;
   if (/\s$/.test(before) || /^\s/.test(after)) return false;
   // A script belongs to what it follows, however far the paper set it; but a
   // pair stacked one over the other (a nuclide's mass and proton numbers)

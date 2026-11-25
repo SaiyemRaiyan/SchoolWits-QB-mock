@@ -29,6 +29,8 @@ export interface TextPiece extends Placed {
   underline: boolean;
   /** Set in a serif font inside a sans-serif paper, as Roman numerals are. */
   serif?: boolean;
+  /** Read from a picture of the character, whose box only stands in for the letter's width. */
+  pictured?: boolean;
 }
 
 /** Maths the author typed. Never rewritten: KaTeX reads it as it stands. */

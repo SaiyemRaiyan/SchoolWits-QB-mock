@@ -1,5 +1,8 @@
 # Extractor hand-off
 
+**Finished.** Merged to `main` on 26 Nov 2026; kept for the notes. Results are in
+`RESULTS.md`. What follows describes the state when the first session stopped.
+
 Stopped on 25 Nov 2026, part way through the first round, to continue on
 another machine. Branch: `paper-extractor`.
 
@@ -11,8 +14,7 @@ another machine. Branch: `paper-extractor`.
 ## Set up
 
 1. Check out the `paper-extractor` branch.
-2. `./docs/extractor-handoff/get-papers.sh` fetches the 221 papers from the
-   `question-papers` branch (204 MB) into `~/Documents/Question_Papers/`:
+2. Put the 221 papers in `~/Documents/Question_Papers/` (they are not in git):
    `Physics_5054/` (46), `Chem_5070/` (91), `Add_Maths_4037/` (84).
    Two Chemistry papers (S26 41 and 42) have no answers file.
 3. Install `pdftotext` and `pdftoppm` (package `poppler-utils`), and Python 3

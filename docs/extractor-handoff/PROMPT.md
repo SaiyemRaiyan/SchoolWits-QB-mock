@@ -22,7 +22,7 @@ I want **one object-oriented extractor for every subject**:
 
 ## Papers
 
-`~/Documents/Question_Papers/{Physics_5054,Chem_5070,Add_Maths_4037}/`: 221 papers, each folder with `*_qp_*.tex`, `*_qa_*.tex`, `*_qp_*.pdf`. Read them in place. Never copy papers into this branch. If the folder is missing, run `./docs/extractor-handoff/get-papers.sh`; it fetches them from the `question-papers` branch. If that fails, stop and tell me. The body starts at the LAST `\begin{document}`.
+`~/Documents/Question_Papers/{Physics_5054,Chem_5070,Add_Maths_4037}/`: 221 papers, each folder with `*_qp_*.tex`, `*_qa_*.tex`, `*_qp_*.pdf`. Read them in place. Never copy papers into this branch. If the folder is missing, stop and ask me. The body starts at the LAST `\begin{document}`.
 
 ## Agents
 
@@ -63,4 +63,4 @@ Use two agents in a loop. You coordinate. Do not use a summarizer.
 
 Use simple language and be short. Give real numbers per subject: read correctly, flagged, wrong. Say which of these were checked against the PDF and which only by the automatic check. Show a few examples as: what the page prints, what the LaTeX says, what we show. Count wrong as wrong, and if you did not check something, say so.
 
-Start by doing the set-up in the README yourself (fetch the papers, install `poppler-utils`, Pillow and numpy if missing, `npm install`, run the tests), tell me in a few lines what state you found, then begin.
+Start by doing the set-up in the README yourself (check the papers are there, install `poppler-utils`, Pillow and numpy if missing, `npm install`, run the tests), tell me in a few lines what state you found, then begin.

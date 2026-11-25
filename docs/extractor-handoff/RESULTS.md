@@ -1,7 +1,10 @@
 # PaperExtractor: results
 
-Branch `paper-extractor`, final commit after 86cc64c. Not yet wired into
-`parse-paper`, `src/latex/index.ts` or the upload page; that waits for a yes.
+Branch `paper-extractor`, final commit after 86cc64c. Wired into `parse-paper`
+on 26 Nov 2026, after this report was written.
+
+A second sample, of questions that were not flagged, found 2 wrong out of 19
+compared with the page: 5070 S24 11 Q10 and 4037 W20 13 Q9.
 
 ## Sample checked against the PDF pages
 

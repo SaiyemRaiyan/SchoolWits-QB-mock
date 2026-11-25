@@ -41,8 +41,12 @@ the renderer are tested against each other.
 - **RLS is the security boundary.** Every UI gate (`useAuth().admin`,
   `AdminGate`) is presentation. Writes carry the signed-in admin's own token,
   never the anon key.
-- `backend/src/latex/` must stay **dependency-free with no `node:` imports**,
-  so the same files run inside a Deno Edge Function.
+- `backend/src/latex/` and `backend/src/extract/` must stay **dependency-free
+  with no `node:` imports**, so the same files run inside a Deno Edge Function.
+- **Uploads are read by `backend/src/extract/`** (`docs/paper-extractor.md`): one
+  base class for every subject. Fix a misread with a rule that is true of any
+  paper, never a special case, and check all subjects with `npm run check-papers`.
+  An equation that is not certain is passed and flagged, never guessed.
 
 ## Styling
 
@@ -60,5 +64,5 @@ the renderer are tested against each other.
 
 ```bash
 npm run lint && npx tsc --noEmit && npm run build   # the app
-cd backend && npm run typecheck && npm test          # the parser, 209 tests
+cd backend && npm run typecheck && npm test          # the parser, 545 tests
 ```

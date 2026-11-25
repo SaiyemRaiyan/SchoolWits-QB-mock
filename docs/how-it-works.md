@@ -171,8 +171,16 @@ matched by question number. Under each header it has:
 
 ## 5. Inside the parser
 
-The parser is the folder `backend/src/latex/`. Each file does one job, and
-they run roughly in this order:
+Uploads are read by the **paper extractor**, `backend/src/extract/`. It looks at
+the file first:
+
+- a paper written as a copy of the printed page (all papers we get now) is read
+  by the extractor itself: section 8
+- a paper in the **documented format** (the older ones) is handed to the reader
+  in `backend/src/latex/`, described here
+- **answer files** are always read by `backend/src/latex/`
+
+The folder `backend/src/latex/`, file by file, roughly in the order they run:
 
 | File | Job |
 |---|---|
@@ -187,7 +195,8 @@ they run roughly in this order:
 | `index.ts` | The entry points that call the above and join questions to answers |
 | `flatten.ts` | Make a plain-text version of a question, used for search |
 | `clip.ts` | Read the page and rectangle of a figure cut from a PDF |
-| `guard.ts` | Detect a file the parser cannot really read, so it is not saved |
+| `guard.ts` | Detect text that is really leaked measurements, so it can be warned about |
+| `layout.ts` | The old page-layout reader. No longer used by uploads; kept until the extractor has proved itself |
 | `scan.ts` | Low-level helpers: find a command and its `{arguments}`, find `\begin...\end` blocks |
 | `report.ts` | A text report of a parse, for the terminal |
 
@@ -312,63 +321,66 @@ WEBP, SVG).
 
 ---
 
-## 8. The new "page layout" format, and why it broke
+## 8. Page-layout papers and the extractor
 
-In late 2026 the question files started arriving in a different style. The
-header line is the same, but the body no longer says *what* each thing is.
-It says *where each thing sits on the page*, so that the printed PDF is an
-exact copy of the official paper.
-
-The same multiple-choice question in both styles:
+The LaTeX we get now is a copy of the printed page. Nothing says "this is a
+fraction" or "this is part (a)"; each piece only says where it goes:
 
 ```latex
-% documented format                      % page-layout format
-\begin{choices}                          \mcq{33.04}{\textbf{2 }}{Which set of ...?}
-  \item acceleration, displacement, ...  \choice{23.7}{\textbf{A }}{acceleration, ...}
-  \item chemical energy, mass, power     \choice{21.6}{\textbf{B }}{chemical energy, ...}
-\end{choices}
+\at{94.96}{-0.53}{Show that}         put "Show that" here
+\swglyph{7}{184.63bp 766.09bp ...}   paste a small picture cut from the PDF
 ```
 
-The numbers (`33.04`, `23.7`) are distances in points measured off the
-official paper.
+### How it is read
 
-What changed, piece by piece:
+```
+ .tex ─► understand ─► text ─► equations ─► figures ─► check ─► questions
+         (the file's    lines,   try each     cut from   flag what
+         own commands)  parts    reader       the PDF    is unsure
+```
 
-| Piece | Documented format | Page-layout format |
+- **It reads the file's own definitions**, so a new command usually works with
+  no code change.
+- **One class for every subject.** `PaperExtractor` does the work.
+  `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor` and
+  `GenericExtractor` inherit it, and `createExtractor()` picks one from the paper
+  code. They are almost empty today because the rules are shared.
+- **Equations go through a list of readers** (`equations/`): typed maths,
+  symbols, modulus, roots, fractions, integrals, brackets. If none is sure, the
+  line is **passed**: it is shown with `□` where something could not be read, and
+  the question gets a warning. A wrong equation should never be shown as if it
+  were right.
+
+The design is in `paper-extractor.md`.
+
+### The main problem left: drawn equations
+
+Where the LaTeX has a **picture** of θ, ≤ or a bracket instead of the typed
+symbol, there is nothing to read. Some pictures are recognised by their size. But
+≤ and ≥, < and >, ∩ and ∪ have the same size, so they are passed.
+
+| Subject | Questions | Flagged |
 |---|---|---|
-| Question header `\examq` | same | same |
-| Question text | plain paragraphs | `\mcq`, `\stem`, `\row`, each with a position |
-| MCQ options | `choices` list | `\choice`, `\optrow` |
-| Parts (a), (b) | `parts` list, labels generated | `\lab{..}{\textbf{(a)}}` written out inside a `\row` |
-| Answer lines, marks | `\Alines{3}{[1]}` | one `\dotline` per line |
-| Figures | file name | page and rectangle in the PDF |
-| Equations | `$...$` | pieces placed at coordinates (`\at`), symbol images (`\swglyph`), drawn lines (`\swpath`) |
-| Answers file | unchanged | unchanged |
+| Physics | 865 | 1 |
+| Chemistry | 1,697 | 16 |
+| Add Maths | 946 | **400** |
 
-**Why it showed garbage.** The parser did not know `\mcq`, `\row`, `\at` and
-the rest. It removed the command names and kept their arguments, including
-the distances. The result was text like
-`49.61 Find the value of k for which the curve 4.91bp y 3.14bp`. One such
-paper (`4037/11/M/J/16`) was uploaded and saved before anyone noticed.
+(26 Nov 2026, all 221 papers. Counted automatically: "not flagged" does not mean
+each one was compared with the PDF.)
 
-**What warns you now.** `guard.ts` checks every parse for maths drawn from
-symbols or paths, commands the parser does not know, and leftover lengths
-like `4.91bp` in the text. Any of them puts a red box on the upload page
-naming the questions. Nothing is refused: the admin decides whether to save.
+**The fix is in the LaTeX**: equations typed between dollar signs. Typed maths is
+used exactly as it is, so nothing has to change here.
 
-**What supporting the format would take.**
+### Other known problems
 
-- *Text, options, parts, figures*: the words are still plain text wrapped in
-  position commands, and the command set is identical across every sample
-  paper. A translation step can turn them into what the parser already
-  understands. This covers Physics-style papers.
-- *Equations*: they cannot be reliably turned back into real maths, because
-  the file holds loose pieces rather than an equation. Two ways forward:
-  the author adds the normal form next to each positioned line (best:
-  searchable and editable), or the website draws the pieces at the same
-  positions (looks right, but not searchable or editable as maths).
-
-Sample files are in `Updated Latex FIles For Web/new_layout/`.
+- Chemistry S24 paper 11 Q10: the equations under the options land in the
+  question text. Add Maths W20 paper 13 Q9: the vector arrows are lost. **Neither
+  is flagged.**
+- A sentence is sometimes split into two paragraphs (roughly 155 questions).
+- Underlines may be lost; those questions are flagged.
+- The upload page keeps the **subject** of the previous paper. Check it before
+  saving, or refresh the page between subjects.
+- A preview is not a check. Compare flagged questions with the PDF before saving.
 
 ---
 
@@ -471,7 +483,7 @@ npm run build               # the production build (slow)
 cd backend
 npm test                    # the parser's tests
 npm run typecheck
-npm run parse -- "Physics MJ25 21"     # parse a sample folder and print a report
+npm run check-papers        # read every paper in ~/Documents/Question_Papers and report
 npm run deploy:function     # put a parser change on the live site
 ```
 
@@ -480,7 +492,7 @@ Two things that are easy to forget:
 - A parser change is **not live** until `npm run deploy:function` has run,
   even if all tests pass.
 - A website change is **not live** until it has been pushed and the host has
-  rebuilt the site.
+  rebuilt the site. Setting up the host: `netlify.md`.
 
 ---
 
@@ -488,7 +500,8 @@ Two things that are easy to forget:
 
 | Symptom | Likely cause | Look at |
 |---|---|---|
-| Question text has stray numbers or `bp` in it | A file in a format the parser does not know | section 8; `guard.ts` |
+| `□` in an equation | A symbol drawn as a picture | section 8; have it typed in the LaTeX |
+| Question text has stray numbers or `bp` in it | A command that could not be understood | section 8; `npm run check-papers` |
 | Figure shows as missing | The figure name in the `.tex` has no matching upload | upload the file, or check the name |
 | Mark scheme rows are on the wrong part | Part labels did not line up | `structure.ts`, `markscheme.ts`, and the conventions in `templates/README.md` |
 | "Check before saving: some of this will be wrong" | Drawn maths, unknown commands or leaked measurements | the red box names the questions |

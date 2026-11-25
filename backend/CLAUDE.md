@@ -58,6 +58,11 @@ so nothing rewrites image paths afterwards and no base64 is ever stored.
 Because that happens before any question row exists, the tracking table is
 `paper_images`, keyed by `(paper_id, filename)` — see `0012`.
 
+`src/extract/` is the reader uploads go through: one `PaperExtractor` for every
+subject, which reads page-layout papers itself and hands documented-format
+papers and answer files to `src/latex/`. Same contract, same rules. See
+`docs/paper-extractor.md`. `src/latex/layout.ts` is the reader it replaced.
+
 ## Schema overview
 
 | Table                          | Purpose                                        | Notable choices                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -113,6 +118,8 @@ backend/
     latex/                -- the .tex -> JSON parser. NO dependencies, NO node:
                              imports, so it also runs in a Deno Edge Function.
                              types.ts is the JSON contract lib/render/ reads.
+    extract/              -- the paper extractor parse-paper runs (edge.ts is its
+                             bundle entry). Same limits as latex/.
     types/database.ts    -- generated; run `npm run gen:types` after any schema change
     client.ts             -- createSupabaseClient() (anon) / createServiceRoleClient() (admin scripts only)
     db.ts                  -- SchoolWitsDB class — the DB.* API surface, typed (Node-only, see above)

@@ -1,5 +1,8 @@
 # The paper extractor
 
+**In use** since 26 Nov 2026: `parse-paper` reads uploads with it. Results and
+limits: `extractor-handoff/RESULTS.md` and section 8 of `how-it-works.md`.
+
 One system reads every paper of every subject. It replaces the
 command-by-command reader in `backend/src/latex/layout.ts`, whose hand-written
 command list broke on each new batch of papers.

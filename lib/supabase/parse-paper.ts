@@ -13,6 +13,10 @@ import type { QuestionContent } from "./mappers";
 
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/parse-paper`;
 
+// `npm run dev:new-parser` points the preview at the new extractor running on
+// this machine (backend: npm run parse-server). Unset everywhere else.
+const LOCAL_PARSER = process.env.NEXT_PUBLIC_LOCAL_PARSER;
+
 export type ParsedPaper = {
   paperId: string;
   subjectCode: string;
@@ -50,6 +54,8 @@ export type ParseRequest = {
 /** Carries the admin's own token, never the anon key: the function checks
     is_admin() with it and writes as that user, so RLS authorises the insert. */
 export async function parsePaper(body: ParseRequest): Promise<ParseResult> {
+  if (LOCAL_PARSER) return parseLocally(LOCAL_PARSER, body);
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -106,4 +112,23 @@ export async function uploadFigures(
     urls[name] = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
   }
   return urls;
+}
+
+/** Preview only. Saving here would store what the hosted parser reads, not
+    what was previewed, so it is refused. No token is sent. */
+async function parseLocally(url: string, body: ParseRequest): Promise<ParseResult> {
+  if (body.commit) throw new Error("Preview only: the new parser cannot save to the bank yet.");
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(`The local parser at ${url} is not running. Start it with: npm run parse-server (in backend/).`);
+  }
+  const payload = await res.json();
+  if (!res.ok) throw new Error(payload.error || `Local parser failed (${res.status}).`);
+  return payload;
 }

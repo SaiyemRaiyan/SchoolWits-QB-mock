@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:new-parser": "NEXT_PUBLIC_LOCAL_PARSER=http://localhost:8787 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

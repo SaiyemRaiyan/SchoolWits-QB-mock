@@ -7,7 +7,7 @@
  */
 
 import { readGroup, readOptional } from '../latex/scan.js';
-import { dropComments } from './macros.js';
+import { dropComments, type MacroTable } from './macros.js';
 
 export type Role =
   | 'line' // a paragraph, or the first line of one
@@ -70,8 +70,25 @@ export type Token = Element | { name: 'text'; raw: string };
 
 export const isElement = (t: Token): t is Element => t.name !== 'text';
 
+/**
+ * The role of an element as this file defines it. A file whose definition
+ * takes a different number of arguments still means the same element: the
+ * extra (or missing) ones are measurements, and the text stays the last.
+ */
+export function specOf(name: string, macros?: MacroTable): RoleSpec | null {
+  if (!Object.hasOwn(ROLES, name)) return null;
+  const spec = ROLES[name];
+  const own = macros?.get(name);
+  if (!own || spec.role === 'total' || spec.role === 'page' || spec.role === 'skip') return spec;
+  // \newcommand's count includes a leading optional argument.
+  const args = own.args - (own.optional !== null ? 1 : 0);
+  if (args === spec.args || args < 1) return spec;
+  const last = (i: number | undefined) => (i === undefined ? undefined : i === spec.args - 1 ? args - 1 : Math.min(i, args - 1));
+  return { ...spec, args, text: last(spec.text), x: last(spec.x), label: last(spec.label) };
+}
+
 /** Cut a question body into its elements, keeping loose text between them. */
-export function tokenize(body: string): Token[] {
+export function tokenize(body: string, macros?: MacroTable): Token[] {
   const src = dropComments(body);
   const out: Token[] = [];
   let text = '';
@@ -82,7 +99,7 @@ export function tokenize(body: string): Token[] {
   let i = 0;
   while (i < src.length) {
     const m = src[i] === '\\' ? /^\\([a-zA-Z]+)/.exec(src.slice(i, i + 24)) : null;
-    const spec = m && Object.hasOwn(ROLES, m[1]) ? ROLES[m[1]] : null;
+    const spec = m ? specOf(m[1], macros) : null;
     const read = m && spec ? readArgs(src, i + m[0].length, spec) : null;
     if (m && spec && read) {
       flush();

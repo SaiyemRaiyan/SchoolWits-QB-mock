@@ -244,7 +244,8 @@ class Setter {
     if (this.take(/\\ifdim(?![a-zA-Z@])/)) this.conditional('ifdim');
     if (this.take(/\\dimexpr(?![a-zA-Z@])/)) {
       const v = this.sum();
-      this.take(/\s*\\relax(?![a-zA-Z@])\s?/);
+      // After a command word TeX skips every blank, a line end included.
+      this.take(/\s*\\relax(?![a-zA-Z@])[ \t]*\n?[ \t]*/);
       return v;
     }
     return this.factor();
@@ -472,6 +473,8 @@ class Setter {
 
   private named(name: string): void {
     if (this.steps.left-- <= 0) {
+      // A definition that never ends: what is left of the line is not set.
+      if (this.steps.left === -1) this.problems.push({ reason: 'unknown-command', detail: `\\${name} expands without end` });
       this.at = this.input.length;
       return;
     }
@@ -778,10 +781,17 @@ class Setter {
       }
       for (let i = 0; i < wanted; i++) args.push(this.argument());
     }
-    const body = macro.body.replace(/#(\d)/g, (_, n: string) => args[Number(n) - 1] ?? '');
+    // TeX reads the body into commands before it puts the arguments in, so
+    // "\\ignorespaces#2" with "the" stays a command and a word.
+    const body = macro.body.replace(/(\\[a-zA-Z@]+)?#(\d)/g, (_, before: string | undefined, n: string) => {
+      const arg = args[Number(n) - 1] ?? '';
+      return before ? `${before}${/^[a-zA-Z@]/.test(arg) ? ' ' : ''}${arg}` : arg;
+    });
     // Put back on the input, not run apart: a body may end in a command
     // whose argument is what follows the call.
-    this.input = body + this.input.slice(this.at);
+    const rest = this.input.slice(this.at);
+    // A body that ends in a command word must not run into a word after the call.
+    this.input = body + (/\\[a-zA-Z@]+$/.test(body) && /^[a-zA-Z@]/.test(rest) ? ' ' : '') + rest;
     this.at = 0;
   }
 

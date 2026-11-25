@@ -18,8 +18,8 @@ export class Fractions implements EquationReader {
       if (!beside) continue;
       const s = sizeOf(beside, line.size);
       const reach = (p: Piece) => gap(p, bar.y, line) < 0.65 * s;
-      const top = near.filter((p) => centre(p, line) > bar.y && reach(p));
-      const bottom = near.filter((p) => centre(p, line) < bar.y && reach(p));
+      const top = withScripts(near.filter((p) => centre(p, line) > bar.y && reach(p)), near, bar.y, true, line);
+      const bottom = withScripts(near.filter((p) => centre(p, line) < bar.y && reach(p)), near, bar.y, false, line);
       if (!top.length || !bottom.length) continue;
       if ([...top, ...bottom].some((p) => unresolved(p) || p.x < bar.x1 - 3 || right(p) > bar.x2 + 3)) continue;
 
@@ -44,6 +44,30 @@ export class Fractions implements EquationReader {
     }
     return null;
   }
+}
+
+/**
+ * What stands on the same line as a piece of the top (or bottom) belongs to
+ * it too: the index of V in V₁ can sit further from the bar than V does.
+ */
+function withScripts(group: Piece[], near: Piece[], y: number, above: boolean, line: Line): Piece[] {
+  const out = [...group];
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const p of near) {
+      if (out.includes(p) || p.kind === 'rule' || (centre(p, line) > y) !== above) continue;
+      const e = extent(p, line.size);
+      const touches = out.some((q) => {
+        const f = extent(q, line.size);
+        return e.top > f.bottom && e.bottom < f.top && (p.x - right(q) < 0.4 * line.size && q.x - right(p) < 0.4 * line.size);
+      });
+      if (touches) {
+        out.push(p);
+        grew = true;
+      }
+    }
+  }
+  return out;
 }
 
 const centre = (p: Piece, line: Line): number => {

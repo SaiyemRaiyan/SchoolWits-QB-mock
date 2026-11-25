@@ -49,13 +49,24 @@ export function flow(line: Line): Flow {
 function toRows(pieces: Piece[], base: number): { rows: Row[]; ambiguous: boolean } {
   const isSmall = (p: Piece) => sizeOf(p, base) < SMALL * base;
   const rows: Row[] = [];
-  for (const p of pieces.filter((q) => !isSmall(q)).sort((a, b) => b.y - a.y)) {
+  // A sign set larger than the text (a bullet) is lowered to centre it: it
+  // belongs to the line its middle stands in, not to where its foot is.
+  const isSign = (p: Piece) => p.kind === 'text' && !/[\p{L}\p{N}]/u.test(p.text) && p.size > 1.2 * base;
+  const anchors = pieces.filter((q) => !isSmall(q));
+  for (const p of anchors.filter((q) => !isSign(q)).sort((a, b) => b.y - a.y)) {
     const row = rows.find((r) => Math.abs(r.y - p.y) <= SAME_LINE * base);
     if (row) row.anchors.push(p);
     else rows.push({ y: p.y, anchors: [p], small: [] });
   }
   // The baseline of a line is where most of its text stands.
   for (const row of rows) row.y = commonY(row.anchors);
+  for (const p of anchors.filter(isSign)) {
+    const e = extent(p, base);
+    const mid = (e.top + e.bottom) / 2;
+    const row = rows.find((r) => mid > r.y - 0.22 * base && mid < r.y + 0.72 * base);
+    if (row) row.anchors.push(p);
+    else rows.push({ y: p.y, anchors: [p], small: [] });
+  }
 
   let ambiguous = false;
   for (const p of pieces.filter(isSmall)) {
@@ -131,6 +142,8 @@ interface Token {
   script?: 'sup' | 'sub';
   /** The end is only an estimate: typed maths has been set since. */
   loose?: boolean;
+  /** One of a stacked pair of scripts in front of a symbol, as in a nuclide. */
+  leads?: boolean;
 }
 
 function rowTex(row: Row, base: number): string {
@@ -166,6 +179,14 @@ function rowTex(row: Row, base: number): string {
     const inner = flow({ pieces: group, size: baseSize(group, base) }).tex;
     tokens.push({ x: p.x, end: Math.max(...group.map(right)), script, text: inner, loose });
   }
+  // Two scripts stacked one over the other end where the wider one ends.
+  tokens.forEach((t, i) => {
+    const n = tokens[i + 1];
+    if (t.script && n?.script && n.script !== t.script && n.x < t.end && t.x < n.end) {
+      t.end = n.end = Math.max(t.end, n.end);
+      t.leads = n.leads = true;
+    }
+  });
   return write(tokens, base);
 }
 
@@ -193,7 +214,7 @@ function write(tokens: Token[], base: number): string {
 
   tokens.forEach((token, i) => {
     const prev = tokens[i - 1];
-    if (prev && needsSpace(prev, token, base)) run += ' ';
+    if (prev && needsSpace(prev, token, base, tokens[i + 1])) run += ' ';
     if (token.script) {
       const host = prev?.tex === 'composite' && prev.math !== undefined;
       const inner = token.text ?? '';
@@ -224,16 +245,24 @@ function write(tokens: Token[], base: number): string {
   return out;
 }
 
-function needsSpace(prev: Token, token: Token, base: number): boolean {
+function needsSpace(prev: Token, token: Token, base: number, next?: Token): boolean {
   const before = prev.text ?? '';
   const after = token.text ?? '';
   if (/\s$/.test(before) || /^\s/.test(after)) return false;
+  // A script belongs to what it follows, however far the paper set it; but a
+  // pair stacked one over the other (a nuclide's mass and proton numbers)
+  // leads what comes after it, and keeps the word gap before it.
+  const stacked = token.script && next?.script && next.script !== token.script && next.x < token.end && token.x < next.end;
+  if (token.script && !stacked) return false;
+  // The symbol after a nuclide's numbers is set close to them, not a word away.
+  if (prev.leads && !token.script && token.x - prev.end < 0.25 * base) return false;
   const gap = token.x - prev.end;
-  if (!token.script && /^[,.;)\]]/.test(after) && gap < 0.6 * base) return false;
+  // Punctuation closes up to the word before it; a row of answer dots does not.
+  if (!token.script && /^(?:[,;)\]]|\.(?!\.))/.test(after) && gap < 0.6 * base) return false;
   if (!prev.script && /[([]$/.test(before) && gap < 0.4 * base) return false;
   // Typed maths is measured roughly: a word that seems to start inside it
   // stands after it.
-  if (prev.loose && gap < -0.02 && /^[\p{L}\p{N}=]/u.test(after)) return true;
+  if (prev.loose && gap < -0.02 && /^[\p{L}\p{N}=(]/u.test(after)) return true;
   return gap >= WORD_GAP * base;
 }
 

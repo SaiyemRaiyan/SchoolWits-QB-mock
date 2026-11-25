@@ -64,12 +64,15 @@ interface Para {
   figure?: boolean;
 }
 
+/** The inline commands this extractor writes, and inlineToHtml reads. */
+const WRITTEN = new Set(['textbf', 'textit', 'underline', 'textsuperscript', 'textsubscript', 'newline', 'qfig']);
+
 const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii'];
 const LABEL = /^\(([a-z]{1,4})\)$/;
 
 // Page furniture, with the paper's own letter-spacing already taken out.
 const FURNITURE =
-  /^\W*(?:BLANK PAGE|\[?Turn over\]?|Please turn over.*|Question \w+ (?:is printed|starts|begins|continues).*|(?:The )?question continues.*|Continue your (?:working|answer).*|Additional Page.*|Permission to reproduce.*|DO NOT WRITE IN THIS MARGIN)\W*$/i;
+  /^\W*(?:BLANK PAGE|\[?Turn over\]?|Please turn over.*|Question [\w()]+ (?:is printed|starts|begins|continues).*|(?:The )?question continues.*|Continue your (?:working|answer).*|Additional Page.*|Permission to reproduce.*|DO NOT WRITE IN THIS MARGIN)\W*$/i;
 const SECTION = /^\W*Section [A-D]\W*$/i;
 
 export class QuestionBuilder {
@@ -86,7 +89,6 @@ export class QuestionBuilder {
   private hasFigure = false;
   /** Where loose text after an element belongs. */
   private open: Para | null = null;
-  private lastY = 0;
   private choice: 0 | 1 | 2 = 0;
   /** Text after OR that the next label takes as its lead-in. */
   private lead: Para[] | null = null;
@@ -107,7 +109,7 @@ export class QuestionBuilder {
   }
 
   build(): QuestionRead {
-    for (const token of tokenize(this.source.body)) {
+    for (const token of tokenize(this.source.body, this.setting.macros)) {
       if (this.done) break;
       if (isElement(token)) this.element(token);
       else this.loose(token.raw);
@@ -150,13 +152,14 @@ export class QuestionBuilder {
       const { page, left, bottom, right: r, top } = p.clip;
       drawings.push(`\\qfig[page=${page},trim=${left}bp ${bottom}bp ${r}bp ${top}bp,clip]{source.pdf}{}`);
       const char = String.fromCharCode(0xe000 + drawings.length - 1);
-      return { kind: 'text', text: char, x: p.x, y: 0, width: p.width, size: line.size, bold: false, italic: false, underline: false };
+      // It stands on the line whose text it sits beside, not above or below it.
+      return { kind: 'text', text: char, x: p.x, y: lineOf(line, p), width: p.width, size: line.size, bold: false, italic: false, underline: false };
     });
     const reading = this.chain.read({ ...line, pieces });
     if (reading.ok) this.rebuilt ||= reading.rebuilt;
     else this.pass(reading.reason, reading.tex);
     const tex = this.rules.tidy(reading.tex);
-    return tex.replace(/[-]/g, (c) => drawings[c.charCodeAt(0) - 0xe000] ?? c);
+    return tex.replace(/[\uE000-\uF8FF]/g, (c) => drawings[c.charCodeAt(0) - 0xe000] ?? c);
   }
 
   /** A run of LaTeX as inline LaTeX, its own line breaks kept apart. */
@@ -175,15 +178,21 @@ export class QuestionBuilder {
   }
 
   private addMarks(n: number): void {
+    this.resume();
     const t = this.target();
     if (t) t.marks = (t.marks ?? 0) + n;
+    else this.ownMarks += n;
   }
+
+  /** Marks set against a question that has no parts. */
+  private ownMarks = 0;
 
   private draft(label: string, parentRef: string): Draft {
     return { label, ref: `${parentRef}(${label})`, paras: [], marks: null, lines: 0, value: null, subs: [], choice: this.choice };
   }
 
   private openLabel(label: string): void {
+    this.resume();
     const roman = ROMAN.includes(label);
     if (!this.part && roman) this.topRoman = true;
     // "(i)" is the ninth letter as well as the first numeral; it is a letter
@@ -210,10 +219,10 @@ export class QuestionBuilder {
     const text = tex.trim();
     if (!text) return;
     if (this.furniture(text)) return;
-    const list = this.lead ?? this.target()?.paras ?? this.stem;
+    const list = this.tail ?? this.lead ?? this.target()?.paras ?? this.stem;
     const prev = list[list.length - 1];
     const wraps =
-      prev !== undefined && prev === this.open && !prev.figure && gap > 0 && gap < 1.32 * this.setting.leading &&
+      prev !== undefined && prev === this.open && !prev.figure && !/^(?:\\textbf\{)?•/.test(text) && gap > 0 && gap < 1.32 * this.setting.leading &&
       Math.abs(prev.x - x) < 2 && prev.end + firstWord + this.setting.wordSpace > COLUMN.right - 18 && !/[.:?]$/.test(prev.tex);
     if (wraps) {
       prev.tex += ` ${text}`;
@@ -244,13 +253,24 @@ export class QuestionBuilder {
   }
 
   private dropUntilNumber = false;
+  /** What follows the last question once it is complete, until something shows it is still the question. */
+  private tail: Para[] | null = null;
+
+  private resume(): void {
+    if (this.tail === null) return;
+    const tail = this.tail;
+    this.tail = null;
+    (this.lead ?? this.target()?.paras ?? this.stem).push(...tail);
+  }
 
   /** Every mark (or every option) the question should have has been seen. */
   private complete(): boolean {
     if (this.choice === 1) return false;
     if (this.options.length >= 4) return true;
     const sum = this.parts.filter((d) => d.choice !== 2).reduce((n, d) => n + (marksOf(d) ?? 0), 0);
-    return this.parts.length ? sum >= this.source.marks : this.source.marks <= 1 && this.hasFigure && this.pageBreak;
+    if (this.parts.length) return sum >= this.source.marks;
+    if (this.source.marks > 0 && this.ownMarks >= this.source.marks) return true;
+    return this.source.marks <= 1 && this.hasFigure && this.pageBreak;
   }
 
   private takeMarks(tex: string): { tex: string; marks: number[] } {
@@ -293,7 +313,10 @@ export class QuestionBuilder {
   private alternative(text: string): boolean {
     const word = /^\\textbf\{(EITHER|OR)\}$/.exec(text.trim())?.[1];
     if (!word || (word === 'OR' && this.choice !== 1)) return false;
+    this.resume();
     this.choice = word === 'EITHER' ? 1 : 2;
+    // An alternative no label opened (EITHER inside a part) stays where it was read.
+    if (this.lead?.length) (this.target()?.paras ?? this.stem).push(...this.lead);
     this.lead = [];
     if (word === 'OR') {
       this.lead.push({ tex: '\\textbf{OR}', x: 0, end: 0 });
@@ -336,6 +359,10 @@ export class QuestionBuilder {
         return;
       case 'page':
         this.pageBreak = true;
+        // The last question, answered in full, ends with its page: what the
+        // paper prints after it (notes, data, the Periodic Table) is not its text.
+        // Held back, not dropped: a label or marks after it make it the question's after all.
+        if (this.source.last && this.tail === null && this.complete()) this.tail = [];
         this.open = null;
         return;
     }
@@ -346,7 +373,8 @@ export class QuestionBuilder {
     const text = this.inline(taken.tex);
     const open = this.open;
     if (text && open) {
-      open.tex += `${/\\newline$/.test(open.tex) ? '' : ' '}${text}`;
+      // Always a space: after \newline it ends the command word, elsewhere it is the word gap.
+      open.tex += ` ${text}`;
       open.end = this.endOf(taken.tex, open.x);
     } else if (text && !this.furniture(text)) this.addPara(text, COLUMN.body, COLUMN.body, 0, 0);
     taken.marks.forEach((n) => this.addMarks(n));
@@ -415,7 +443,6 @@ export class QuestionBuilder {
       gap = 0;
     }
     if (options) this.optionBlock(list.slice(first).flatMap((b) => b.pieces), letters, line);
-    this.lastY = y;
     taken.marks.forEach((n) => this.addMarks(n));
   }
 
@@ -457,6 +484,7 @@ export class QuestionBuilder {
   }
 
   private addOption(label: string, tex: string): void {
+    this.resume();
     this.options.push({ label, tex, para: null });
     this.open = null;
   }
@@ -464,6 +492,7 @@ export class QuestionBuilder {
   private option(el: Element): void {
     const label = this.set(el.args[1]).pieces.map((p) => (isText(p) ? p.text : '')).join('').trim();
     const para: Para = { tex: this.inline(el.args[2]), x: COLUMN.option, end: 0 };
+    this.resume();
     this.options.push({ label, tex: '', para });
     this.open = para;
   }
@@ -503,13 +532,25 @@ export class QuestionBuilder {
     const extra = el.optional ? `,${el.optional}` : '';
     const caption = el.args[2].trim() ? this.inline(el.args[2]) : '';
     const tex = `\\qfig[page=${el.args[0].trim()},trim=${trim},clip${extra}]{source.pdf}{${caption}}`;
-    (this.lead ?? this.target()?.paras ?? this.stem).push({ tex, x: 0, end: 0, figure: true });
+    (this.tail ?? this.lead ?? this.target()?.paras ?? this.stem).push({ tex, x: 0, end: 0, figure: true });
   }
 
   // ---- output ----------------------------------------------------------
 
+  /**
+   * Only the commands this extractor writes may reach the HTML step, which
+   * drops any other silently: one there means text was run together.
+   */
+  private ownCommands(tex: string): void {
+    const prose = tex.replace(/\$(?:\\[\s\S]|[^$\\])*\$/g, ' ');
+    for (const m of prose.matchAll(/\\([a-zA-Z]+)/g)) {
+      if (!WRITTEN.has(m[1])) this.pass('unknown-command', `\\${m[1]} left in the text: ${prose.slice(Math.max(0, m.index! - 30), m.index! + 30)}`);
+    }
+  }
+
   private blocks(paras: Para[]): Block[] {
     const kept = paras.filter((p) => p.figure || !/^[.…\s]*$/.test(p.tex.replace(/\\newline/g, '')));
+    for (const p of kept) if (!p.figure) this.ownCommands(p.tex);
     return toBlocks(kept.map((p) => p.tex.replace(/(?:\s*\\newline)+$/, '')).join('\n\n'), this.images);
   }
 
@@ -524,6 +565,12 @@ export class QuestionBuilder {
           : null;
     return { label: d.label, ref: d.ref, marks: marksOf(d), answerSpace, content: this.blocks(d.paras), subparts };
   }
+}
+
+/** The baseline of the text a picture stands among: the nearest one its height spans. */
+function lineOf(line: Line, p: Piece & { height: number }): number {
+  const ys = line.pieces.filter(isText).map((t) => t.y).filter((y) => y >= p.y - 1 && y <= p.y + p.height);
+  return ys.sort((a, b) => Math.abs(a - p.y) - Math.abs(b - p.y))[0] ?? p.y;
 }
 
 /** A grouping part has no marks of its own; they live on the subparts. */

@@ -45,3 +45,105 @@ These settle the open questions so writer and tester agree. `ParsedPaper` does n
   than the current reader", never a source of expected test values.
 - **katex** is not installed in backend/; Node finds the repo root's copy (0.19.0) from `backend/scripts`. Read the
   site macros from `lib/katex.ts` without editing it.
+
+## Extension points (writer, third session) — for the subclass test
+
+`backend/src/extract/paper-extractor.ts`:
+
+```ts
+export abstract class PaperExtractor implements Extractor {
+  abstract readonly subject: string;            // 'Physics' | 'Chemistry' | 'Mathematics' | 'Generic'
+  readonly paper: PaperMeta | null;             // set in the constructor, from the first \examq of the body
+  constructor(protected readonly source: PaperSource);
+  get code / paperNumber / variant / session / year: string | null;
+  get warnings(): readonly Warning[];  get passes(): readonly Pass[];   // of the last extract()
+  get rebuilt(): readonly number[];             // questions with a line rebuilt from position
+  extract(): ExtractedPaper;                    // the template; do not override
+  // steps, all protected, called inside extract() (never in the constructor):
+  protected document(): PaperDocument;                    // {preamble, body}; body after the LAST \begin{document}
+  protected isPositioned(doc: PaperDocument): boolean;   // false -> documented(): the old reader, passes []
+  protected documented(): ParsedPaper;
+  protected understand(preamble: string): Typesetter;   // MacroTable.fromPreamble + Typesetter
+  protected symbolReader(): SymbolReader;               // default new SymbolTable()
+  protected readers(): EquationReader[];                // [TypedMaths, SymbolPictures, Underline, Roots, Fractions];
+                                                        // add with [...super.readers(), new Mine()]
+  protected rules(): ReadingRules;                      // { pieces(line): Line; tidy(tex): string }, identity by default
+  protected chain(): EquationChain;                     // symbolReader() + readers() + TextAndScripts + PassOver (fixed tail)
+  protected readQuestion(source: QuestionSource, setting: Typesetter, chain: EquationChain, images: ImageMap): QuestionRead;
+  protected classify(drafts): Question[];               // MCQ or structured, over the whole paper
+  protected check(questions, drafts, passes, rebuilt): Warning[];
+  protected attachAnswers(paper: ParsedPaper): ParsedPaper;   // parseAnswerPaper + mergePaper when answers is non-empty
+}
+```
+Subclasses: `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor`, `GenericExtractor` (each only sets `subject` so far).
+`index.ts` exports `createExtractor`, `extractPaper`, `PaperExtractor`, the four subclasses, `SymbolTable`
+(`new SymbolTable(boxes?)`, `.read(glyph)`, `.find(glyph)`), `MacroTable`, `Typesetter`, `EquationChain`, `PassOver`,
+`UNREAD`, `splitPaper`, `paperOf`, and the types. Every pass also becomes one `unsupported-layout` warning per question
+(with `questionNumber`).
+
+## State (writer, third session)
+
+- Written: `paper-extractor.ts`, `physics.ts`, `chemistry.ts`, `maths.ts`, `generic.ts`, `index.ts`,
+  `scripts/check-papers.ts` (`npm run check-papers -- [--subject Phys|Chem|Maths] [--only 5054_s16_qp_21]
+  [--out DIR] [--baseline DIR] [--show <suspicion kind or pass reason>]`). Dump: one JSON per paper,
+  `{paper, number, kind, marks, lines[], passes[], suspicious[], rebuilt, baseline?}`; `lines` are "stem: ..",
+  "1(a)(i) [2]: ..", "A: .."; the same flattening is applied to the baseline. `_diff-vs-baseline.txt` per subject
+  compares ignoring quote style and whitespace. KaTeX is checked on question text (`katex`) and on answers
+  (`katex-answer`) with the MACROS read as text from lib/katex.ts.
+- Fixed in roles/questions: element arity read from the file's own \newcommand (text stays the last argument;
+  \qfig's [7][] counts its optional); text after `\newline` lost its first word (`\newlinewidth`); EITHER text
+  inside a part lost when OR came; bullets merged into the line above; "Question 11(c) is printed..." not
+  furniture; data pages after the last question (held back in a `tail`, kept only if a label, marks or option
+  follows); marks of a question without parts were dropped (`ownMarks`).
+- Fixed in the typesetter/equations: `\ignorespaces#2` and a body ending in a command word ran into the next word
+  (`\ignorespacesthe`, unknown command, words lost); the blank after `\relax` closing a \dimexpr printed a space
+  (\ruleat 2.9bp off); a macro that expands without end now passes; to-math wrote `\;` as `;`; a space was put
+  before a script ("I 2R"); a fraction now takes the index of a letter in its top/bottom (V_1 was outside);
+  a bullet set large and lowered joins the line its middle is on; a bar under words left unread passes as
+  `lost-underline`.
+- Physics vs baseline: 38 questions differ; all are equal or better (Section B / pages after \total no longer
+  appended, EITHER/OR as decided, sin 41° as \sin) EXCEPT `R = V/I` where the I is `\swf{ptm}{12.08}{I}` (upright
+  Times in the LaTeX): we give `\dfrac{V}{\mathrm{I}}`, the old reader forced it italic. Not yet checked on the PDF.
+- Known wrong, not flagged: nuclides from \nuc / small print (`157N` for 15/7 N), both readers.
+- Test notes for the tester: text.test "a label with kerns between its brackets and its letter" wants only 3(c)
+  though its fixture prints `\lab{..}{(d)}` too (test mistake?); extractor.test "a picture of a size no table
+  knows" uses a 25x22bp picture, which `isDrawing` (>=18x14) takes as a drawing set in the line (a figure).
+
+### Later in the third session
+- Underlines: a run of words under which a bar starts or ends is cut into words (AFM widths scaled to the run,
+  cut only if it lands within 1.5bp of a word edge); "something under the bar" now means touching it (top within
+  0.25em), not the next line of text. 5054 S17 11 Q2: 3 of 4 underlines read, the line passes `lost-underline`.
+- No space between typed maths and a "(" that the rough maths width puts inside it.
+- check-papers furniture check: only real furniture (BLANK PAGE, "The Periodic Table of Elements", "Turn over",
+  a lone "Section B", "is printed on the next page", "Notes for use in", rubrics), not mentions.
+
+### check-papers, end of third session (clean / rebuilt / passed / suspicious; questions)
+- Physics 865: 841 / 23 / 1 (lost-underline) / 206 (all mcq-figure, same 206 as the baseline). 38 differ from
+  baseline, all equal or better except V/\mathrm{I} (see above).
+- Chemistry 1697: 1616 / 78 / 3 (1 unknown-symbol, 2 lost-underline) / 352 (344 mcq-figure = baseline, 2 mcq-not-4,
+  6 marks). 471 differ from baseline; sampled: Cl/I/II/KI pictures now read, Section headings and "A1" labels gone,
+  bullets read. Not yet reviewed in full.
+- Add Maths 946: 390 / 91 / 465 (423 unknown-symbol, 68 unknown-shape, ...) / 6 (katex-answer). Not reviewed.
+- 0 crashes, 0 leaked lengths or commands, 0 KaTeX failures in question text.
+
+## Next (writer)
+1. Chemistry review of `_diff-vs-baseline.txt` (step 5): C8H18/photosynthesis index order (2 tests), two-column
+   lines, the 6 marks mismatches, 2 MCQs without 4 options.
+2. Nuclides from \nuc / small print as ${}^{15}_{7}\mathrm{N}$ (Physics and Chemistry).
+3. Add Maths readers in MathsExtractor.readers(): modulus posts (4 tests), brackets, matrices; the 37x empty
+   `unknown-shape` passes.
+4. Decide with the coordinator whether \swf{ptm}{..}{I} (upright serif I) is italic on the page.
+
+### Last changes (third session, after review)
+- check-papers baseline compare now collapses whitespace instead of deleting it, and counts "only in spacing"
+  separately; it also counts questions without an attached answer (0 in all three subjects).
+- Scripts: no space before a script EXCEPT the first of a stacked pair (nuclide numbers); no word space between
+  a stacked pair and the symbol after it (gap < 0.25em); answer dots keep their space after "=".
+- QuestionBuilder passes `unknown-command` on any command left in a paragraph other than the ones it writes
+  (textbf, textit, underline, textsuperscript, textsubscript, newline, qfig): inlineToHtml drops unknown ones
+  silently. 0 found over 221 papers.
+- `QuestionDraft` (the argument of classify/check) is exported.
+- Physics vs baseline now 41 differ (3 only in spacing: "I t" -> "It", "23793 Np" -> "23793Np", "$\dfrac{m}{V}$ ." ->
+  "...$."), all reviewed: equal or better except V/\mathrm{I}.
+- round1 -> final, text removed from last questions was checked: only furniture (Chemistry paper 4 notes pages,
+  "Question 12(b) is printed on the next page", "Continuation of working space").

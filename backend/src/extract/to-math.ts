@@ -66,7 +66,8 @@ export function toMath(tex: string, italic = false): string | null {
       i++;
     } else if (ch === ' ') {
       // Between words a space is printed; between signs KaTeX sets its own.
-      out += /[A-Za-z},.]$/.test(out) && /^ [A-Za-z\\(]/.test(tex.slice(i)) ? '\;' : ' ';
+      // (A script attaches to what it follows: no space before it.)
+      out += /[A-Za-z},.]$/.test(out) && /^ (?:[A-Za-z(]|\\(?!text(?:super|sub)script\{))/.test(tex.slice(i)) ? '\\;' : ' ';
       i++;
     } else {
       const sign = SIGNS[ch] ?? (GREEK[ch] ? `\\${GREEK[ch]} ` : null);

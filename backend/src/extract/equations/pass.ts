@@ -1,7 +1,7 @@
 import { flow } from '../flow.js';
 import { isDrawing } from './symbol.js';
-import { asBar, unresolved } from './geometry.js';
-import type { EquationReader, Line, PassReason, ReadContext, Reading, TextPiece } from '../types.js';
+import { asBar, extent, right, unresolved } from './geometry.js';
+import type { EquationReader, Line, PassReason, Piece, ReadContext, Reading, TextPiece } from '../types.js';
 
 /** Stands where something was printed that could not be read. */
 export const UNREAD = '□';
@@ -29,9 +29,28 @@ export class PassOver implements EquationReader {
       return { ok: false, reason: 'unknown-symbol', tex: rest.tex };
     }
     const left = line.pieces.filter(unresolved);
-    const reason: PassReason = !left.length ? 'ambiguous-layout' : left.every(asBar) ? 'ambiguous-layout' : 'unknown-shape';
+    const reason: PassReason = !left.length
+      ? 'ambiguous-layout'
+      : left.every((p) => underWords(line, p))
+        ? 'lost-underline'
+        : left.every(asBar)
+          ? 'ambiguous-layout'
+          : 'unknown-shape';
     return { ok: false, reason, tex: flow(line).tex };
   }
+}
+
+/** A bar just below the baseline of words it runs under, with nothing under it: an underline. */
+function underWords(line: Line, p: Piece): boolean {
+  const bar = asBar(p);
+  if (!bar) return false;
+  const over = line.pieces.filter(
+    (t): t is TextPiece => t.kind === 'text' && t.y - bar.y > 0.4 && t.y - bar.y < 0.3 * t.size && right(t) > bar.x1 && t.x < bar.x2,
+  );
+  const under = line.pieces.some(
+    (q) => q !== p && q.y < bar.y && extent(q, line.size).top > bar.y - 0.25 * line.size && q.x < bar.x2 && right(q) > bar.x1,
+  );
+  return over.length > 0 && !under;
 }
 
 function nearestBaseline(line: Line, x: number, from: number, to: number): number {

@@ -33,7 +33,7 @@ export { inlineToHtml } from './inline.js';
 export { toBlocks, resolveImage } from './content.js';
 export { clipKey, findSourcePdf, parseClipOptions } from './clip.js';
 export type { FigureClip } from './clip.js';
-export { isBlocking } from './guard.js';
+export { isSerious } from './guard.js';
 export { flattenQuestion } from './flatten.js';
 
 /**

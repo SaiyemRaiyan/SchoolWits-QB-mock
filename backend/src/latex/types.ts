@@ -164,7 +164,7 @@ export type WarningCode =
   | 'missing-image'
   | 'mcq-options-unparseable'
   | 'topic-mismatch'
-  /** Blocking: the file is in another format and must not be saved. */
+  /** Serious, but does not stop a save: text or maths is probably wrong. */
   | 'unsupported-layout'
   | 'garbled-text'
   /** Not blocking: a layout line was rebuilt by position and wants a look. */

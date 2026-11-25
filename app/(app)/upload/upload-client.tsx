@@ -238,7 +238,7 @@ function UploadWorkspace() {
         <ol className="relative mt-6 grid gap-3 sm:grid-cols-3" aria-label="Progress">
           {[
             ["Add the files", Boolean(qp)],
-            ["Check the preview", Boolean(result?.paper) && !result?.blocked],
+            ["Check the preview", Boolean(result?.paper)],
             ["Save to the bank", Boolean(saved)],
           ].map(([label, done], i) => (
             <li
@@ -388,7 +388,7 @@ function UploadWorkspace() {
             <PaperMeta paper={result?.paper ?? null} subject={subject} onSubject={setSubject} />
           </Step>
 
-          {result && <WarningsList warnings={result.warnings} blocked={result.blocked} />}
+          {result && <WarningsList warnings={result.warnings} />}
 
           {result && (
             <Step number={3} title="Save to the bank" done={Boolean(saved)}>
@@ -397,7 +397,7 @@ function UploadWorkspace() {
                 {qa ? "" : " · no answers file yet"}
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={() => void save()} disabled={Boolean(status) || needsPdf || Boolean(result.blocked)}>
+                <Button onClick={() => void save()} disabled={Boolean(status) || needsPdf}>
                   {status === "Saving…" ? "Saving…" : "Save to bank"}
                 </Button>
                 {saved && (

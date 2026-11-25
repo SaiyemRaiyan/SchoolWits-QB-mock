@@ -24,7 +24,6 @@ import { createServiceRoleClient } from '../src/client.js';
 import { SchoolWitsDB, type PaperMeta, type QuestionRow } from '../src/db.js';
 import {
   flattenQuestion,
-  isBlocking,
   mergePaper,
   parseAnswerPaper,
   parseQuestionPaper,
@@ -153,12 +152,6 @@ async function importFolder(dir: string, dryRun: boolean): Promise<number> {
       (dryRun ? '   [dry run — nothing written]' : ''),
   );
   for (const w of parsed.warnings) console.log(`${' '.repeat(22)}! ${w.code}: ${w.message}`);
-
-  // Same rule as the Edge Function: a file the parser cannot read is not saved.
-  if (!dryRun && parsed.warnings.some(isBlocking)) {
-    console.log(`${' '.repeat(22)}NOT IMPORTED: fix the file format first.`);
-    return warn;
-  }
 
   if (db && paperId !== null) await db.addQuestions(meta, rows);
   return warn;

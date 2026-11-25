@@ -351,12 +351,10 @@ the distances. The result was text like
 `49.61 Find the value of k for which the curve 4.91bp y 3.14bp`. One such
 paper (`4037/11/M/J/16`) was uploaded and saved before anyone noticed.
 
-**What stops it now.** `guard.ts` checks every parse for two things: heavy
-use of the page-layout commands, and leftover lengths like `4.91bp` in the
-text. Either one adds a blocking warning. When a blocking warning is
-present, the Edge Function refuses to save, the terminal import script skips
-the paper, and the upload page shows "This file cannot be saved" with Save
-disabled.
+**What warns you now.** `guard.ts` checks every parse for maths drawn from
+symbols or paths, commands the parser does not know, and leftover lengths
+like `4.91bp` in the text. Any of them puts a red box on the upload page
+naming the questions. Nothing is refused: the admin decides whether to save.
 
 **What supporting the format would take.**
 
@@ -493,7 +491,7 @@ Two things that are easy to forget:
 | Question text has stray numbers or `bp` in it | A file in a format the parser does not know | section 8; `guard.ts` |
 | Figure shows as missing | The figure name in the `.tex` has no matching upload | upload the file, or check the name |
 | Mark scheme rows are on the wrong part | Part labels did not line up | `structure.ts`, `markscheme.ts`, and the conventions in `templates/README.md` |
-| "This file cannot be saved" | A blocking warning | the red box lists the reason |
+| "Check before saving: some of this will be wrong" | Drawn maths, unknown commands or leaked measurements | the red box names the questions |
 | Save or edit fails with a permission error | The user is not an admin, or the session expired | section 9 |
 | A parser fix works in tests but not on the site | The function was not redeployed | `npm run deploy:function` |
 | Login returns to the wrong site | The address is missing from Supabase's allowed redirect URLs | Supabase > Authentication > URL Configuration |
@@ -510,7 +508,7 @@ for text that should not be on a page.
 |---|---|---|
 | `\$` in prose | a literal dollar sign in its own `<span>` | A bare `$` shared a text node with the next one, and KaTeX read the pair as maths |
 | `\begin{itemize}[leftmargin=2em]` / `enumerate` | a real list; the option block is dropped | It used to print `itemize[leftmargin=...]` as text |
-| `tikzpicture`, `pgfpicture`, `picture` | nothing, plus a non-blocking `diagram-omitted` warning | A browser cannot draw them, and the code printed as text. Use a figure image or a PDF clip for anything that must show |
+| `tikzpicture`, `pgfpicture`, `picture` | nothing, plus a `diagram-omitted` warning | A browser cannot draw them, and the code printed as text. Use a figure image or a PDF clip for anything that must show |
 
 The filters on `/browse` cascade: Paper, Variant, Session and Year list only
 values that exist for the other choices (`scopeFacets` in

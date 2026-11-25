@@ -4,16 +4,18 @@
  * The parser drops commands it does not know and keeps their arguments. For
  * a file in the documented format that is harmless; for a file in another
  * format it turns every measurement into "text" and the result looks like a
- * successful parse. These checks name that situation so the upload can stop.
+ * successful parse. These checks name that situation so the admin sees it.
+ *
+ * They warn and never refuse: whether to save is the admin's decision.
  */
 
 import type { Block, Part, Question, Warning, WarningCode } from './types.js';
 
-/** Warnings that mean "do not save this", as opposed to "check this". */
-const BLOCKING: WarningCode[] = ['unsupported-layout', 'garbled-text'];
+/** Warnings that mean some text or maths is probably wrong. None stop a save. */
+const SERIOUS: WarningCode[] = ['unsupported-layout', 'garbled-text'];
 
-export function isBlocking(warning: Warning): boolean {
-  return BLOCKING.includes(warning.code);
+export function isSerious(warning: Warning): boolean {
+  return SERIOUS.includes(warning.code);
 }
 
 // The page-layout dialect: every element carries its measured position.
@@ -41,7 +43,7 @@ export function unreadableMaths(numbers: number[], unknown: string[]): Warning |
   ].filter(Boolean);
   return {
     code: 'unsupported-layout',
-    message: `This paper cannot be saved: ${why.join('; and ')}.`,
+    message: `Some of this paper will be wrong: ${why.join('; and ')}.`,
   };
 }
 
@@ -90,6 +92,6 @@ export function detectGarbledText(questions: Question[]): Warning | null {
     message:
       `${bad.length} question${bad.length === 1 ? '' : 's'} (${shown}${bad.length > 8 ? ', …' : ''}) ` +
       'contain layout measurements such as "4.91bp" where text should be. ' +
-      'The file is not in a format the parser understands, so it cannot be saved.',
+      'The file is not in a format the parser fully understands.',
   };
 }

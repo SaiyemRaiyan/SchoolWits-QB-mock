@@ -3,27 +3,31 @@ import { AlertTriangle, ShieldAlert } from "lucide-react";
 import type { ParseWarning } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
+// Same codes as backend/src/latex/guard.ts.
+const SERIOUS = ["unsupported-layout", "garbled-text"];
+
 /** Warnings are shown, never suppressed: a marks mismatch is far cheaper to
-    fix before saving than after. A blocked file looks different from a file
-    that merely wants checking, because the admin's next move is different. */
-export function WarningsList({ warnings, blocked }: { warnings: ParseWarning[]; blocked?: boolean }) {
+    fix before saving than after. Nothing here stops a save; a file whose text
+    or maths is probably wrong just looks different from one to glance over. */
+export function WarningsList({ warnings }: { warnings: ParseWarning[] }) {
   if (!warnings.length) return null;
-  const Icon = blocked ? ShieldAlert : AlertTriangle;
+  const serious = warnings.some((w) => SERIOUS.includes(w.code));
+  const Icon = serious ? ShieldAlert : AlertTriangle;
 
   return (
     <section
-      role={blocked ? "alert" : "status"}
+      role={serious ? "alert" : "status"}
       className={cn(
         "sw-sheet-in grid gap-3 rounded-2xl border-l-[6px] p-5 text-foreground shadow-[0_24px_50px_-26px_rgba(0,0,0,0.7)] ring-1",
-        blocked
+        serious
           ? "border-[var(--sw-marker)] bg-[#FBEBE8] ring-[var(--sw-marker)]/20"
           : "border-[var(--sw-brass)] bg-[var(--sw-sol-tint)] ring-[var(--sw-brass)]/20",
       )}
     >
       <h2 className="flex items-center gap-2 font-serif text-lg font-semibold">
-        <Icon className={cn("size-5", blocked ? "text-[var(--sw-marker)]" : "text-[var(--sw-brass-dark)]")} />
-        {blocked
-          ? "This file cannot be saved"
+        <Icon className={cn("size-5", serious ? "text-[var(--sw-marker)]" : "text-[var(--sw-brass-dark)]")} />
+        {serious
+          ? "Check before saving: some of this will be wrong"
           : `${warnings.length} thing${warnings.length === 1 ? "" : "s"} to check`}
       </h2>
       <ul className="grid max-h-64 gap-2 overflow-y-auto pr-1 text-sm">

@@ -806,9 +806,9 @@ function parseOptions(body) {
 }
 
 // src/latex/guard.ts
-var BLOCKING = ["unsupported-layout", "garbled-text"];
-function isBlocking(warning) {
-  return BLOCKING.includes(warning.code);
+var SERIOUS = ["unsupported-layout", "garbled-text"];
+function isSerious(warning) {
+  return SERIOUS.includes(warning.code);
 }
 var LAYOUT_COMMAND = /\\(?:mcq|stem|choice|optrow|freerow|row|dotline|dotgrid|at|lab)\s*\{/g;
 var LAYOUT_THRESHOLD = 5;
@@ -824,7 +824,7 @@ function unreadableMaths(numbers, unknown) {
   ].filter(Boolean);
   return {
     code: "unsupported-layout",
-    message: `This paper cannot be saved: ${why.join("; and ")}.`
+    message: `Some of this paper will be wrong: ${why.join("; and ")}.`
   };
 }
 function positionedMaths(numbers) {
@@ -853,7 +853,7 @@ function detectGarbledText(questions) {
   const shown = bad.slice(0, 8).map((n) => `Q${n}`).join(", ");
   return {
     code: "garbled-text",
-    message: `${bad.length} question${bad.length === 1 ? "" : "s"} (${shown}${bad.length > 8 ? ", \u2026" : ""}) contain layout measurements such as "4.91bp" where text should be. The file is not in a format the parser understands, so it cannot be saved.`
+    message: `${bad.length} question${bad.length === 1 ? "" : "s"} (${shown}${bad.length > 8 ? ", \u2026" : ""}) contain layout measurements such as "4.91bp" where text should be. The file is not in a format the parser fully understands.`
   };
 }
 
@@ -986,22 +986,23 @@ var KNOWN_INLINE = /* @__PURE__ */ new Set([
   "mathrm"
 ]);
 function cleanInline(src, notes) {
-  let s = src;
+  const maths = [];
+  let s = src.replace(/\$(?:\\[\s\S]|[^\\$])*\$/g, (m) => `${maths.push(m) - 1}`);
   s = s.replace(
     /\\swclip\{([^{}]*)\}\{([^{}]*)\}/g,
     (_, page, trim) => `\\qfig[page=${page.trim()},trim=${trim.trim()},clip]{source.pdf}{}`
   );
   if (/\\(?:swglyph|swpath)\b/.test(s)) notes.unreadable = true;
   s = s.replace(/\\swglyph\{[^{}]*\}\{[^{}]*\}/g, "");
-  s = s.replace(/\\vadjust\{[^{}]*\}/g, "").replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, "").replace(/\\x?spaceskip=-?[\d.]+bp/g, "").replace(/\\hskip-?[\d.]+pt(?:\s*minus\s*[\d.]+bp)?/g, "").replace(/\\(?:relax|nobreak|strut|ignorespaces|unskip|hfill)\b ?/g, "").replace(/\\linebreak\b/g, " ").replace(/\\kern(-?[\d.]+)(?:bp|pt) ?/g, (_, n) => Number(n) >= 2 ? " " : "").replace(/\\raisebox\{[^{}]*\}(?:\[[^\]]*\])*/g, "").replace(/\\(?:makebox|rlap|llap)(?:\[[^\]]*\])*/g, "").replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t) => t === "I" ? "\\textit{I}" : t).replace(/\\vI\b/g, "\\textit{I}").replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}\\selectfont\s*/g, "").replace(/\{\\itshape\s*/g, "\\textit{").replace(/\{\\bfseries\s*/g, "\\textbf{").replace(/\\(?:stack(?:\[[^\]]*\])?|nuc)\{([^{}]*)\}\{([^{}]*)\}/g, "\\textsuperscript{$1}\\textsubscript{$2}").replace(/\\sub\{/g, "\\textsubscript{").replace(/\\swsy\{([0-9A-Fa-f]+)\}/g, (_, hex) => {
+  s = s.replace(/\\(?:begingroup|endgroup|null)(?![a-zA-Z])\s*/g, "").replace(/\\vadjust\{[^{}]*\}/g, "").replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, "").replace(/\\x?spaceskip=-?[\d.]+bp/g, "").replace(/\\hskip-?[\d.]+pt(?:\s*minus\s*[\d.]+bp)?/g, "").replace(/\\(?:relax|nobreak|strut|ignorespaces|unskip|hfill)\b ?/g, "").replace(/\\linebreak\b/g, " ").replace(/\\kern(-?[\d.]+)(?:bp|pt) ?/g, (_, n) => Number(n) >= 2 ? " " : "").replace(/\\raisebox\{[^{}]*\}(?:\[[^\]]*\])*/g, "").replace(/\\(?:makebox|rlap|llap)(?:\[[^\]]*\])*/g, "").replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t) => t === "I" ? "\\textit{I}" : t).replace(/\\vI\b/g, "\\textit{I}").replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}\\selectfont\s*/g, "").replace(/\{\\itshape\s*/g, "\\textit{").replace(/\{\\bfseries\s*/g, "\\textbf{").replace(/\\(?:stack(?:\[[^\]]*\])?|nuc)\{([^{}]*)\}\{([^{}]*)\}/g, "\\textsuperscript{$1}\\textsubscript{$2}").replace(/\\sub\{/g, "\\textsubscript{").replace(/\\swsy\{([0-9A-Fa-f]+)\}/g, (_, hex) => {
     const symbol = SYMBOL[hex.toUpperCase()];
     if (!symbol) notes.unknown.add(`swsy{${hex}}`);
     return symbol ?? "";
-  }).replace(/\\x(?![a-zA-Z])/g, "\xD7").replace(/\\textendash(?:\{\})?/g, "\u2013").replace(/\\textminus(?:\{\})?/g, "\u2212").replace(/\\textdegree(?:\{\})?/g, "\xB0").replace(/\\swbul\b/g, "\u2022");
+  }).replace(/\\x(?![a-zA-Z])/g, "\xD7").replace(/\\textendash(?:\{\})?/g, "\u2013").replace(/\\textminus(?:\{\})?/g, "\u2212").replace(/\\textdegree(?:\{\})?/g, "\xB0").replace(/\\(?:swbul|textbullet)\b/g, "\u2022").replace(/\\texttimes\b/g, "\xD7").replace(/\\textdiv\b/g, "\xF7").replace(/\\pounds\b/g, "\xA3");
   for (const m of s.matchAll(/\\([a-zA-Z]+)/g)) {
     if (!KNOWN_INLINE.has(m[1])) notes.unknown.add(m[1]);
   }
-  return s.replace(/[ \t]{2,}/g, " ").trim();
+  return s.replace(/[ \t]{2,}/g, " ").trim().replace(/\u0002(\d+)\u0003/g, (_, i) => maths[Number(i)]);
 }
 function plain(raw) {
   return raw.replace(/\\kern-?[\d.]+bp ?/g, "").replace(/\\[a-zA-Z]+/g, "").replace(/[{}\s]/g, "");
@@ -1604,7 +1605,7 @@ export {
   findSourcePdf,
   flattenQuestion,
   inlineToHtml,
-  isBlocking,
+  isSerious,
   mergePaper,
   parseAnsbox,
   parseAnswerPaper,

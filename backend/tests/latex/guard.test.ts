@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { isBlocking, parseQuestionPaper } from '../../src/latex/index.js';
+import { isSerious, parseQuestionPaper } from '../../src/latex/index.js';
 
 const PAPERS = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'Updated Latex FIles For Web');
 
@@ -25,7 +25,7 @@ A car of mass 900\,kg accelerates at $2.5\,\mathrm{m/s^2}$. \qfig[0.4\linewidth]
 \end{document}`;
 
 describe('the garbage guard', () => {
-  it('blocks a layout file whose maths is drawn from symbol images', () => {
+  it('flags a layout file whose maths is drawn from symbol images', () => {
     const tex = String.raw`\begin{document}
 \examq{4037/12/M/J/16}{1}{Sets}{2}
 \row{26.0}{94.97}{Use set notation to complete the two statements below.}
@@ -38,23 +38,23 @@ describe('the garbage guard', () => {
 \row{26.0}{94.97}{More text.}
 \end{document}`;
     const { warnings } = parseQuestionPaper(tex);
-    const blocking = warnings.filter(isBlocking);
-    expect(blocking.map((w) => w.code)).toEqual(['unsupported-layout']);
-    expect(blocking[0].message).toContain('Q1');
+    const serious = warnings.filter(isSerious);
+    expect(serious.map((w) => w.code)).toEqual(['unsupported-layout']);
+    expect(serious[0].message).toContain('Q1');
   });
 
-  it('blocks text with leaked TeX lengths even without the known commands', () => {
+  it('flags text with leaked TeX lengths even without the known commands', () => {
     const tex = String.raw`\begin{document}
 \examq{4037/11/M/J/16}{1}{Quadratic Functions}{3}
 Find the value of k for which the curve\foo{4.91bp} y 3.14bp = 2x
 \end{document}`;
-    const blocking = parseQuestionPaper(tex).warnings.filter(isBlocking);
-    expect(blocking.map((w) => w.code)).toEqual(['garbled-text']);
-    expect(blocking[0].message).toContain('Q1');
+    const serious = parseQuestionPaper(tex).warnings.filter(isSerious);
+    expect(serious.map((w) => w.code)).toEqual(['garbled-text']);
+    expect(serious[0].message).toContain('Q1');
   });
 
   it('lets the documented format through', () => {
-    expect(parseQuestionPaper(DOCUMENTED).warnings.some(isBlocking)).toBe(false);
+    expect(parseQuestionPaper(DOCUMENTED).warnings.some(isSerious)).toBe(false);
   });
 
   it('does not mistake a length inside maths for leaked text', () => {
@@ -62,7 +62,7 @@ Find the value of k for which the curve\foo{4.91bp} y 3.14bp = 2x
 \examq{4037/11/M/J/25}{1}{Algebra}{1}
 Evaluate $\hspace{2bp} x + 1$.
 \end{document}`;
-    expect(parseQuestionPaper(tex).warnings.some(isBlocking)).toBe(false);
+    expect(parseQuestionPaper(tex).warnings.some(isSerious)).toBe(false);
   });
 
   it('passes every question paper already in the bank', () => {
@@ -73,7 +73,7 @@ Evaluate $\hspace{2bp} x + 1$.
     for (const folder of folders) {
       const qp = readdirSync(join(PAPERS, folder)).find((f) => /QP.*\.tex$/i.test(f));
       const { warnings } = parseQuestionPaper(readFileSync(join(PAPERS, folder, qp!), 'utf8'));
-      expect(warnings.filter(isBlocking), folder).toEqual([]);
+      expect(warnings.filter(isSerious), folder).toEqual([]);
     }
   });
 });

@@ -22,6 +22,7 @@ import type { ImageMap, Options, PaperMeta, ParsedPaper, Question, Warning } fro
 import { hideMathBreaks, restoreMathBreaks } from './answers.js';
 import { Brackets } from './equations/brackets.js';
 import { EquationChain } from './equations/chain.js';
+import { Integrals } from './equations/integral.js';
 import { Fractions } from './equations/fraction.js';
 import { Modulus } from './equations/modulus.js';
 import { PassOver } from './equations/pass.js';
@@ -192,7 +193,7 @@ export abstract class PaperExtractor implements Extractor {
    * the pass, always follow: a reader added here sees every line first.
    */
   protected readers(): EquationReader[] {
-    return [new TypedMaths(), new SymbolPictures(), new Underline(), new Modulus(), new Roots(), new Fractions(), new Brackets()];
+    return [new TypedMaths(), new SymbolPictures(), new Underline(), new Modulus(), new Roots(), new Fractions(), new Integrals(), new Brackets()];
   }
 
   /** What a subject changes about a line before it is read (pieces) and after (tidy). */

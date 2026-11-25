@@ -496,3 +496,17 @@ to {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}}}.
     expect(paper.warnings.filter((w) => w.code === 'marks-mismatch' && w.questionNumber === 1)).toEqual([]);
   });
 });
+
+const notItalic = (html: string, letter: string) =>
+  expect(html, `the page prints an upright ${letter}`).not.toMatch(new RegExp(`<(em|i)>${letter}</(em|i)>|\\\\(mathit|textit)\\{${letter}\\}`));
+
+describe('physics: an element symbol after a nuclide is upright (round 4)', () => {
+  it('iodine-125', () => {
+    // 5054/21/M/J/17 Q8(c), page 10 (300 dpi): "When a nucleus of ¹²⁵₅₃I decays, ..." with an upright serif I.
+    const paper = paperOf(PHYSICS, String.raw`\examq{5054/21/M/J/17}{8}{Radioactivity \textperiodcentered\ The Nuclear Atom}{1}
+\row{26.0}{95.0}{\lab{22.7}{\textbf{(c)}}When a nucleus of\kern3.18bp ${'$'}{}^{125}_{53}$\makebox[4.63bp][c]{\swf{ptm}{12.08}{I}} decays, only a gamma ray is emitted.}`);
+    const c = part(question(paper, 8), 'c');
+    correct(paper, 8, content(c), 'When a nucleus of $^{125}_{53}$I decays, only a gamma ray is emitted.');
+    notItalic(c.content.map((x) => (x.type === 'figure' ? '' : x.html)).join(' '), 'I');
+  });
+});

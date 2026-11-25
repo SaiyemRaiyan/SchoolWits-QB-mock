@@ -130,3 +130,28 @@ export function isRoundBracket(glyph: GlyphPiece): boolean {
       widths.some((w) => glyph.width - w >= -CLOSE && glyph.width - w <= PAGE_SLACK),
   );
 }
+
+/**
+ * The integral sign's boxes. No picture of either size in the papers is
+ * anything else, and no other box is within reach (4037, 54 pictures).
+ */
+const INTEGRAL_BOXES: [number, number][] = [[21.68, 7.76], [24.08, 8.72]];
+
+export function isIntegral(glyph: GlyphPiece): boolean {
+  return INTEGRAL_BOXES.some(
+    ([height, width]) => Math.abs(glyph.height - height) <= CLOSE + 0.02 && glyph.width - width >= -CLOSE && glyph.width - width <= PAGE_SLACK,
+  );
+}
+
+/**
+ * Pieces of a tall round bracket (the hook and its straight run, either side),
+ * which the papers draw with the rest of the bracket at the same place. Every
+ * picture of these sizes was one (4037, 120 pictures).
+ */
+const BRACKET_PIECE_BOXES: [number, number][] = [[29.84, 3.68], [30.08, 3.68], [33.2, 3.68]];
+
+export function isRoundBracketPiece(glyph: GlyphPiece): boolean {
+  return BRACKET_PIECE_BOXES.some(
+    ([height, width]) => Math.abs(glyph.height - height) <= CLOSE + 0.02 && glyph.width - width >= -CLOSE && glyph.width - width <= PAGE_SLACK,
+  );
+}

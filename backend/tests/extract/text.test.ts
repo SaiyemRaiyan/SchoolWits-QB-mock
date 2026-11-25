@@ -1249,3 +1249,175 @@ describe('text: options in a column inside a placed block (round 1)', () => {
     expect(everything({ ...q, options: null })).not.toMatch(/acceleration|density|volume/);
   });
 });
+
+describe('text: EITHER and OR, where the words and intros go (round 4)', () => {
+  it("each alternative's intro and figure open its first part, after the bold word", () => {
+    // 5054/21/M/J/16 Q9, pages 12 and 13 (coordinator decision, after round 1)
+    const paper = paperOf(PHYSICS, String.raw`\examq{5054/21/M/J/16}{9}{Uses of Oscilloscope \textperiodcentered\ Electric Circuits}{4}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{9 }}\textbf{EITHER}}
+\row{26.0}{72.3}{Fig. 9.1 shows a cathode-ra\kern-0.33bp y oscilloscope (c.r\kern-0.55bp .o\kern-0.44bp .). An alternating voltage supply is applied to the\linebreak}
+input and the trace produced is shown.
+\row{30.2}{319.8}{1 division}
+\qfig{12}{100.38bp 422.47bp 106.80bp 144.87bp}{}{2.5}{0}{100.38}
+\row{29.0}{278.9}{\textbf{Fig. 9.1}}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Use Fig. 9.1 to determine the maximum voltage of the supply\kern-1.10bp .}
+\dotgrid{352.32}{526.63}{3.0580}
+\dotline{78.0}{302.5}{voltage =}{[2]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Describe how the trace on the screen and the controls on the c.r\kern-0.55bp .o\kern-0.44bp . are used to measure the\linebreak}
+time between any two points on the trace.
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.6}
+\newpage
+\pagestart
+\row{0.6}{72.3}{\textbf{OR}}
+\row{26.0}{72.3}{The circuit diagram shown in Fig. 9.2 uses an LDR as the sensor in an automatic night light.}
+\qfig{13}{184.62bp 574.80bp 195.00bp 112.80bp}{}{13.6}{0}{184.62}
+\row{24.5}{278.9}{\textbf{Fig. 9.2}}
+\row{26.0}{72.3}{When it gets dark, the lamp turns on.}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}State the name of component A.}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[1]}{545.6}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Explain wh\kern-0.33bp y the lamp turns on when it gets dark.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.69}{3.0580}
+\dotline{26.0}{94.9}{}{[3]}{545.6}
+\newpage
+\pagestart
+\row{0.6}{272.2}{\textbf{Section B}}
+\qfig{14}{121.26bp 737.96bp 120.84bp 88.24bp}{}{15.0}{0}{121.26}`);
+    const q = question(paper, 9);
+    const text = (blocks: { type: string; html?: string }[]) => blocks.map((b) => (b.type === 'figure' ? '[FIG]' : b.html ?? '')).join(' | ');
+    expect(text(q.stem)).not.toMatch(/EITHER|cathode-ray|LDR/);
+    const first = text(q.parts[0].content), third = text(q.parts[2].content);
+    expect(first).toMatch(/^\s*(<[^>]+>)*EITHER/);
+    expect(first.indexOf('cathode-ray')).toBeLessThan(first.indexOf('[FIG]'));
+    expect(first.indexOf('[FIG]')).toBeLessThan(first.indexOf('maximum voltage'));
+    expect(third).toMatch(/^\s*(<[^>]+>)*OR\b/);
+    expect(third.indexOf('LDR as the sensor')).toBeLessThan(third.indexOf('[FIG]'));
+    expect(third.indexOf('[FIG]')).toBeLessThan(third.indexOf('component A'));
+  });
+
+  it('EITHER and OR inside one part with one mark keep that part whole', () => {
+    // 5054/21/M/J/19 Q8, pages 10 and 11: (a)(i) [2] (ii) [2]; (b) intro, Fig. 8.2/8.3, EITHER relay..., OR transistor...,
+    // one [2]; [Total: 6]
+    const paper = paperOf(PHYSICS, String.raw`\examq{5054/21/M/J/19}{8}{Electric Circuits \textperiodcentered\ Electro Magnetism / Electromagnetic Induction}{6}
+\row{0.3}{72.3}{\lab{22.7}{\textbf{8 }}Fig. 8.1 shows a circuit diagram containing a 2000\,$\Omega$ resistor of constant resistance and a\linebreak}
+thermistor\kern-0.60bp .
+\qfig{10}{189.66bp 587.99bp 197.94bp 100.94bp}{}{15.0}{0}{189.66}
+\row{25.9}{278.7}{\textbf{Fig. 8.1}}
+\partbreak
+\row{26.0}{117.6}{\lab{45.3}{\textbf{(a)}}\lab{21.7}{\textbf{(i) }}At one temperature, the resistance of the thermistor is 1200\,$\Omega$.}
+\row{26.0}{117.6}{Calculate the potential difference (p.d.) across the 2000\,$\Omega$ resistor at this temperature.}
+\dotgrid{352.18}{523.43}{3.0580}
+\dotline{106.5}{319.4}{p.d. =}{[2]}{545.7}
+\partbreak
+\row{26.0}{117.6}{\lab{24.7}{\textbf{(ii) }}Explain why the p.d. across the 2000\,$\Omega$ resistor increases when the temperature\linebreak}
+increases.
+\dotgrid{119.91}{541.91}{3.0580}
+\dotline{26.1}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.91}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.91}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{523.57}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.7}
+\newpage
+\pagestart
+\partbreak
+\row{0.3}{95.0}{\lab{22.7}{\textbf{(b)}}The circuit in Fig. 8.1 can be adapted to enable a lamp to switch on and off automatically\kern-0.80bp .}
+\row{26.0}{95.0}{Fig. 8.2 shows the circuit adapted using a relay and Fig. 8.3 shows the circuit adapted using\linebreak}
+a transistor\kern-0.60bp .
+\row{26.0}{95.0}{In both cases, the lamp switches on when the temperature of the thermistor increases.}
+\qfig{11}{72.66bp 504.66bp 71.58bp 151.87bp}{}{14.0}{0}{72.66}
+\row{20.6}{95.0}{\textbf{EITHER}}
+\row{26.0}{95.0}{Describe what happens inside the relay in Fig. 8.2 that causes the lamp to switch on.}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\row{39.0}{95.0}{\textbf{OR}}
+\row{26.0}{95.0}{Describe how the circuit and transistor in Fig. 8.3 cause the lamp to switch on.}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\dotgrid{95.45}{541.84}{3.0575}
+\dotline{26.0}{95.0}{}{}{544.9}
+\qmark{13.0}{[2]}
+\total{26.0}
+\newpage
+\pagestart
+\row{0.3}{272.3}{\textbf{Section B}}
+\qfig{12}{120.18bp 737.79bp 120.54bp 88.30bp}{}{15.4}{0}{120.18}`);
+    const q = question(paper, 8);
+    expect(q.marks).toBe(6);
+    expect(q.parts.map((p) => [p.label, p.marks])).toEqual([['a', 4], ['b', 2]]);
+    expect(part(q, 'a').subparts.map((p) => [p.label, p.marks])).toEqual([['i', 2], ['ii', 2]]);
+    expect(part(q, 'b').subparts).toEqual([]);
+    const b = canon(part(q, 'b').content.map((x) => (x.type === 'figure' ? '' : x.html)).join(' '));
+    const order = ['automatically', 'EITHER', 'inside the relay', 'OR', 'transistor in Fig. 8.3'].map((t) => b.indexOf(canon(t)));
+    expect(order.every((n) => n >= 0), `all printed: ${order}`).toBe(true);
+    expect([...order].sort((x, y) => x - y)).toEqual(order);
+    expect(everything(q)).not.toMatch(/Section B/);
+    expect(paper.warnings.filter((w) => w.code === 'marks-mismatch' && w.questionNumber === 8)).toEqual([]);
+  });
+});
+
+describe('text: working-space furniture in Add Maths (round 4)', () => {
+  it('"Continuation of working space for Question 9." is not question text', () => {
+    // 4037/12/M/J/23 Q9, page 12; page 13 prints only "Continuation of working space for Question 9."
+    const paper = paperOf(MATHS, String.raw`\examq{4037/12/M/J/23}{9}{Integration}{10}
+\row{0.0}{49.61}{\textbf{9}}
+\qfig{12}{31.98bp 473.68bp 37.38bp 76.65bp}{}{4.05}{0}{31.98}
+\partbreak
+\freerow{24.2}{%
+  \at{72.28}{-6.04}{The diagram shows part of the curve $y = 3+ \dfrac{4}{2x+1}$ and the straight line $3y = 2x+6$. Find the area of}%
+  \swdepth{14.59}}
+\row{23.03}{72.29}{the shaded region, giving your answer in exact form.\swmark{[10]}}
+\newpage
+\pagestart
+\row{0.0}{72.28}{Continuation of working space for Question 9.}`);
+    const q = question(paper, 9);
+    expect(everything(q)).not.toMatch(/Continuation|working space/);
+    expect(canon(everything(q))).toContain(canon('Find the area of the shaded region, giving your answer in exact form.'));
+    expect(q.marks).toBe(10);
+  });
+
+  it('"Question 12 is on the back page." is not question text', () => {
+    // 4037/11/M/J/26 Q11, page 15: the sentence is printed at the foot of the page, under Q11
+    const paper = paperOf(MATHS, String.raw`\examq{4037/11/M/J/26}{11}{Vectors in Two Dimensions}{8}
+\row{26.0}{72.32}{Use a vector method to find the values of $m$ and $n$.\swmark{[8]}}
+\freerow{585.61}{%
+  \at{218.92}{0.00}{\textbf{Question} \textbf{12} \textbf{is} \textbf{on} \textbf{the} \textbf{back} \textbf{page.}}}
+\newpage
+\pagestart`);
+    const q = question(paper, 11);
+    expect(everything(q)).not.toMatch(/back page|Question 12/);
+    expect(canon(everything(q))).toContain(canon('Use a vector method to find the values of $m$ and $n$.'));
+  });
+});

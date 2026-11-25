@@ -621,7 +621,7 @@ export class QuestionBuilder {
   }
 
   private blocks(paras: Para[]): Block[] {
-    const kept = paras.filter((p) => p.figure || !/^[.…\s]*$/.test(p.tex.replace(/\\newline/g, '')));
+    const kept = labelsToFigures(paras.filter((p) => p.figure || !/^[.…\s]*$/.test(p.tex.replace(/\\newline/g, ''))));
     for (const p of kept) if (!p.figure) this.ownCommands(p.tex);
     return toBlocks(kept.map((p) => p.tex.replace(/(?:\s*\\newline)+$/, '')).join('\n\n'), this.images);
   }
@@ -644,6 +644,36 @@ function lineOf(line: Line, p: Piece & { height: number }): number {
   const ys = line.pieces.filter(isText).map((t) => t.y).filter((y) => y >= p.y - 1 && y <= p.y + p.height);
   return ys.sort((a, b) => Math.abs(a - p.y) - Math.abs(b - p.y))[0] ?? p.y;
 }
+
+/**
+ * Words printed among a figure's lines (an axis title, "heat", "H O") are cut
+ * out of its picture and set as text. Short runs that stand between a figure
+ * and its caption ("Fig. 2.1", "Table 3.1") are the figure's labels: they go
+ * with the figure, not into the question's text.
+ */
+function labelsToFigures(paras: Para[]): Para[] {
+  const out: Para[] = [];
+  for (let i = 0; i < paras.length; i++) {
+    const p = paras[i];
+    out.push(p);
+    if (!p.figure) continue;
+    let j = i + 1;
+    while (j < paras.length && !paras[j].figure && isLabel(paras[j].tex)) j++;
+    if (j === i + 1 || j >= paras.length || paras[j].figure || !CAPTION.test(plainText(paras[j].tex))) continue;
+    const labels = paras.slice(i + 1, j).map((q) => q.tex.trim()).join('; ');
+    out[out.length - 1] = { ...p, tex: p.tex.replace(/\{\}$/, `{${labels}}`) };
+    i = j - 1;
+  }
+  return out;
+}
+
+const CAPTION = /^(?:Fig(?:ure)?\.?|Table)\s*\d/;
+const plainText = (tex: string) => tex.replace(/\\[a-zA-Z]+\{|\}/g, '').trim();
+/** A few words with no sentence in them. */
+const isLabel = (tex: string) => {
+  const t = plainText(tex);
+  return t.length > 0 && t.length <= 40 && !/[.?!:]$/.test(t) && !CAPTION.test(t) && !/^\(?[a-z]{1,3}\)\s/.test(t);
+};
 
 /** A grouping part has no marks of its own; they live on the subparts. */
 function marksOf(d: Draft): number | null {

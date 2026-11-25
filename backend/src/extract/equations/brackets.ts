@@ -1,4 +1,4 @@
-import { isRoundBracket } from '../symbols.js';
+import { isRoundBracket, isRoundBracketPiece } from '../symbols.js';
 import { toMath } from '../to-math.js';
 import { baseSize, extent, isComposite, isText, middle, right, unresolved, without, type Composite } from './geometry.js';
 import { rebuilt } from './fraction.js';
@@ -19,9 +19,12 @@ export class Brackets implements EquationReader {
   readonly name = 'brackets';
 
   read(line: Line, context: ReadContext): Reading | null {
-    const all = line.pieces.filter((p): p is GlyphPiece => p.kind === 'glyph' && isRoundBracket(p));
+    // One bracket drawn in parts, or twice, at one place: one bracket.
+    const whole = mergeParts(line);
+    if (whole !== line) return this.read(whole, context);
+    const all = line.pieces.filter((p): p is GlyphPiece => p.kind === 'glyph' && (isRoundBracket(p) || ASSEMBLED.has(p)));
     if (!all.length) return null;
-    const sides = sidesOf(line, all);
+    const sides = sidesOf(line, all) ?? tallPairs(line, all);
     if (!sides) return null;
     // As tall as the type: the characters, standing on the line they belong to.
     const short = all.filter((g) => g.height < 1.6 * line.size);
@@ -40,12 +43,20 @@ export class Brackets implements EquationReader {
         (p) => p !== open && p !== close && middle(p) > right(open) && middle(p) < close.x && within(p, open, line.size),
       );
       if (!inside.length || inside.some(unresolved)) continue;
+      // Something between the two that reaches past them (a taller fraction): what they enclose is not sure.
+      const between = line.pieces.filter((p) => p !== open && p !== close && middle(p) > right(open) && middle(p) < close.x);
+      const overlaps = (p: Piece) => extent(p, line.size).bottom < open.y + open.height && extent(p, line.size).top > open.y;
+      if (between.some((p) => overlaps(p) && !inside.includes(p))) continue;
       const size = baseSize(inside, line.size);
       const tex = matrix(inside, size, context) ?? single(inside, context);
       if (!tex) continue;
       const failed = inside.some((p) => isComposite(p) && p.failed);
+      // On the line of the text beside it, where that is within half a size.
+      const level = line.pieces
+        .filter((p) => p.kind === 'text' && !inside.includes(p) && (right(p) <= open.x + 1 || p.x >= right(close) - 1) && Math.abs(p.y - tex.y) < 0.5 * size)
+        .sort((a, b) => Math.abs(a.y - tex.y) - Math.abs(b.y - tex.y))[0];
       const made: Composite = {
-        kind: 'math', tex: tex.tex, x: open.x, width: right(close) - open.x, y: tex.y, size,
+        kind: 'math', tex: tex.tex, x: open.x, width: right(close) - open.x, y: level?.y ?? tex.y, size,
         top: Math.max(open.y + open.height, close.y + close.height), bottom: Math.min(open.y, close.y),
         ...(failed || !tex.ok ? { failed: { reason: 'unknown-symbol' } } : null),
       };
@@ -53,6 +64,28 @@ export class Brackets implements EquationReader {
     }
     return null;
   }
+}
+
+/** A picture standing for a bracket assembled from parts: itself a round bracket. */
+const ASSEMBLED = new WeakSet<GlyphPiece>();
+
+/**
+ * Pictures of round brackets or their pieces at one x that overlap or touch
+ * one above the other are one bracket. Only parts that are certainly round
+ * brackets are put together, so what they make is one too.
+ */
+function mergeParts(line: Line): Line {
+  const parts = line.pieces.filter((p): p is GlyphPiece => p.kind === 'glyph' && (isRoundBracket(p) || isRoundBracketPiece(p) || ASSEMBLED.has(p)));
+  for (const a of parts) {
+    const group = parts.filter((b) => b === a || (Math.abs(b.x - a.x) < 0.3 && b.y <= a.y + a.height + 1 && b.y + b.height >= a.y - 1));
+    if (group.length < 2) continue;
+    const bottom = Math.min(...group.map((g) => g.y));
+    const top = Math.max(...group.map((g) => g.y + g.height));
+    const made: GlyphPiece = { ...a, y: bottom, height: top - bottom, width: Math.max(...group.map((g) => g.width)) };
+    ASSEMBLED.add(made);
+    return without(line, group, [made]);
+  }
+  return line;
 }
 
 type Mark = { x: number; glyph: GlyphPiece | null; side: '(' | ')' | null };
@@ -96,6 +129,36 @@ function sidesOf(line: Line, glyphs: GlyphPiece[]): Map<GlyphPiece, '(' | ')'> |
     found = new Map(unknown.map((m) => [m.glyph!, side(m) as '(' | ')']));
   }
   return found;
+}
+
+/**
+ * Tall brackets only, none typed beside them, where balance alone leaves the
+ * sides open ("( )( )" or "(( ))"): brackets of one span, one over the same
+ * rows, pair with their neighbour. Read only where each pair holds something,
+ * something stands between one pair and the next, and the count is even.
+ */
+function tallPairs(line: Line, glyphs: GlyphPiece[]): Map<GlyphPiece, '(' | ')'> | null {
+  if (glyphs.some((g) => g.height < 1.6 * line.size)) return null;
+  const marks = sequence(line, glyphs);
+  if (!marks || marks.some((m) => !m.glyph)) return null;
+  const out = new Map<GlyphPiece, '(' | ')'>();
+  const left = [...glyphs];
+  while (left.length) {
+    const g = left[0];
+    const span = left.filter((h) => Math.abs(h.y - g.y) < 1 && Math.abs(h.height - g.height) < 1).sort((a, b) => a.x - b.x);
+    if (span.length % 2) return null;
+    for (let i = 0; i < span.length; i += 2) {
+      const [a, b] = [span[i], span[i + 1]];
+      const holds = (x1: number, x2: number) =>
+        line.pieces.some((p) => !glyphs.includes(p as GlyphPiece) && middle(p) > x1 && middle(p) < x2 && p.y < g.y + g.height && p.y > g.y);
+      if (!holds(right(a), b.x)) return null;
+      if (i + 2 < span.length && !holds(right(b), span[i + 2].x)) return null;
+      out.set(a, '(');
+      out.set(b, ')');
+    }
+    for (const h of span) left.splice(left.indexOf(h), 1);
+  }
+  return out;
 }
 
 /** The picture that closes an opening one, when its partner is a picture too. */
@@ -188,8 +251,10 @@ function matrix(inside: Piece[], size: number, context: ReadContext): { tex: str
     }),
   );
   if (body.some((row) => row.some((t) => t === null))) return null;
+  // Two numbers side by side in one entry are two columns set close: not sure where they part.
+  if (body.some((row) => row.some((t) => /[\d.]\s+-?\s*\d/.test(t!)))) return null;
   const tex = `\\begin{pmatrix}${body.map((row) => row.join(' & ')).join(' \\\\ ')}\\end{pmatrix}`;
-  // It stands on the maths axis, between its rows.
-  return { tex, y: (rows[0].y + rows[rows.length - 1].y) / 2 - 0.3 * size, ok };
+  // Centred on the maths axis: its baseline is about the mean of its rows'.
+  return { tex, y: rows.reduce((n, r) => n + r.y, 0) / rows.length, ok };
 }
 

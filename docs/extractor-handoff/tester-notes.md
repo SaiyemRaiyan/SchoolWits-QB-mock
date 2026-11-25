@@ -266,3 +266,30 @@ uncommitted edits (questions.ts 18:01:56, answers.ts, symbols.ts, paper-extracto
 With those edits in the tree, a third test fails: maths "the derivative of a product with a root" (4037, page prints
 e^{3x}(px+q)/√(4x+1)); the working tree shows "frac{e(px+q)}{√[3x]{4x+1}}", i.e. the power 3x became a cube-root index,
 wrong and not flagged. That is the writer's work in progress, not a test change.
+
+## Round 4 (tester), against 7e04583 (clean)
+
+- Sample (seed 20261125): new 26/10/0 vs current reader 17/2/17 (Physics 11/1/0 vs 9/1/2, Chemistry 10/2/0 vs 5/1/6, Maths
+  5/7/0 vs 3/0/9). No WRONG left in the new extractor's 36. score/score-table-r4.md.
+- Brackets: 34 Add Maths questions stopped passing between b9b3157 and 7e04583 (brk.ts, brk.json; the writer counts 36).
+  Seed 20261128, 12 checked on the page (bands at 170 dpi): 12 RIGHT (W17 22 Q4, S17 21 Q2, S17 11 Q2, S16 12 Q2, S22 21 Q2,
+  S18 21 Q9 incl. modulus, W17 13 Q12 (−10, 23/8), S18 21 Q4, S21 11 Q8 (2−√3), (p+q√3, r+s√3), S26 12 Q5 ln((2x−4)⁵),
+  S16 12 Q4, W20 13 Q10 ln(b√3)).
+- Answers: 23 changed 4037 answers (ans.ts, ans.json); all 23 render in KaTeX 0.19 with lib/katex.ts macros. Seed 20261129, 5
+  compared with the qa .tex: S17 12 Q9, W16 23 Q9, W22 23 Q8, S25 11 Q1, S19 22 Q6: 5 RIGHT, each matrix whole (before:
+  "5&-12" with the brackets and later rows lost).
+- EITHER/OR on the page: S16 21 Q9 (p12-13), S21 22 Q8 (p12-13) as decided; S19 21 Q8(b) (p11): EITHER and OR sit inside one
+  part (b) with one [2], no lettered parts under them; we show (b) [2] with both, Total 6: RIGHT. Tests added for intro and
+  figure placement (S16 21 Q9) and the in-part case (S19 21 Q8).
+- Furniture: tests from 4037 S23 12 Q9 + p13 "Continuation of working space for Question 9." and 4037 S26 11 Q11 p15
+  "Question 12 is on the back page." Both pass.
+- Marks beside a figure: 10 such passes in Chemistry (mbf.ts; writer says 12). Seed 20261130: S18 41 Q2 (p5), S16 41 Q8 (p12),
+  W16 41 Q8 (p11): 3/3 honest (the marks are against table rows (a)-(d) that exist only inside the picture).
+- Italic rule (one serif capital is italic): seed 20261131, 5 checked at 300 dpi: S16 22 Q9 I_B, S20 42 Q3 I, S19 42 Q1
+  E = V × I × t: italic on the page, RIGHT. 5054 S17 21 Q8(c) ¹²⁵₅₃I (iodine) and 5070 S24 12 Q8 phosphoric(V): UPRIGHT on
+  the page, we show <em>I</em>, <em>V</em>: WRONG. Across Physics + Chemistry the rule now italicises 48 Roman numerals
+  ("(<em>V</em>)", "(<em>I</em>)" in oxidation states) and 6 iodine symbols after a nuclide (ital.ts). Tests added (fail).
+Failures now: 2 (upright Roman numeral, upright iodine), both code.
+Run times: sample dump 18:19:07 and bracket diff 18:19:26 are on clean 7e04583; the answer diff (18:20:49), marks-beside-figure
+list (18:22:47) and the italic count ran after the writer started editing paper-extractor.ts (18:19:53), brackets.ts and
+symbol.ts again, so those three may include part of that work in progress.

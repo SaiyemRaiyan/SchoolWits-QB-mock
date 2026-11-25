@@ -453,3 +453,21 @@ describe('chemistry: round 3, from the page', () => {
     expect(options(q)).toEqual(['1, 2 and 3', '2 and 3 only', '2 only', '3 only'].map((t, i) => `${'ABCD'[i]}: ${canon(t)}`));
   });
 });
+
+const notItalic = (html: string, letter: string) =>
+  expect(html, `the page prints an upright ${letter}`).not.toMatch(new RegExp(`<(em|i)>${letter}</(em|i)>|\\\\(mathit|textit)\\{${letter}\\}`));
+
+describe('chemistry: a Roman numeral set in a serif font is upright (round 4)', () => {
+  it('phosphoric(V) acid', () => {
+    // 5070/12/M/J/24 Q8, page 3 (300 dpi): option B prints "Phosphoric(V) acid" with an upright serif V.
+    const paper = paperOf(CHEMISTRY_MCQ, String.raw`\examq{5070/12/M/J/24}{8}{Formulae, Stoichiometry and the Mole Concept}{1}
+\mcq{38.0}{\textbf{8 }}{Which statement is correct?}
+\choice{23.7}{\textbf{A }}{If the relative formula mass of hydrated sodium carbonate, Na$_{2}$CO$_{3}$\makebox[3.84bp][c]{\textbullet}$x$H$_{2}$O, is 286, then\linebreak $x$ is 10.}
+\choice{22.5}{\textbf{B }}{Phosphoric(\swf{ptm}{12.00}{V}) acid, H$_{3}$PO$_{4}$, has a relative molecular mass of 50.}
+\choice{21.9}{\textbf{C }}{The relative atomic mass of a sample of an element with isotopes of masses 20 and 22 can\linebreak only be equal to 21.}
+\choice{21.6}{\textbf{D }}{The relative atomic mass of an element is the average mass of atoms of isotopes of the\linebreak element compared with the mass of a hydrogen atom.}`);
+    const b = question(paper, 8).options!.items[1];
+    expect(canon(b.content)).toBe(canon('Phosphoric(V) acid, H$_3$PO$_4$, has a relative molecular mass of 50.'));
+    notItalic(b.content, 'V');
+  });
+});

@@ -191,6 +191,8 @@ interface Token {
   loose?: boolean;
   /** One of a stacked pair of scripts in front of a symbol, as in a nuclide. */
   leads?: boolean;
+  /** Set in a serif face inside a sans-serif paper. */
+  serif?: boolean;
 }
 
 function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambiguous: false }): string {
@@ -207,7 +209,7 @@ function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambigu
   for (let i = 0; i < items.length; i++) {
     const { p, script } = items[i];
     if (script === null) {
-      if (p.kind === 'text') tokens.push({ x: p.x, end: right(p), text: p.text, style: styleOf(p), loose });
+      if (p.kind === 'text') tokens.push({ x: p.x, end: right(p), text: p.text, style: styleOf(p), loose, ...(p.serif ? { serif: true } : null) });
       else if (p.kind === 'math') {
         loose ||= !isComposite(p);
         tokens.push({ x: p.x, end: right(p), math: p.tex, loose: !isComposite(p) });
@@ -234,14 +236,12 @@ function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambigu
       t.leads = n.leads = true;
     }
   });
+  quantities(tokens);
   return write(nuclides(tokens, base, doubt), base);
 }
 
 function styleOf(p: TextPiece): string {
   const letters = /\p{L}/u.test(p.text);
-  // One letter set in a serif face inside a sans-serif paper is a quantity
-  // (I, which the paper's own I would show as l): printed in italics.
-  if (p.serif && /^\p{Lu}$/u.test(p.text.trim())) return `${p.bold ? 'b' : ''}i${p.underline ? 'u' : ''}`;
   return `${p.bold ? 'b' : ''}${p.italic && letters ? 'i' : ''}${p.underline ? 'u' : ''}`;
 }
 
@@ -419,4 +419,20 @@ function nuclides(tokens: Token[], base: number, doubt: { ambiguous: boolean }):
 function chargeOf(text: string): string | null {
   const m = /^(\d?)([+−–-])$/.exec(text.trim());
   return m ? `${m[1]}${m[2] === '+' ? '+' : '-'}` : null;
+}
+
+/**
+ * One capital set in a serif face inside a sans-serif paper (the paper's own
+ * I would read as l) is a quantity, printed in italics: V/I, I_B. Not where
+ * it is a name: a numeral in brackets after a word (phosphoric(V), iron(II))
+ * or the symbol after a nuclide's stacked numbers (\u00b9\u00b2\u2075\u2085\u2083I).
+ */
+function quantities(tokens: Token[]): void {
+  tokens.forEach((t, i) => {
+    if (!t.serif || t.text === undefined || !/^\p{Lu}$/u.test(t.text.trim()) || t.style?.includes('i')) return;
+    const [prev, next] = [tokens[i - 1], tokens[i + 1]];
+    const bracketed = /\($/.test(prev?.text ?? '') && /^\)/.test(next?.text ?? '');
+    const nuclide = prev?.leads === true || /^\s*\{\}\^/.test(prev?.math ?? '');
+    if (!bracketed && !nuclide) t.style = `${t.style ?? ''}i`;
+  });
 }

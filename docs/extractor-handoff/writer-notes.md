@@ -255,3 +255,45 @@ Subclasses: `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor`, `Generic
   a reader for stacked bracket pieces would be next. Integrals with limits (∫ 7.8x21.7 is known; limits read as
   scripts) not done.
 - Lesser tester items not done: stray figure labels as paragraphs, bold lost on pictured l/I (S22 22 Q1).
+
+## Round 4 (writer)
+
+### Changes
+- Integrals (equations/integral.ts, base chain after Fractions): `isIntegral` boxes 7.76x21.68 and 8.72x24.08 (all
+  54 pictures of these sizes are integral signs; no other box within reach). Limits = small print at the sign's
+  right level with its top / its foot; both or neither; anything unresolved in either zone holds the reading.
+  `\int_{l}^{u}` or `\int`. 19 questions read (checked by eye).
+- Brackets: pictures of round brackets or of their pieces (`isRoundBracketPiece`: 3.68 x 29.84 / 30.08 / 33.2,
+  hooks of either side, all 120 pictures) at one x that overlap or touch vertically are one bracket (the papers
+  draw a tall bracket in parts, or twice). Tall brackets with no typed bracket beside them, where balance leaves
+  the sides open, pair by span: same rows, neighbours pair, each pair holding something and something between
+  pairs. A tall pair: anything between them that reaches past them -> not read; a matrix entry holding two numbers
+  side by side (columns set close) -> not read. A matrix's baseline is the mean of its rows', snapped to the text
+  beside it. Matrices now read, e.g. 4037 S17 12 Q9.
+- Figure labels: short runs (<= 40 characters, no sentence end) between a figure and its "Fig./Table N" caption go
+  into that figure's caption instead of the question text (58 questions, Physics and Chemistry).
+- Pictured letters take the weight of the letters they touch (bold AgCl, KI in 5070 S22 22 Q1).
+- The serif-capital italic rule moved to the line (flow.ts `quantities`): italic, except a numeral alone in brackets
+  after a word (phosphoric(V), iron(II)) and the symbol after a nuclide's stacked numbers. No bracketed numeral and
+  no nuclide symbol is italic now; I_B, the current I, I²R, VIt, V/I stay italic.
+
+### Relations and cap/cup: what would settle them (not done; cannot be done from the .tex)
+- Proven: the box (width x height) cannot tell ≤ from ≥, < from >, ∩ from ∪, and some sizes also hold Δ, μ or a ⩾
+  among the <. The direction is in the pixels only.
+- What settles it: the clip's pixels. For a picture `GlyphPiece.clip` = {page, left, bottom, right, top} in the
+  source PDF, render that rectangle (pdf.js in the browser, or pdftoppm in a Node script) and compare it with the
+  character: e.g. the column of the ink's middle row against the columns of its top row (< has its point left,
+  > right; ≤/≥ have a second stroke at the foot; ∩ is closed at the top, ∪ at the bottom). The offline check that
+  proved the point is in the round-3/4 scratch scripts (classify.py, paren.py): a 400 dpi crop, ink centroids per
+  eighth of the height.
+- Where it plugs in: `SymbolReader` (types.ts) is the interface: `read(glyph: GlyphPiece): string | null`. A
+  pixel-aware reader lives OUTSIDE src/extract (it needs a canvas or a PDF renderer, which the no-DOM rule keeps
+  out), e.g. in the upload page or a Node script, and is handed in by overriding `symbolReader()` in a subclass:
+  `class PdfExtractor extends MathsExtractor { protected symbolReader() { return new PixelSymbols(pdf, new SymbolTable()); } }`
+  where `PixelSymbols.read(g)` asks `SymbolTable` first and falls back to the pixels. Because `SymbolReader.read`
+  is synchronous, the pixels have to be rendered before `extract()` (e.g. pre-render every \swglyph clip of the
+  file, keyed by its clip, and look them up in `read`).
+- Until then they pass (unknown-symbol), which is most of the 366 Add Maths questions that pass.
+
+### Totals after round 4 (clean / rebuilt / passed / suspicious)
+- Physics 841 / 23 / 1 / 206. Chemistry 1604 / 77 / 16 / 347. Add Maths 398 / 148 / 400 / 0 (366 unknown-symbol).

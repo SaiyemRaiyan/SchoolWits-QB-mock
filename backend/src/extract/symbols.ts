@@ -105,3 +105,28 @@ export class SymbolTable implements SymbolReader {
     return rival ? null : best;
   }
 }
+
+/**
+ * Boxes that only ever hold a round bracket, either side: every picture of
+ * these sizes in the papers was looked at (4037, 1,231 tall pictures), and
+ * a size that also held anything else (a bracket piece, a brace) is left out,
+ * as is any size within reach of one. Which side a bracket is, the box cannot
+ * say: equations/brackets.ts reads that from the line.
+ */
+const BRACKET_BOXES: [number, ...number[]][] = [
+  [11.6, 2.97, 3.44], [11.84, 3.44, 3.68], [12.08, 3.68], [12.32, 3.44, 3.68], [12.56, 3.44, 3.68, 5.12],
+  [12.8, 3.44], [13.04, 3.44, 3.69], [14.0, 4.64, 4.88], [15.92, 3.68, 3.92], [16.4, 3.93], [16.64, 3.68, 3.92],
+  [17.84, 3.92], [21.44, 4.16], [21.68, 4.16], [22.16, 4.16], [22.4, 4.16], [22.88, 4.16], [23.12, 4.16],
+  [23.36, 4.16, 4.4], [26.72, 4.4], [26.96, 4.41], [27.92, 3.44, 3.68, 4.4], [28.16, 4.4], [29.36, 3.68, 3.92],
+  [31.04, 3.92], [32.48, 3.68, 3.92], [33.44, 4.4], [40.16, 3.68], [40.4, 3.68], [40.88, 3.68], [41.36, 4.16],
+  [41.84, 4.17], [55.28, 4.4],
+];
+
+/** A picture whose box only ever holds a round bracket. */
+export function isRoundBracket(glyph: GlyphPiece): boolean {
+  return BRACKET_BOXES.some(
+    ([height, ...widths]) =>
+      Math.abs(glyph.height - height) <= CLOSE + 0.02 &&
+      widths.some((w) => glyph.width - w >= -CLOSE && glyph.width - w <= PAGE_SLACK),
+  );
+}

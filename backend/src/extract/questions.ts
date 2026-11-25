@@ -74,7 +74,7 @@ const LABEL = /^\(([a-z]{1,4})\)$/;
 
 // Page furniture, with the paper's own letter-spacing already taken out.
 const FURNITURE =
-  /^\W*(?:BLANK PAGE|\[?Turn over\]?|Please turn over.*|Question [\w()]+ (?:is printed|starts|begins|continues).*|(?:The )?question continues.*|Continue your (?:working|answer).*|Additional Page.*|Permission to reproduce.*|DO NOT WRITE IN THIS MARGIN)\W*$/i;
+  /^\W*(?:BLANK PAGE|\[?Turn over\]?|Please turn over.*|Question [\w()]+ (?:is printed|is on|starts|begins|continues).*|(?:Continuation of|Additional) working space.*|(?:The )?question continues.*|Continue your (?:working|answer).*|Additional Page.*|Permission to reproduce.*|DO NOT WRITE IN THIS MARGIN)\W*$/i;
 const SECTION = /^\W*Section [A-D]\W*$/i;
 
 export class QuestionBuilder {
@@ -122,6 +122,10 @@ export class QuestionBuilder {
     if (letters.length > 0 && letters.length < 4 && this.hasFigure && !this.parts.length) {
       const missing = ['A', 'B', 'C', 'D'].filter((l) => !letters.includes(l));
       this.pass('unknown-shape', `options ${missing.join(', ')} are printed only in a picture`);
+    }
+    // Several marks beside a figure are marks of rows in it; one alone is the question's own.
+    if (this.besideFigure.length > 1) {
+      this.pass('unknown-shape', `marks ${this.besideFigure.map((n) => `[${n}]`).join(' ')} are printed beside a figure: what they are for is in the picture`);
     }
     const parts = this.parts.map((d) => this.finish(d));
     const total = (choice: number) =>
@@ -222,6 +226,8 @@ export class QuestionBuilder {
 
   /** Marks set against a question that has no parts. */
   private ownMarks = 0;
+  /** Of those, the ones printed beside a figure. */
+  private readonly besideFigure: number[] = [];
 
   private draft(label: string, parentRef: string): Draft {
     return { label, ref: `${parentRef}(${label})`, paras: [], marks: null, lines: 0, value: null, subs: [], choice: this.choice };
@@ -266,7 +272,7 @@ export class QuestionBuilder {
         (prev.end + firstWord + this.setting.wordSpace > COLUMN.right - 18 ||
           (/^[a-z]/.test(text) && !/^[a-z]+ \d/.test(text) && prev.end - prev.x > 0.7 * (COLUMN.right - prev.x)))) ||
         // Or it starts under the second column of the line above, in lower case: that column wraps.
-        ((prev.columns ?? []).some((c) => Math.abs(c - x) < 2) && /[a-z]$/.test(prev.tex) && /^[a-z]/.test(text) && !/^[a-z]+ \d/.test(text)));
+        ((prev.columns ?? []).some((c) => Math.abs(c - x) < 2) && /[a-z$]$/.test(prev.tex) && /^[a-z]/.test(text) && !/^[a-z]+ \d/.test(text)));
     if (wraps) {
       prev.tex += ` ${text}`;
       prev.end = end;
@@ -399,7 +405,11 @@ export class QuestionBuilder {
         return this.answer(el);
       case 'mark': {
         const m = /\[\s*(\d+)\s*\]/.exec(el.args[1]);
-        if (m && !this.figureMarks(Number(m[1]))) this.addMarks(Number(m[1]));
+        if (m && !this.figureMarks(Number(m[1]))) {
+          // On a line of their own beside a figure, with no part to take them: the parts are in the picture.
+          if (!this.target() && this.stem[this.stem.length - 1]?.figure) this.besideFigure.push(Number(m[1]));
+          this.addMarks(Number(m[1]));
+        }
         this.open = null;
         return;
       }

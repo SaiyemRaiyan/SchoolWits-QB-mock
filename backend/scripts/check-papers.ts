@@ -161,7 +161,7 @@ function suspicions(q: Question, paper: ParsedPaper): { kind: Suspicion; detail:
   }
   // Page furniture, not mentions: "in Group II of the Periodic Table" is a question's own words.
   const furniture =
-    /BLANK\s*PAGE|The Periodic Table of (?:the )?Elements|Turn over|(?:^|¶|\n)\s*Section [A-D]\s*(?:$|¶|\n)|is printed on the next page|Notes for use in|Answer (?:one|all|any \w+) questions? (?:from|in) this section|Permission to reproduce/i.exec(
+    /BLANK\s*PAGE|The Periodic Table of (?:the )?Elements|Turn over|(?:^|¶|\n)\s*Section [A-D]\s*(?:$|¶|\n)|is printed on the next page|is on the back page|(?:Continuation of|Additional) working space|Notes for use in|Answer (?:one|all|any \w+) questions? (?:from|in) this section|Permission to reproduce/i.exec(
       prose.replace(/\s*\n\s*/g, '\n'),
     );
   if (furniture) out.push({ kind: 'furniture', detail: around(prose, furniture.index) });

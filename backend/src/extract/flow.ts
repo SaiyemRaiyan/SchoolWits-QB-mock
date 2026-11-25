@@ -239,6 +239,9 @@ function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambigu
 
 function styleOf(p: TextPiece): string {
   const letters = /\p{L}/u.test(p.text);
+  // One letter set in a serif face inside a sans-serif paper is a quantity
+  // (I, which the paper's own I would show as l): printed in italics.
+  if (p.serif && /^\p{Lu}$/u.test(p.text.trim())) return `${p.bold ? 'b' : ''}i${p.underline ? 'u' : ''}`;
   return `${p.bold ? 'b' : ''}${p.italic && letters ? 'i' : ''}${p.underline ? 'u' : ''}`;
 }
 
@@ -285,6 +288,16 @@ function write(tokens: Token[], base: number): string {
       } else if (maths !== null) out += `${out.endsWith('$') ? ' ' : ''}$${mark}{${maths}}$`;
       else out += `\\text${token.script === 'sup' ? 'superscript' : 'subscript'}{${inner}}`;
       style = '';
+    } else if (token.math !== undefined && attachedScript(prev, token, tokens[i + 1], base)) {
+      // Typed maths that is only an index or a power: no space before it, and
+      // joined to typed maths it follows (two spans must not touch as "$$").
+      flush();
+      out = out.replace(/\s+$/, '');
+      const mark = token.math.trim()[0];
+      const before = /\$((?:\\[\s\S]|[^$\\])*)\$$/.exec(out)?.[1];
+      if (before !== undefined && !new RegExp(`\\${mark}\\{[^{}]*\\}\\s*$`).test(before)) out = `${out.slice(0, -1)}${token.math.trim()}$`;
+      else out += `${out.endsWith('$') ? ' ' : ''}$${token.math}$`;
+      style = '';
     } else if (token.math !== undefined) {
       flush();
       // Two formulas side by side must not read as one $$ display.
@@ -305,7 +318,23 @@ function write(tokens: Token[], base: number): string {
   return out;
 }
 
+/**
+ * Typed maths that is only an index or a power, set after what it belongs to
+ * (Cl$_{2}$, $M$$_{r}$). Not the degree sign, which is a sign of its own, and
+ * not an index that leads the symbol after it ("of $^{14}$C"): a word gap
+ * before it and a capital straight after it.
+ */
+function attachedScript(prev: Token | undefined, token: Token, next: Token | undefined, base: number): boolean {
+  if (token.math === undefined || !/^\s*[_^]/.test(token.math) || /^\s*\^\{?\\circ\}?\s*$/.test(token.math)) return false;
+  const gapBefore = !prev || /\s$/.test(prev.text ?? '') || token.x - prev.end >= WORD_GAP * base;
+  // (A mass number, raised: an index set low never leads.)
+  const leads = /^\s*\^/.test(token.math) && gapBefore && next?.text !== undefined && /^\p{Lu}/u.test(next.text) && next.x - token.x < 2.5 * base;
+  return !leads;
+}
+
 function needsSpace(prev: Token, token: Token, base: number, next?: Token): boolean {
+  // Typed maths that is only an index or a power belongs to what it follows.
+  if (attachedScript(prev, token, next, base)) return false;
   const before = prev.text ?? '';
   const after = token.text ?? '';
   if (/\s$/.test(before) || /^\s/.test(after)) return false;
@@ -360,14 +389,29 @@ function nuclides(tokens: Token[], base: number, doubt: { ambiguous: boolean }):
       out.push(a);
       continue;
     }
-    let tex = `{}^{${top}}_{${bottom}}\\mathrm{${symbol[1]}}`;
-    const rest = c.text!.slice(symbol[1].length);
-    // A charge straight after the symbol: "F−", "Na+", "S2−".
-    const charge = !rest && d?.script === 'sup' && d.x - c.end < 0.25 * base ? chargeOf(d.text ?? '') : null;
+    let sym = symbol[1];
+    let rest = c.text!.slice(sym.length);
+    let last = c;
+    let used = 2;
+    // A capital whose small letter was printed apart (a pictured l): one symbol.
+    const e = tokens[i + 3];
+    if (!rest && sym.length === 1 && e?.text !== undefined && !e.script && /^[a-z](?![a-z])/.test(e.text) && e.x - c.end < 0.25 * base) {
+      sym += e.text[0];
+      rest = e.text.slice(1);
+      last = e;
+      used = 3;
+    }
+    let tex = `{}^{${top}}_{${bottom}}\\mathrm{${sym}}`;
+    // A charge straight after the symbol: "F−", "Na+", "S2−", set small or typed as a power.
+    const n = tokens[i + used + 1];
+    const typed = n?.math !== undefined && !n.script ? /^\s*\^\{([^{}]*)\}\s*$/.exec(n.math)?.[1] : undefined;
+    const charge = !rest && n && n.x - last.end < 0.25 * base
+      ? n.script === 'sup' ? chargeOf(n.text ?? '') : typed !== undefined ? chargeOf(typed) : null
+      : null;
     if (charge) tex += `^{${charge}}`;
-    out.push({ x: a.x, end: charge ? d.end : c.end, math: tex, tex: 'nuclide' });
-    if (rest) out.push({ ...c, x: c.end - 0.01, text: rest });
-    i += charge ? 3 : 2;
+    out.push({ x: a.x, end: charge ? n!.end : last.end, math: tex, tex: 'nuclide' });
+    if (rest) out.push({ ...last, x: last.end - 0.01, text: rest });
+    i += charge ? used + 1 : used;
   }
   return out;
 }

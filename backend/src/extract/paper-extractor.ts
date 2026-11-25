@@ -19,6 +19,8 @@ import { detectGarbledText, isLayoutDialect, positionedMaths } from '../latex/gu
 import { findCommand } from '../latex/scan.js';
 import { mergePaper, parseAnswerPaper, parseQuestionPaper } from '../latex/index.js';
 import type { ImageMap, Options, PaperMeta, ParsedPaper, Question, Warning } from '../latex/types.js';
+import { hideMathBreaks, restoreMathBreaks } from './answers.js';
+import { Brackets } from './equations/brackets.js';
 import { EquationChain } from './equations/chain.js';
 import { Fractions } from './equations/fraction.js';
 import { Modulus } from './equations/modulus.js';
@@ -54,6 +56,9 @@ export function paperOf(source: PaperSource): PaperMeta | null {
   const first = splitQuestions(splitPaper(source.questions).body)[0];
   return first ? parsePaperId(first.paperId) : null;
 }
+
+/** The commands a paper written as a copy of the printed page defines. */
+const POSITIONING = ['at', 'freerow', 'swglyph', 'swcut', 'row', 'prow', 'mcq', 'stem', 'optrow', 'choice', 'dotline'];
 
 /** Nothing changed: the line as it was set, the text as it was read. */
 const PLAIN_RULES: ReadingRules = { pieces: (line) => line, tidy: (tex) => tex };
@@ -158,7 +163,11 @@ export abstract class PaperExtractor implements Extractor {
 
   /** Written as a copy of the printed page (positions on every line), not in the documented format. */
   protected isPositioned(doc: PaperDocument): boolean {
-    return splitQuestions(doc.body).length > 0 && isLayoutDialect(doc.body);
+    if (!splitQuestions(doc.body).length) return false;
+    // A file that defines the elements of a placed page is one, however few
+    // of them a short file uses; one that defines none is told by its body.
+    const own = MacroTable.fromPreamble(doc.preamble);
+    return POSITIONING.some((name) => own.has(name)) || isLayoutDialect(doc.body);
   }
 
   /** A paper in the documented format keeps its own reader. */
@@ -183,7 +192,7 @@ export abstract class PaperExtractor implements Extractor {
    * the pass, always follow: a reader added here sees every line first.
    */
   protected readers(): EquationReader[] {
-    return [new TypedMaths(), new SymbolPictures(), new Underline(), new Modulus(), new Roots(), new Fractions()];
+    return [new TypedMaths(), new SymbolPictures(), new Underline(), new Modulus(), new Roots(), new Fractions(), new Brackets()];
   }
 
   /** What a subject changes about a line before it is read (pieces) and after (tidy). */
@@ -254,7 +263,9 @@ export abstract class PaperExtractor implements Extractor {
   /** The answers file, read by the existing mark-scheme and solution readers. */
   protected attachAnswers(paper: ParsedPaper): ParsedPaper {
     if (!this.source.answers) return paper;
-    return mergePaper(paper, parseAnswerPaper(this.source.answers, this.source.images ?? {}));
+    // A matrix's row break inside maths must not end a heading or a table row (see answers.ts).
+    const merged = mergePaper(paper, parseAnswerPaper(hideMathBreaks(this.source.answers), this.source.images ?? {}));
+    return { ...merged, questions: merged.questions.map((q) => ({ ...q, answer: restoreMathBreaks(q.answer) })) };
   }
 
   private remember(paper: ParsedPaper, passes: Pass[], rebuilt: number[]): ExtractedPaper {

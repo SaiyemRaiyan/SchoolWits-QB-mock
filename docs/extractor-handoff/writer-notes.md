@@ -209,3 +209,49 @@ Subclasses: `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor`, `Generic
 - The authors' own typed maths has `$x$$+$$k$` (back-to-back spans, read as $$ by the renderer) in ~60 Add
   Maths questions; typed maths is not rewritten, so this stays (src/latex/inlineToHtml's concern).
 - 4037: 423 questions pass unknown-symbol (pictures of <=, (, ) etc.), 28 unknown-shape, 21 ambiguous-layout.
+
+## Round 3 (writer)
+
+### Known src/latex bugs (not changed; the extractor does not depend on them)
+- `inline.ts` `wrapCommand`: at most 5 passes, so the 6th `\textsubscript`/`\textsuperscript` of a paragraph is
+  left as a command and then silently dropped. The extractor writes indices and charges as typed maths.
+- `solutions.ts` `parseAnsbox`: a part's heading ends at the first `\\` on its line, even a matrix row break inside
+  `$...$`, which cuts the maths, leaves a `$` unpaired, and turns every later formula into prose (`\dfrac{200}{25}`
+  -> "20025"). The extractor hides `\\` inside inline maths before calling parseAnswerPaper and restores it after
+  (answers.ts). 23 answers in 4037 change, all for the better; the 6 KaTeX failures in answers are gone.
+
+### Changes
+- EITHER/OR: already as decided (intro + figure after the bold word at the start of the first part of each
+  alternative). Part refs repeat (9(a), 9(b), 9(a), 9(b)); nothing joins mark-scheme rows to parts by ref (the rows
+  keep their own "9 E (a)" / "9 OR (a)" and render as a table; edit paths are by position), so nothing misattaches.
+  Only 5054 S16 21 Q9, S19 21 Q8(b), S21 22 Q8(b) have EITHER/OR (the Add Maths "OR" is in "CALCULATOR").
+- Furniture: "Continuation of / Additional working space for Question N" and "Question N is on the back page" (17
+  questions, 4037) are dropped. A sweep of every question's text for furniture words finds none left (the many
+  "Periodic Table" hits are question text).
+- Brackets (equations/brackets.ts, base chain): `isRoundBracket` boxes in symbols.ts are sizes where every one of
+  1,231 tall pictures in 4037 was a round bracket (pixel-checked offline; mixed sizes and any size within reach of
+  one excluded). Side: the line's brackets in order (typed ones known, pictures unknown); read only if exactly one
+  choice of sides balances the line. Short ones become "(" ")"; a tall pair round one row is \left( \right), round
+  aligned rows a pmatrix. 36 questions stop passing, all checked by eye.
+- Relations (<= >= < >), cap/cup: NOT read. Pixel check over every instance: each size holds both directions
+  (7.5x8.7: 58 facing left, 8 right) and even other characters (8.0x8.2 holds <, ∩, ∪ and a ⩾; 7.5x8.7 a μ), so
+  neither the direction nor the family (with bar / without) is certain from the box; the sense of the line cannot
+  give the bar. They pass.
+- Round-3 tester findings: an index or charge attaches to what it follows (typed `$_{2}$` after a pictured l,
+  `$M$\,$_{\mathrm{r}}$` -> `$M_{\mathrm{r}}$`), except a raised mass number with a word gap before and a capital
+  after (`of $^{14}$C`) and the degree sign; a root's index must sit within the sign's height; one serif capital in
+  a sans paper is italic (V/I); marks on lines of their own beside a figure (two or more, no part to take them)
+  pass "the parts are in the picture" (12 Chemistry questions, incl. the S16 41 Q8 regression); the format is
+  "positioned" when the preamble defines the placing elements (\at, \freerow, \swglyph, \row, \mcq, ...).
+- A wrapped second-column line continues after a line that ends in typed maths too.
+
+### Totals (clean / rebuilt / passed / suspicious)
+- Physics 841 / 23 / 1 / 206 (mcq-figure). Chemistry 1604 / 77 / 16 / 347 (344 mcq-figure, 2 mcq-not-4 = passed,
+  1 marks = paper removed a part). Add Maths 398 / 129 / 419 (386 unknown-symbol) / 0.
+
+### Next
+- Add Maths: 386 questions pass on pictures; the largest groups are relations (no certain rule exists from the
+  .tex; needs the PDF pixels, e.g. in the browser) and bracket sizes that also held bracket pieces (⎛⎝, braces):
+  a reader for stacked bracket pieces would be next. Integrals with limits (∫ 7.8x21.7 is known; limits read as
+  scripts) not done.
+- Lesser tester items not done: stray figure labels as paragraphs, bold lost on pictured l/I (S22 22 Q1).

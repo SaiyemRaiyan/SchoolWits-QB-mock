@@ -25,7 +25,9 @@ export class Roots implements EquationReader {
       });
       if (!within.length || within.some((p) => unresolved(p) || right(p) > r.end + 2.5)) continue;
       const index = line.pieces.filter(
-        (p) => isText(p) && p.size < 0.75 * line.size && p.x > r.x - 8 && right(p) < r.rise + 1 && p.y > r.foot + 4,
+        // Within the sign's own height: small print above it belongs to the line above.
+        (p) => isText(p) && p.size < 0.75 * line.size && p.x > r.x - 8 && right(p) < r.rise + 1 && p.y > r.foot + 4 &&
+          p.y + 0.72 * p.size <= r.top + 1,
       );
       const inner = context.read(sub(line, within));
       const tex = toMath(inner.tex);

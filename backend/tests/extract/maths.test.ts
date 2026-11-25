@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Block } from '../../src/latex/types.js';
-import { content, correct, correctOrPassed, everything, paperOf, part, question, stem } from './helpers.js';
+import { canon, content, correct, correctOrPassed, everything, paperOf, part, question, stem } from './helpers.js';
 import { MATHS } from './preambles.js';
 
 const raw = (blocks: Block[]) => blocks.map((b) => (b.type === 'figure' ? '' : b.html)).join('\n');
@@ -1203,5 +1203,148 @@ describe('maths: what is passed over is still shown, never silently dropped', ()
   \swdepth{18.89}}
 \row{34.43}{72.28}{integers to be found.\swmark{[5]}}`);
     expect(everything(question(paper, 6))).not.toMatch(/\d\.\d|bp\b|clip|line width|black/);
+  });
+});
+
+describe('maths: more equations from the page (round 1)', () => {
+  it('a bracket squared, drawn from two same-size bracket pictures', () => {
+    // 4037/21/M/J/16 Q5, page 6: "(b) Given that 28 + p√3 = (q + 2√3)², where p and q are integers,
+    // find the values of p and of q. [3]". The brackets are pictures of one size: read by their order, or passed.
+    const paper = paperOf(MATHS, String.raw`\examq{4037/21/M/J/16}{5}{Indices \& Surds}{6}
+\row{-0.18}{72.28}{\lab{22.67}{\textbf{5}}\textbf{Do} \textbf{not} \textbf{use} \textbf{a} \textbf{calculator}\kern2.67bp \textbf{in} \textbf{this} \textbf{question.}}
+\partbreak
+\freerow{19.96}{%
+  \at{159.90}{-0.00}{8}%
+  \at{72.28}{-6.04}{\textbf{(a)}}%
+  \at{94.96}{-6.04}{Express}%
+  \at{183.31}{-6.04}{in the form}%
+  \at{246.34}{-6.04}{{\itshape a}\kern2.38bp {\itshape +}}%
+  \at{272.62}{-6.04}{{\itshape b}\kern1.10bp , where {\itshape a} and {\itshape b} are integers.}%
+  \at{146.74}{-14.20}{7}%
+  \at{155.34}{-13.72}{\swsy{2D}}%
+  \at{173.02}{-14.20}{5}%
+  \ruleat{138.21}{179.34}{-2.57}{0.50}%
+  \swpath{draw=black,line width=1.80bp}{(89.88,-10.15)--(90.71,-9.66)--(93.36,-14.41)}{\clip (92.66,-4.51)--(92.66,-8.10)--(89.62,-9.90)--(89.88,-10.16)--(90.72,-9.66)--(93.36,-14.41)--(96.49,-5.01)--(102.89,-5.01)--(102.89,-4.51)--(92.66,-4.51);}%
+  \swpath{draw=black,line width=1.00bp}{(93.36,-14.41)--(96.49,-5.01)--(102.89,-5.01)}{\clip (92.66,-4.51)--(92.66,-8.10)--(89.62,-9.90)--(89.88,-10.16)--(90.72,-9.66)--(93.36,-14.41)--(96.49,-5.01)--(102.89,-5.01)--(102.89,-4.51)--(92.66,-4.51);}%
+  \swpath{draw=black,line width=1.80bp}{(103.03,4.03)--(103.87,4.53)--(106.52,-0.23)}{\clip (105.82,9.68)--(105.82,6.09)--(102.77,4.29)--(103.03,4.03)--(103.87,4.53)--(106.52,-0.23)--(109.64,9.18)--(116.05,9.18)--(116.05,9.68)--(105.82,9.68);}%
+  \swpath{draw=black,line width=1.00bp}{(106.52,-0.23)--(109.65,9.18)--(116.05,9.18)}{\clip (105.82,9.68)--(105.82,6.09)--(102.77,4.29)--(103.03,4.03)--(103.87,4.53)--(106.52,-0.23)--(109.64,9.18)--(116.05,9.18)--(116.05,9.68)--(105.82,9.68);}%
+  \swpath{draw=black,line width=1.80bp}{(116.16,-10.15)--(117.00,-9.66)--(119.64,-14.41)}{\clip (118.94,-4.51)--(118.94,-8.10)--(115.90,-9.90)--(116.16,-10.16)--(117.00,-9.66)--(119.64,-14.41)--(122.77,-5.01)--(129.18,-5.01)--(129.18,-4.51)--(118.94,-4.51);}%
+  \swpath{draw=black,line width=1.00bp}{(119.64,-14.41)--(122.77,-5.01)--(129.18,-5.01)}{\clip (118.94,-4.51)--(118.94,-8.10)--(115.90,-9.90)--(116.16,-10.16)--(117.00,-9.66)--(119.64,-14.41)--(122.77,-5.01)--(129.18,-5.01)--(129.18,-4.51)--(118.94,-4.51);}%
+  \swpath{draw=black,line width=1.80bp}{(189.47,-2.00)--(190.31,-1.50)--(192.96,-6.26)}{\clip (192.26,3.65)--(192.26,0.06)--(189.22,-1.74)--(189.47,-2.00)--(190.31,-1.50)--(192.96,-6.26)--(196.09,3.15)--(202.49,3.15)--(202.49,3.65)--(192.26,3.65);}%
+  \swpath{draw=black,line width=1.00bp}{(192.96,-6.26)--(196.09,3.15)--(202.49,3.15)}{\clip (192.26,3.65)--(192.26,0.06)--(189.22,-1.74)--(189.47,-2.00)--(190.31,-1.50)--(192.96,-6.26)--(196.09,3.15)--(202.49,3.15)--(202.49,3.65)--(192.26,3.65);}%
+  \swpath{draw=black,line width=1.80bp}{(215.76,-2.00)--(216.59,-1.50)--(219.24,-6.26)}{\clip (218.54,3.65)--(218.54,0.06)--(215.50,-1.74)--(215.76,-2.00)--(216.60,-1.50)--(219.24,-6.26)--(222.37,3.15)--(228.77,3.15)--(228.77,3.65)--(218.54,3.65);}%
+  \swpath{draw=black,line width=1.00bp}{(219.24,-6.26)--(222.37,3.15)--(228.77,3.15)}{\clip (218.54,3.65)--(218.54,0.06)--(215.50,-1.74)--(215.76,-2.00)--(216.60,-1.50)--(219.24,-6.26)--(222.37,3.15)--(228.77,3.15)--(228.77,3.65)--(218.54,3.65);}%
+  \at{532.26}{-6.04}{\swmark{[3]}}%
+  \swdepth{16.50}}
+\partbreak
+\freerow{239.51}{%
+  \at{72.28}{-0.53}{\textbf{(b)}}%
+  \at{94.96}{-0.53}{Given that\kern9.47bp 28\kern2.37bp {\itshape +}\kern2.37bp {\itshape p}}%
+  \at{191.63}{-0.53}{3\kern3.15bp {\itshape =}}%
+  \at{211.22}{-2.85}{\swglyph{6}{211.22bp 507.15bp 380.37bp 322.90bp}}%
+  \at{215.06}{-0.53}{{\itshape q}\kern2.38bp {\itshape +}\kern2.37bp 2}%
+  \at{248.29}{-0.53}{3}%
+  \at{254.25}{-3.09}{\swglyph{6}{254.25bp 506.91bp 337.34bp 322.66bp}}%
+  \at{257.81}{5.13}{{\fontsize{8.00bp}{8.00bp}\selectfont 2}}%
+  \at{262.90}{-0.53}{, where {\itshape p} and {\itshape q} are integers, find the values of {\itshape p} and of {\itshape q}.}%
+  \swpath{draw=black,line width=1.80bp}{(134.75,3.51)--(135.59,4.01)--(138.24,-0.75)}{\clip (137.54,9.16)--(137.54,5.57)--(134.49,3.77)--(134.75,3.51)--(135.59,4.01)--(138.24,-0.75)--(141.37,8.66)--(147.77,8.66)--(147.77,9.16)--(137.54,9.16);}%
+  \swpath{draw=black,line width=1.00bp}{(138.24,-0.75)--(141.37,8.66)--(147.77,8.66)}{\clip (137.54,9.16)--(137.54,5.57)--(134.49,3.77)--(134.75,3.51)--(135.59,4.01)--(138.24,-0.75)--(141.37,8.66)--(147.77,8.66)--(147.77,9.16)--(137.54,9.16);}%
+  \swpath{draw=black,line width=1.80bp}{(191.41,3.51)--(192.25,4.01)--(194.89,-0.75)}{\clip (194.19,9.16)--(194.19,5.57)--(191.15,3.77)--(191.41,3.51)--(192.25,4.01)--(194.89,-0.75)--(198.02,8.66)--(204.43,8.66)--(204.43,9.16)--(194.19,9.16);}%
+  \swpath{draw=black,line width=1.00bp}{(194.89,-0.75)--(198.02,8.66)--(204.43,8.66)}{\clip (194.19,9.16)--(194.19,5.57)--(191.15,3.77)--(191.41,3.51)--(192.25,4.01)--(194.89,-0.75)--(198.02,8.66)--(204.43,8.66)--(204.43,9.16)--(194.19,9.16);}%
+  \at{532.26}{-0.53}{\swmark{[3]}}}`);
+    const q = question(paper, 5);
+    expect(q.marks).toBe(6);
+    expect(q.parts.map((p) => [p.label, p.marks])).toEqual([['a', 3], ['b', 3]]);
+    correctOrPassed(paper, 5, content(part(q, 'b')),
+      String.raw`Given that $28+p\sqrt3=(q+2\sqrt3)^2$, where p and q are integers, find the values of p and of q.`);
+    // Passed or not, the line is still shown.
+    const b = content(part(q, 'b'));
+    expect(b).toContain(canon('Given that'));
+    expect(b).toContain('28');
+    expect(b).toContain(canon('where p and q are integers, find the values of p and of q.'));
+    expect(everything(q)).not.toMatch(/bp\b|clip|line width|black/);
+  });
+
+  it('logarithms with letter-spaced "log" and an equals sign as a picture', () => {
+    // 4037/12/M/J/21 Q5, page 7: "(c) Solve the equation 4 log_y 2 + log_2 y = 4. [3]"
+    const paper = paperOf(MATHS, String.raw`\examq{4037/12/M/J/21}{5}{Logarithmic \& Exponential Functions}{8}
+\freerow{1.12}{%
+  \at{49.61}{-0.00}{\textbf{5}}%
+  \at{72.28}{-0.00}{\textbf{(a)}}%
+  \at{94.96}{-0.00}{Given that}%
+  \at{152.56}{-0.00}{$\log _{a}p+\log _{a}5 - \log _{a}4 = \log _{a}20$,}%
+  \at{310.37}{-0.00}{find the value of $p$.}%
+  \at{532.26}{-0.00}{\hfill\swmark{[2]}}%
+  \swdepth{5.61}}
+\partbreak
+\freerow{169.0}{%
+  \at{72.29}{-0.01}{\textbf{(b)}}%
+  \at{94.97}{-0.01}{Solve the equation}%
+  \at{189.82}{-0.01}{$3^{2x+1} +8(3^{x}) - 3 = 0$.}%
+  \at{531.68}{-0.01}{\hfill\swmark{[3]}}}
+\partbreak
+\freerow{221.0}{%
+  \at{72.28}{-0.01}{{\fontsize{12.00bp}{12.00bp}\selectfont \textbf{(c)}}}%
+  \at{94.96}{-0.01}{{\fontsize{12.00bp}{12.00bp}\selectfont Solve\kern3.00bp the\kern3.00bp equation\kern10.80bp 4\kern1.31bp l\kern-0.15bp og}}%
+  \at{218.87}{-3.26}{{\fontsize{7.00bp}{7.00bp}\selectfont {\itshape y}}}%
+  \at{225.12}{-0.30}{{\fontsize{12.00bp}{12.00bp}\selectfont 2}}%
+  \at{233.23}{-0.54}{\swsy{2B}}%
+  \at{241.62}{-0.30}{{\fontsize{12.00bp}{12.00bp}\selectfont l\kern-0.15bp og}}%
+  \at{257.46}{-3.26}{{\fontsize{7.00bp}{7.00bp}\selectfont 2}}%
+  \at{264.93}{-0.30}{{\fontsize{12.00bp}{12.00bp}\selectfont {\itshape y}}}%
+  \at{273.45}{0.74}{\swglyph{7}{273.45bp 378.91bp 315.50bp 459.78bp}}%
+  \at{282.74}{-0.30}{{\fontsize{12.00bp}{12.00bp}\selectfont 4.}}%
+  \at{531.68}{-0.00}{\swmark{[3]}}%
+  \swdepth{4.66}}`);
+    const q = question(paper, 5);
+    expect(q.parts.map((p) => [p.label, p.marks])).toEqual([['a', 2], ['b', 3], ['c', 3]]);
+    // (a) and (b) are typed: kept as typed.
+    expect(raw(part(q, 'a').content)).toContain(String.raw`$\log _{a}p+\log _{a}5 - \log _{a}4 = \log _{a}20$`);
+    expect(raw(part(q, 'b').content)).toContain(String.raw`$3^{2x+1} +8(3^{x}) - 3 = 0$`);
+    correctOrPassed(paper, 5, content(part(q, 'c')), String.raw`Solve the equation $4\log_y 2+\log_2 y=4$.`);
+    // Passed or not: the words stay, and "l\kern-0.15bp og" is one word.
+    const c = everything({ ...q, parts: [part(q, 'c')] });
+    expect(c).toContain('Solve the equation');
+    expect(c).not.toMatch(/l og/);
+  });
+
+  it('a typed fraction and derivatives across a page, then a blank page', () => {
+    // 4037/21/M/J/16 Q12, pages 14 and 15: "A curve has equation y = (2x − 5)/(x − 1) − 12x."
+    // (i) Find dy/dx. [3]  (ii) Find d²y/dx². [2]  (iii) ... stationary points ... nature. [5]; page 16 is BLANK PAGE
+    const paper = paperOf(MATHS, String.raw`\examq{4037/21/M/J/16}{12}{Differentiation}{10}
+\freerow{0.9}{%
+  \at{49.61}{-6.02}{\textbf{12}}%
+  \at{72.28}{-6.02}{A curve has equation}%
+  \at{176.83}{-6.02}{$y = \dfrac{2x - 5}{x - 1} - 12x$.}%
+  \at{72.77}{-35.04}{\textbf{(i)}}%
+  \at{94.97}{-35.04}{Find}%
+  \at{122.89}{-35.04}{$\dfrac{\mathrm{d}y}{\mathrm{d}x}$.}%
+  \at{532.26}{-35.04}{\hfill\swmark{[3]}}%
+  \swdepth{43.81}}
+\freerow{222.13}{%
+  \at{69.57}{-7.91}{\textbf{(ii)}}%
+  \at{94.96}{-7.91}{Find}%
+  \at{122.89}{-7.91}{$\dfrac{\mathrm{d}^{2}y}{\mathrm{d}x^{2}}$.}%
+  \at{532.26}{-7.91}{\hfill\swmark{[2]}}%
+  \swdepth{19.24}}
+\newpage
+\pagestart
+\partbreak
+\freerow{0.0}{%
+  \at{66.37}{-0.00}{\textbf{(iii)}}%
+  \at{94.95}{-0.00}{Find the coordinates of the stationary points of the curve and determine their nature.}%
+  \at{532.25}{-0.00}{\swmark{[5]}}}
+\newpage
+\pagestart
+\freerow{-0.18}{%
+  \at{260.21}{0.00}{\textbf{BLANK} \textbf{P}\kern-0.85bp \textbf{AGE}}}`);
+    const q = question(paper, 12);
+    expect(raw(q.stem)).toContain(String.raw`$y = \dfrac{2x - 5}{x - 1} - 12x$.`);
+    correct(paper, 12, stem(q), String.raw`A curve has equation $y=\frac{2x-5}{x-1}-12x$.`);
+    expect(q.parts.map((p) => [p.label, p.marks])).toEqual([['i', 3], ['ii', 2], ['iii', 5]]);
+    expect(raw(part(q, 'i').content)).toContain(String.raw`$\dfrac{\mathrm{d}y}{\mathrm{d}x}$`);
+    expect(raw(part(q, 'ii').content)).toContain(String.raw`$\dfrac{\mathrm{d}^{2}y}{\mathrm{d}x^{2}}$`);
+    expect(content(part(q, 'iii'))).toBe(canon('Find the coordinates of the stationary points of the curve and determine their nature.'));
+    expect(everything(q)).not.toMatch(/BLANK|AGE/);
   });
 });

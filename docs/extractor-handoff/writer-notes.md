@@ -147,3 +147,13 @@ Subclasses: `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor`, `Generic
   "...$."), all reviewed: equal or better except V/\mathrm{I}.
 - round1 -> final, text removed from last questions was checked: only furniture (Chemistry paper 4 notes pages,
   "Question 12(b) is printed on the next page", "Continuation of working space").
+
+### More decisions (coordinator, after round 1)
+- **EITHER/OR intro text and figures:** each alternative's own intro paragraph and figure go at the start of the first
+  part of that alternative, right after the bold EITHER/OR word.
+- **One mark printed for several subparts** (e.g. (b)(i)-(iv) share [4]): the mark goes on the part it is printed
+  against (the last one); the others have `marks: null`. The question total still adds up.
+- **Numbered items inside a part** ("1." [3], "2." [2]): they stay as text in that part; the part's marks are their sum.
+- **Typed maths that prints oddly** (`\mathrm{change} \mathrm{in}` -> "changeinvelocity"): rule 4 wins, never rewritten.
+  The tester may record it; it is not counted as an extractor error.
+- The stricter dot test (5070 S26 21 Q5(f): •/· only, not ".") is accepted.

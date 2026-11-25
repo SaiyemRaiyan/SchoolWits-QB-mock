@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { canon, content, correct, everything, options, paperOf, part, passesOf, question, sentences, stem } from './helpers.js';
 import { PHYSICS, PHYSICS_MCQ } from './preambles.js';
 
+const raw = (blocks: { type: string; html?: string }[]) => blocks.map((b) => (b.type === 'figure' ? '' : b.html)).join('\n');
 const lettered = (...texts: string[]) => texts.map((t, i) => `${'ABCD'[i]}: ${canon(t)}`);
 
 describe('physics: options that are fractions drawn piece by piece', () => {
@@ -312,5 +313,97 @@ describe('physics: underlined words', () => {
     if (passesOf(paper, 2).length > 0) expect(passesOf(paper, 2).map((p) => p.reason)).toContain('lost-underline');
     else expect(underlined).toEqual(['acceleration', 'speed', 'mass', 'force']);
     expect(options(q)).toEqual(['A: 1', 'B: 2', 'C: 3', 'D: 4']);
+  });
+});
+
+describe('physics: typed nuclides and subparts inside answer lines (round 1)', () => {
+  it('nuclides typed as maths, and (i)-(iv) set in their answer lines sharing one [4]', () => {
+    // 5054/22/M/J/16 Q11, pages 14 and 15. Printed: (a)[2]; (b) "Using Fig. 11.1, state" (i)-(iv), one [4] for all four;
+    // (c)[2]; (d)[3]; (e)(i)[2] (ii)[2]. Worth 15. How a shared [4] is stored is not settled by the contract,
+    // so only the total and the reading are asserted here.
+    const paper = paperOf(PHYSICS, String.raw`\examq{5054/22/M/J/16}{11}{The Nuclear Atom \textperiodcentered\ Radioactivity \textperiodcentered\ The Stars \& Universe}{15}
+\row{0.6}{72.3}{\lab{22.7}{\textbf{11}}Fig. 11.1 represents a nuclear fusion reaction.}
+\row{27.4}{412.2}{par\kern0.44bp ticle B}
+\qfig{14}{133.50bp 582.98bp 162.24bp 102.44bp}{}{1.8}{0}{133.50}
+\row{25.8}{275.8}{\textbf{Fig. 11.1}}
+\row{26.0}{72.3}{At ver\kern0.33bp y high temperatures, nuclei of the two isotopes\kern2.95bp ${'$'}{}^{2}_{1}\mathrm{H}$ and\kern2.95bp ${'$'}{}^{3}_{1}\mathrm{H}$ fuse together\kern-0.55bp . Energy is produced\linebreak}
+and two new par\kern0.44bp ticles are f\kern-0.33bp ormed, par\kern0.44bp ticle A and par\kern0.44bp ticle B.
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(a)}}Explain what is meant by {\itshape isotopes }of h\kern-0.33bp ydrogen.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}Using Fig. 11.1, state}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{95.9}{\textbf{(i)\kern11.34bp }the number of neutrons in a nucleus of the isotope\kern3.03bp ${'$'}{}^{3}_{1}\mathrm{H}$,}{}{517.5}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{92.8}{\textbf{(ii)\kern11.34bp }the name of par\kern0.44bp ticle A,}{}{517.5}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{89.8}{\textbf{(iii)\kern11.34bp }the proton number of par\kern0.44bp ticle B,}{}{517.5}
+\dotgrid{395.13}{514.39}{3.0580}
+\dotline{26.0}{89.8}{\textbf{(iv)\kern11.34bp }the nucleon number (mass number) of par\kern0.44bp ticle B.}{}{517.5}
+\qmark{13.0}{[4]}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}A ver\kern0.33bp y high temperature is needed to f\kern-0.33bp orce nuclei together\kern-0.55bp .}
+\row{26.0}{94.9}{Explain wh\kern-0.33bp y\kern-1.10bp .}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.91}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[2]}{545.4}
+\newpage
+\pagestart
+\partbreak
+\row{0.6}{94.9}{\lab{22.6}{\textbf{(d)}}A star f\kern-0.33bp orms from a large cloud of gas and dust in space.}
+\row{26.0}{94.9}{Describe what happens as the star f\kern-0.33bp orms.}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{541.92}{3.0580}
+\dotline{26.0}{94.9}{}{}{545.0}
+\dotgrid{95.45}{529.68}{3.0580}
+\dotline{26.0}{94.9}{}{[3]}{545.4}
+\partbreak
+\row{26.0}{94.9}{\lab{22.6}{\textbf{(e)}}The isotope of h\kern-0.33bp ydrogen\kern3.03bp ${'$'}{}^{3}_{1}\mathrm{H}$ has a half-lif\kern-0.33bp e of 12 years.}
+\partbreak
+\row{26.0}{117.6}{\lab{21.7}{\textbf{(i) }}State what is meant by {\itshape half-lif\kern-0.33bp e}.}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.4}
+\partbreak
+\row{26.0}{117.6}{\lab{24.8}{\textbf{(ii) }}A sample contains 16\,000 atoms of\kern3.02bp ${'$'}{}^{3}_{1}\mathrm{H}$.}
+\row{26.0}{117.6}{Calculate the number of atoms of\kern3.03bp ${'$'}{}^{3}_{1}\mathrm{H}$ present in the sample after 48 years.}
+\dotgrid{352.32}{529.68}{3.0580}
+\dotline{169.0}{300.6}{number =}{[2]}{545.4}`);
+    const q = question(paper, 11);
+    expect(raw(q.stem)).toContain(String.raw`${'$'}{}^{2}_{1}\mathrm{H}$`);
+    // "particle B" and "Fig. 11.1" belong to the figure; only the sentences are asserted.
+    expect(stem(q)).toContain(canon('Fig. 11.1 represents a nuclear fusion reaction.'));
+    expect(stem(q)).toContain(canon(`At very high temperatures, nuclei of the two isotopes $^2_1$H and $^3_1$H fuse together. Energy is produced
+      and two new particles are formed, particle A and particle B.`));
+    expect(passesOf(paper, 11), 'everything is typed or plain text').toEqual([]);
+    expect(q.marks).toBe(15);
+    expect(q.parts.map((p) => p.label)).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(paper.warnings.filter((w) => w.code === 'marks-mismatch' && w.questionNumber === 11)).toEqual([]);
+    const b = part(q, 'b');
+    const bMarks = b.marks ?? b.subparts.reduce((n, s) => n + (s.marks ?? 0), 0);
+    expect(bMarks).toBe(4);
+    const lines = canon(everything({ ...q, stem: [], parts: [b] }));
+    const order = ['Using Fig. 11.1, state', 'the number of neutrons in a nucleus of the isotope $^3_1$H,', 'the name of particle A,',
+      'the proton number of particle B,', 'the nucleon number (mass number) of particle B.'].map((t) => lines.indexOf(canon(t)));
+    expect(order.every((n) => n >= 0), `all four printed: ${order}`).toBe(true);
+    expect([...order].sort((x, y) => x - y)).toEqual(order);
+    expect(part(q, 'e', 'ii').marks).toBe(2);
+    correct(paper, 11, content(part(q, 'e', 'ii')),
+      'A sample contains 16 000 atoms of $^3_1$H. Calculate the number of atoms of $^3_1$H present in the sample after 48 years.');
   });
 });

@@ -120,7 +120,8 @@ potassium iodide and acidified potassium manganate(\swcut{8.65}{2.88}{8}{333.16b
     // 5070/21/M/J/26 Q5(f), page 10
     const paper = paperOf(CHEMISTRY, String.raw`\examq{5070/21/M/J/26}{5}{Preparation of Salts \textperiodcentered\ Identification of Ions and Gases \textperiodcentered\ Formulae, Stoichiometry and the Mole Concept}{14}
 \row{0.0}{95.0}{\lab{22.7}{\textbf{(f) }}The formula of aluminium sulfate crystals is A\textbf{l\kern0.46bp }$_{2}$(SO$_{4}$)$_{3}$\swcut{6.64}{2.64}{10}{356.21bp 766.63bp 232.42bp 63.16bp}16H$_{2}$O.}`);
-    correctOrPassed(paper, 5, content(part(question(paper, 5), 'f')).replace(/[·•.](?=16)/, '•'),
+    // The page prints a large ● (canon makes it •); a full stop is not what it prints.
+    correctOrPassed(paper, 5, content(part(question(paper, 5), 'f')).replace(/[·•](?=16)/, '•'),
       'The formula of aluminium sulfate crystals is Al$_2$(SO$_4$)$_3$•16H$_2$O.');
   });
 

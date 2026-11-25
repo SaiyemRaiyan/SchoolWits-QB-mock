@@ -976,7 +976,7 @@ describe('text: page furniture is not question text', () => {
   });
 
   it('the notes for qualitative analysis after the last question', () => {
-    // 5070/41/M/J/23 Q4, page 10, then the notes on pages 11 and 12
+    // 5070/41/M/J/23 Q4, pages 9 and 10, then the notes on pages 11 and 12
     const paper = paperOf(CHEMISTRY, String.raw`\examq{5070/41/M/J/23}{4}{Experimental Design}{6}
 \row{0.0}{72.3}{\lab{22.7}{\textbf{4 }}Baking powder is used to make cakes rise. When water is added to baking powder\kern-0.60bp , carbon dioxide\linebreak}
 gas is released.
@@ -1211,5 +1211,37 @@ time between any two points on the trace.
 \row{26.0}{94.9}{\lab{22.6}{\textbf{(c)}}{\advance\spaceskip0.05bp\advance\xspaceskip0.05bp\textls[+5]{On the grid provided in Fig. 1.3 on page 5, plot a graph of \rlap{\kern1.19bp\raisebox{6.20bp}[0pt][0pt]{1}}\rlap{\kern0.01bp\raisebox{-6.80bp}[0pt][0pt]{{\itshape V}}}\rlap{\kern0.00bp\raisebox{3.06bp}[0pt][0pt]{\rule{8.50bp}{0.30bp}}}\kern8.50bp {} on the {\itshape y}-axis against {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }on the}}\linebreak}
 $x$-axis.`);
     expect(everything(question(paper, 1))).toContain('on page 5, plot a graph of');
+  });
+});
+
+describe('text: options in a column inside a placed block (round 1)', () => {
+  it('A to C placed in one \\freerow, D set as a \\choice', () => {
+    // 5054/11/M/J/23 Q2, page 2: "Which equation contains two vector quantities?"
+    // A acceleration = change in velocity / time taken   B average speed = distance travelled / time taken
+    // C density = mass / volume   D volume = length × width × height
+    const paper = paperOf(PHYSICS_MCQ, String.raw`\examq{5054/11/M/J/23}{2}{Physical Quantities and Measurements}{1}
+\mcq{38.1}{\textbf{2 }}{Which equation contains two vector quantities?}
+\freerow{24.3}{%
+  \at{70.86}{-7.04}{\textbf{A}}%
+  \at{92.09}{-7.04}{acceleration $= \; \dfrac{\mathrm{change} \mathrm{in} \mathrm{velocity}}{\mathrm{time} \mathrm{taken}}$}%
+  \at{70.86}{-41.06}{\textbf{B}}%
+  \at{92.09}{-41.06}{average speed $= \; \dfrac{\mathrm{distance} \mathrm{travelled}}{\mathrm{time} \mathrm{taken}}$}%
+  \at{70.86}{-75.02}{\textbf{C}}%
+  \at{92.09}{-75.02}{density $= \; \dfrac{\mathrm{mass}}{\mathrm{volume}}$}%
+  \swdepth{85.92}}
+\choice{104.1}{\textbf{D }}{volume = length $\times$ width $\times$ height}`);
+    const q = question(paper, 2);
+    expect(sentences(q.stem)).toEqual(['Which equation contains two vector quantities?']);
+    expect(q.options?.items.map((o) => o.label)).toEqual(['A', 'B', 'C', 'D']);
+    const [a, b, c, d] = q.options!.items.map((o) => o.content);
+    // The fractions are typed: never rewritten (rule 4), so they are compared as typed.
+    expect(a).toContain(String.raw`\dfrac{\mathrm{change} \mathrm{in} \mathrm{velocity}}{\mathrm{time} \mathrm{taken}}`);
+    expect(b).toContain(String.raw`\dfrac{\mathrm{distance} \mathrm{travelled}}{\mathrm{time} \mathrm{taken}}`);
+    expect(c).toContain(String.raw`\dfrac{\mathrm{mass}}{\mathrm{volume}}`);
+    expect(canon(a)).toMatch(/^acceleration ?=/);
+    expect(canon(b)).toMatch(/^average speed ?=/);
+    expect(canon(c)).toMatch(/^density ?=/);
+    expect(canon(d)).toBe(canon('volume = length $\\times$ width $\\times$ height'));
+    expect(everything({ ...q, options: null })).not.toMatch(/acceleration|density|volume/);
   });
 });

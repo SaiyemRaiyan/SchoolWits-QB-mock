@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tilt } from "@/components/common/tilt";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
@@ -50,8 +51,11 @@ export function ModulesClient() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 md:px-8">
       <header className="mb-6">
-        <h1 className="font-serif text-3xl font-bold">Topic modules</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+        <p className="font-mono text-[11px] tracking-[0.18em] text-[var(--sw-brass-light)] uppercase">
+          Study packs
+        </p>
+        <h1 className="mt-1 font-serif text-4xl font-bold text-white">Topic modules</h1>
+        <p className="mt-2 max-w-2xl text-sm text-white/70">
           Bundles of questions pulled from any paper in the bank, grouped around one topic. Free
           modules open straight away; premium modules unlock after checkout.
         </p>
@@ -65,20 +69,23 @@ export function ModulesClient() {
 
         <TabsContent value="storefront" className="grid gap-6 pt-4">
           {modules === null ? (
-            <p className="text-sm text-muted-foreground">Loading modules…</p>
+            <p className="text-sm text-white/60">Loading modules…</p>
           ) : !modules.length ? (
-            <Card className="border-dashed p-10 text-center text-sm text-muted-foreground">
+            <Card className="sw-sheet-in p-10 text-center text-sm text-muted-foreground shadow-[var(--sw-shadow-3)]">
               No modules yet. Use the Builder tab to package your first topic pack.
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {modules.map((m) => (
-                <ModuleCard
+              {modules.map((m, i) => (
+                <Tilt
                   key={m.id}
-                  module={m}
-                  owned={owns(m)}
-                  onOpen={() => setOpenId(m.id)}
-                />
+                  className="sw-sheet-in h-full [&>div]:h-full [&_[data-slot=card]]:h-full"
+                  max={7}
+                >
+                  <div style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
+                    <ModuleCard module={m} owned={owns(m)} onOpen={() => setOpenId(m.id)} />
+                  </div>
+                </Tilt>
               ))}
             </div>
           )}

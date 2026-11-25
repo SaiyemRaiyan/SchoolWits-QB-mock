@@ -3,6 +3,7 @@
    landing page shows.
    ===================================================================== */
 import { check, supabase } from "./client";
+import type { Paper } from "./mappers";
 import { getAllPapers } from "./papers";
 
 export type Facets = {
@@ -59,4 +60,54 @@ export async function getTopicsForSubject(subject: string): Promise<string[]> {
     .eq("papers.subject", subject);
   check(error);
   return uniq((data || []).flatMap((q) => q.topics || []));
+}
+
+/** The filters that pick out a paper, as the URL carries them. */
+export type PaperFilters = {
+  subject?: string;
+  paper?: string;
+  variant?: string;
+  session?: string;
+  year?: string;
+};
+
+export type ScopedFacets = {
+  papers: string[];
+  variants: string[];
+  sessions: string[];
+  years: string[];
+  /** How many papers satisfy every filter at once. Zero means a dead end. */
+  matching: number;
+};
+
+const FIELDS = ["subject", "paper", "variant", "session", "year"] as const;
+
+/**
+ * Faceted cascade: the options for each filter are the values that exist on
+ * papers matching every OTHER filter. Offering the bank-wide list instead let
+ * you choose "Physics, variant 3" and land on an empty page, because nothing
+ * of the kind exists. A filter never narrows its own list, so changing your
+ * mind about one choice never needs a reset first.
+ *
+ * The value currently selected is always kept in its own list, so a
+ * combination that has become impossible still shows what is blocking it.
+ */
+export function scopeFacets(papers: Paper[], f: PaperFilters): ScopedFacets {
+  const matches = (p: Paper, skip?: (typeof FIELDS)[number]) =>
+    FIELDS.every((key) => key === skip || !f[key] || String(p[key]) === f[key]);
+
+  const values = (field: "paper" | "variant" | "session" | "year") => {
+    const set = new Set(papers.filter((p) => matches(p, field)).map((p) => String(p[field])));
+    if (f[field]) set.add(f[field]!);
+    return [...set].filter(Boolean);
+  };
+
+  const byValue = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
+  return {
+    papers: values("paper").sort(byValue),
+    variants: values("variant").sort(byValue),
+    sessions: values("session").sort(byValue),
+    years: values("year").sort((a, b) => Number(b) - Number(a)),
+    matching: papers.filter((p) => matches(p)).length,
+  };
 }

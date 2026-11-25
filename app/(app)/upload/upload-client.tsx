@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, FileText, FileType, ImageIcon } from "lucide-react";
+import { CheckCircle2, FileText, FileType, ImageIcon, Loader2, Check } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -218,21 +218,65 @@ function UploadWorkspace() {
 
   return (
     <Shell>
-      <header className="mb-6">
-        <h1 className="font-serif text-3xl font-bold">Upload a paper from .tex</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+      <header className="relative mb-6 overflow-hidden rounded-3xl bg-[var(--sw-ink)] p-6 text-white shadow-[var(--sw-shadow-3)] sm:p-8">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-10 -right-6 font-serif text-[11rem] leading-none font-bold text-white/[0.04] select-none"
+        >
+          .tex
+        </span>
+        <p className="font-mono text-[11px] tracking-[0.18em] text-[var(--sw-brass-light)] uppercase">
+          Admin &middot; Paper upload
+        </p>
+        <h1 className="mt-1 font-serif text-3xl font-bold">Upload a paper from .tex</h1>
+        <p className="mt-2 max-w-2xl text-sm text-white/70">
           Two files build one paper: a Questions file and an Answers file, matched by question
           number. Add the source paper PDF, or any figure images, too. Nothing is saved until you
           confirm the preview.
         </p>
+
+        <ol className="relative mt-6 grid gap-3 sm:grid-cols-3" aria-label="Progress">
+          {[
+            ["Add the files", Boolean(qp)],
+            ["Check the preview", Boolean(result?.paper) && !result?.blocked],
+            ["Save to the bank", Boolean(saved)],
+          ].map(([label, done], i) => (
+            <li
+              key={String(label)}
+              className="flex items-center gap-3 rounded-xl bg-white/[0.07] px-4 py-3 text-sm"
+            >
+              <span
+                className={`flex size-7 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold transition-colors duration-500 ${
+                  done ? "bg-[var(--sw-ms)] text-white" : "bg-white/15 text-white/70"
+                }`}
+              >
+                {done ? <Check className="sw-rise size-4" /> : i + 1}
+              </span>
+              <span className={done ? "text-white" : "text-white/70"}>{label}</span>
+            </li>
+          ))}
+        </ol>
+
+        {/* An indeterminate bar while a parse, crop or upload is running. */}
+        <div
+          className={`absolute inset-x-0 bottom-0 h-1 overflow-hidden transition-opacity duration-300 ${
+            status ? "opacity-100" : "opacity-0"
+          }`}
+          role="progressbar"
+          aria-label="Working"
+          aria-hidden={!status}
+        >
+          <div className="sw-skeleton h-full w-full !rounded-none !bg-[linear-gradient(100deg,transparent_30%,var(--sw-brass-light)_50%,transparent_70%)] bg-[length:200%_100%]" />
+        </div>
       </header>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(22rem,27rem)_minmax(0,1fr)]">
         <div className="grid content-start gap-5">
           <Step
             number={1}
             title="Add the files"
             hint="Figures are cut from the source PDF, or matched by filename, and uploaded before the final parse."
+            done={Boolean(qp)}
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-2">
@@ -242,9 +286,10 @@ function UploadWorkspace() {
                   hint="\examq · parts · \qfig"
                   accept=".tex,text/plain"
                   icon={<FileText className="size-5" />}
+                  tone="q"
+                  filled={qp?.name}
                   onFiles={(f) => void readTex("qp", f)}
                 />
-                {qp && <FilePill name={qp.name} />}
               </div>
               <div className="grid gap-2">
                 <Dropzone
@@ -253,9 +298,10 @@ function UploadWorkspace() {
                   hint="mstab · ansbox"
                   accept=".tex,text/plain"
                   icon={<CheckCircle2 className="size-5" />}
+                  tone="ms"
+                  filled={qa?.name}
                   onFiles={(f) => void readTex("qa", f)}
                 />
-                {qa && <FilePill name={qa.name} />}
               </div>
             </div>
 
@@ -266,13 +312,12 @@ function UploadWorkspace() {
                 hint="figures are cut from this"
                 accept="application/pdf,.pdf"
                 icon={<FileType className="size-5" />}
+                tone="pdf"
+                filled={sourcePdf ? `${sourcePdf.name} · ${Math.round(sourcePdf.size / 1024)} KB` : null}
                 onFiles={addPdf}
               />
-              {sourcePdf && (
-                <FilePill name={sourcePdf.name} note={`${Math.round(sourcePdf.size / 1024)} KB`} />
-              )}
               {needsPdf && (
-                <p className="text-sm text-destructive">
+                <p role="alert" className="rounded-lg bg-[#FBEBE8] px-3 py-2 text-sm text-[var(--sw-marker)]">
                   This paper cuts {uncut.length} figure{uncut.length === 1 ? "" : "s"} out of{" "}
                   {pdfName ? <span className="font-mono">{pdfName}</span> : "the original question paper"}
                   . Drop that PDF to continue.
@@ -293,6 +338,8 @@ function UploadWorkspace() {
               accept={FIGURE_ACCEPT}
               multiple
               icon={<ImageIcon className="size-5" />}
+              tone="fig"
+              filled={figureNames.length ? `${figureNames.length} image${figureNames.length === 1 ? "" : "s"} added` : null}
               onFiles={addFigures}
             />
             {figureNames.length > 0 && (
@@ -303,8 +350,17 @@ function UploadWorkspace() {
               </div>
             )}
 
-            {status && <p className="text-sm text-muted-foreground">{status}</p>}
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {status && (
+              <p role="status" className="sw-rise flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                {status}
+              </p>
+            )}
+            {error && (
+              <p role="alert" className="sw-rise rounded-lg bg-[#FBEBE8] px-3 py-2 text-sm text-[var(--sw-marker)]">
+                {error}
+              </p>
+            )}
 
             <p className="text-xs text-muted-foreground">
               New to the format? Start from{" "}
@@ -327,6 +383,7 @@ function UploadWorkspace() {
             number={2}
             title="Confirm the paper"
             hint="Read from the \examq header, so it cannot be edited here. The subject is the one exception."
+            done={Boolean(result?.paper)}
           >
             <PaperMeta paper={result?.paper ?? null} subject={subject} onSubject={setSubject} />
           </Step>
@@ -334,7 +391,7 @@ function UploadWorkspace() {
           {result && <WarningsList warnings={result.warnings} blocked={result.blocked} />}
 
           {result && (
-            <Step number={3} title="Save to the bank">
+            <Step number={3} title="Save to the bank" done={Boolean(saved)}>
               <p className="text-sm text-muted-foreground">
                 {result.questions.length} questions &middot; {totalMarks} marks
                 {qa ? "" : " · no answers file yet"}
@@ -356,31 +413,34 @@ function UploadWorkspace() {
           )}
         </div>
 
-        <div className="grid content-start gap-5">
-          <Step title="Live preview">
-            <PreviewPanel questions={result?.questions ?? []} />
-          </Step>
-          <Step
-            title="Papers already in the bank"
-            hint="Deleting a paper removes every question it contributed."
-          >
-            <ExistingPapers
-              papers={papers}
-              onDelete={async (key) => {
-                await deletePaper(key);
-                invalidateReferenceData();
-                loadPapers();
-              }}
-            />
-          </Step>
+        <div className="min-w-0 xl:sticky xl:top-20 xl:self-start">
+          <PreviewPanel
+            questions={result?.questions ?? []}
+            label={result?.paper ? `${result.paper.paperId}` : null}
+          />
         </div>
       </div>
+
+      <section className="mt-8">
+        <ExistingPapers
+          papers={papers}
+          onDelete={async (key) => {
+            await deletePaper(key);
+            invalidateReferenceData();
+            loadPapers();
+          }}
+        />
+      </section>
     </Shell>
   );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 md:px-8">{children}</main>;
+  return (
+    <main className="mx-auto w-full max-w-[1800px] flex-1 px-3 py-6 text-white sm:px-5 md:py-8 xl:px-8 [&_section]:text-foreground">
+      {children}
+    </main>
+  );
 }
 
 function FilePill({ name, note }: { name: string; note?: string }) {

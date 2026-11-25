@@ -168,7 +168,9 @@ export type WarningCode =
   | 'unsupported-layout'
   | 'garbled-text'
   /** Not blocking: a layout line was rebuilt by position and wants a look. */
-  | 'positioned-maths';
+  | 'positioned-maths'
+  /** Not blocking: a TikZ/picture diagram cannot be shown and was left out. */
+  | 'diagram-omitted';
 
 export interface Warning {
   code: WarningCode;

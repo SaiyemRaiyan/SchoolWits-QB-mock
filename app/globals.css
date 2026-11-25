@@ -50,7 +50,7 @@
 }
 
 :root {
-  /* School Wits palette. Flat colours only, no gradients. */
+  /* School Wits palette: the base hues. The gradients and shadows built from them are further down. */
   --sw-ink: #0F1E35;
   --sw-ink-deep: #07111F;
   --sw-ink-soft: #1A3058;
@@ -59,6 +59,64 @@
   --sw-brass-dark: #9A7218;
   --sw-marker: #C0392B;
   --sw-teal: #2DD4BF;
+
+  /* One accent per kind of content, so a student always knows which document
+     they are reading: ink for the question, green for the examiner's mark
+     scheme, brass for a worked solution. */
+  --sw-paper: #FFFFFF;
+  --sw-paper-edge: #D5DDEA;
+  --sw-q: var(--sw-ink-soft);
+  --sw-q-tint: #EEF2FA;
+  --sw-ms: #1B7F5C;
+  --sw-ms-tint: #E9F6F0;
+  --sw-sol: #9A7218;
+  --sw-sol-tint: #FBF4E4;
+  --sw-m: #2F6FB3;
+  --sw-a: #1B7F5C;
+  --sw-b: #B9762A;
+
+  /* Each colour family is a gradient, not a flat fill: dark to lighter, with a
+     soft white highlight laid over the top-left corner at low opacity. The
+     "soft" variants are one step lighter, for things nested inside. */
+  --sw-grad-q: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 45%),
+    linear-gradient(160deg, #0a1730 0%, #12315f 48%, #1d4d92 100%);
+  --sw-grad-q-soft: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 50%),
+    linear-gradient(160deg, #1b427f 0%, #2c63ae 55%, #4a86d1 100%);
+  --sw-grad-ms: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 45%),
+    linear-gradient(160deg, #04281c 0%, #0b5a3d 48%, #17946a 100%);
+  --sw-grad-ms-soft: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 50%),
+    linear-gradient(160deg, #0d6a49 0%, #17946a 55%, #35b98d 100%);
+  --sw-grad-sol: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 45%),
+    linear-gradient(160deg, #3a2707 0%, #7a5614 48%, #c4922a 100%);
+  --sw-grad-sol-soft: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 50%),
+    linear-gradient(160deg, #8a6417 0%, #c4922a 55%, #e3b655 100%);
+  --sw-grad-seal: radial-gradient(circle at 30% 22%, #f2705f 0%, #c0392b 46%, #7c150c 100%);
+  /* Column washes: the same hue fading from strong to faint across the width. */
+  --sw-wash-q: linear-gradient(90deg, rgba(29, 77, 146, 0.16), rgba(29, 77, 146, 0.03));
+  --sw-wash-ms: linear-gradient(90deg, rgba(23, 148, 106, 0.18), rgba(23, 148, 106, 0.03));
+  --sw-wash-sol: linear-gradient(90deg, rgba(196, 146, 42, 0.2), rgba(196, 146, 42, 0.04));
+
+  /* Depth is built from a few named shadows rather than one-off values. The
+     sheet shadow doubles the blur at each step, which is how a real object
+     lifts off a surface: a tight dark contact edge, then ever wider and
+     fainter falloff, and a long soft shadow under it all. */
+  --sw-shadow-sheet:
+    0 1px 1px rgba(2, 8, 20, 0.2),
+    0 3px 3px rgba(2, 8, 20, 0.16),
+    0 8px 8px rgba(2, 8, 20, 0.14),
+    0 18px 18px rgba(2, 8, 20, 0.12),
+    0 36px 40px -6px rgba(2, 8, 20, 0.26),
+    0 70px 80px -24px rgba(2, 8, 20, 0.45);
+  --sw-shadow-box:
+    0 1px 1px rgba(15, 30, 53, 0.1),
+    0 3px 4px rgba(15, 30, 53, 0.08),
+    0 8px 14px -4px rgba(15, 30, 53, 0.16),
+    0 18px 28px -10px rgba(15, 30, 53, 0.22);
+
+  --sw-shadow-1: 0 1px 2px rgba(15, 30, 53, 0.06), 0 1px 1px rgba(15, 30, 53, 0.04);
+  --sw-shadow-2: 0 6px 18px -8px rgba(15, 30, 53, 0.22), 0 2px 4px rgba(15, 30, 53, 0.05);
+  --sw-shadow-3: 0 22px 50px -22px rgba(15, 30, 53, 0.42), 0 4px 10px rgba(15, 30, 53, 0.06);
+  --sw-ease: cubic-bezier(0.22, 0.8, 0.28, 1);
 
   /* shadcn semantics, defined in terms of the palette above. */
   --background: #F4F7FB;
@@ -109,5 +167,208 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Motion is decoration here, never information. Anyone who has asked their
+   system for less of it gets none: no transitions, no entrance animations,
+   and the 3D stage on the landing page stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Entrance used by every panel that swaps content. */
+@keyframes sw-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sw-rise {
+  animation: sw-rise 0.38s var(--sw-ease) both;
+}
+
+@keyframes sw-sheen {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.sw-skeleton {
+  border-radius: var(--radius-md);
+  background: linear-gradient(100deg, var(--muted) 30%, #fff 50%, var(--muted) 70%);
+  background-size: 200% 100%;
+  animation: sw-sheen 1.4s linear infinite;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--sw-brass);
+    outline-offset: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Portal backdrop: the same night-sky navy and brass as the homepage, */
+/* plus a perspective floor, so every page reads as one place.          */
+/* ------------------------------------------------------------------ */
+
+.sw-portal {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 70% 50% at 85% 0%, rgba(45, 212, 191, 0.10), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 5% 100%, rgba(196, 146, 42, 0.14), transparent 55%),
+    linear-gradient(155deg, #07111f 0%, #0f2038 48%, #142a50 100%);
+  background-attachment: fixed;
+}
+
+.sw-portal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 42px);
+}
+
+/* The floor: a grid laid flat and tipped back, fading into the distance. */
+.sw-portal::after {
+  content: "";
+  position: fixed;
+  left: -25%;
+  right: -25%;
+  bottom: -8vh;
+  height: 55vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(224, 176, 74, 0.28) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg, rgba(224, 176, 74, 0.28) 0 1px, transparent 1px 56px);
+  transform: perspective(520px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  opacity: 0.9;
+  animation: sw-floor 14s linear infinite;
+}
+
+@keyframes sw-floor {
+  to {
+    background-position: 0 56px, 0 0;
+  }
+}
+
+/* A sheet arrives the way a page is laid on a desk: tipped back, then flat. */
+@keyframes sw-sheet-in {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateX(9deg) translateY(28px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sw-sheet-in {
+  transform-origin: 50% 0;
+  animation: sw-sheet-in 0.6s var(--sw-ease) both;
+}
+
+/* Frosted panel for controls that sit directly on the backdrop. */
+.sw-glass {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px) saturate(130%);
+}
+
+/* A raised key: a hard lower edge makes a flat tile read as a solid object
+   that sinks when pressed. */
+.sw-key {
+  box-shadow:
+    0 4px 0 rgba(15, 30, 53, 0.22),
+    0 8px 14px -6px rgba(15, 30, 53, 0.35);
+  transition:
+    transform 0.15s var(--sw-ease),
+    box-shadow 0.15s var(--sw-ease),
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.sw-key:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 rgba(15, 30, 53, 0.22),
+    0 14px 20px -8px rgba(15, 30, 53, 0.4);
+}
+
+.sw-key:active,
+.sw-key[aria-current="true"] {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(15, 30, 53, 0.3);
+}
+
+/* Pointer tilt. Components/common/tilt.tsx writes --tx and --ty (-1..1). */
+.sw-tilt {
+  --tx: 0;
+  --ty: 0;
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateX(calc(var(--ty) * -1 * var(--tilt, 6deg)))
+    rotateY(calc(var(--tx) * var(--tilt, 6deg)));
+  transition: transform 0.25s var(--sw-ease);
+  will-change: transform;
+}
+
+.sw-tilt[data-active] {
+  transition: transform 0.06s linear;
+}
+
+.sw-tilt > * {
+  transform: translateZ(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sw-portal::after {
+    animation: none;
+  }
+  .sw-tilt {
+    transform: none !important;
+  }
+}
+
+/* The skeleton on the dark backdrop is a faint sheen, not a white bar. */
+.sw-skeleton-dark {
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.06) 30%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.06) 70%);
+  background-size: 200% 100%;
+}
+
+/* On a phone the fixed backdrop and its animated floor sit under blurred
+   surfaces, which makes the browser repaint them every frame. Hold them still. */
+@media (max-width: 768px) {
+  .sw-portal {
+    background-attachment: scroll;
+  }
+  .sw-portal::after {
+    animation: none;
+    height: 38vh;
   }
 }

@@ -67,3 +67,48 @@ describe('parseCorrectOption', () => {
     expect(parseCorrectOption('The gradient decreases.')).toBeNull();
   });
 });
+
+describe('parseAnsbox — "For (x)(y)," prose labels', () => {
+  const body = [
+    'For (a)(i), mass is the amount of matter.',
+    '',
+    'It is measured in kilograms.',
+    '',
+    'For (a)(ii), rearrange $\\rho = m/V$.',
+    '',
+    'For (b)(i)2, the second mark is for units.',
+  ].join('\n');
+
+  it('starts a segment at each label and keeps the paragraphs under it', () => {
+    const segs = parseAnsbox(body, 3);
+    expect(segs.map((s) => s.ref)).toEqual(['3(a)(i)', '3(a)(ii)', '3(b)(i)']);
+    expect(segs[0].html).toContain('mass is the amount of matter.');
+    expect(segs[0].html).toContain('It is measured in kilograms.');
+  });
+
+  it('leaves a mid-sentence "for (a)" alone', () => {
+    expect(parseAnsbox('We check this for (a) first.', 1)).toHaveLength(1);
+  });
+});
+
+describe('parseAnsbox — bold labels and subparts', () => {
+  it('reads \\textbf{(i)} and attaches it to the lettered part before it', () => {
+    const body = '(c) Part c title\\\\[4pt]\ntext\n\n\\textbf{(i)}\nfirst\n\n\\textbf{(ii)}\nsecond';
+    expect(parseAnsbox(body, 1).map((s) => s.ref)).toEqual(['1(c)', '1(c)(i)', '1(c)(ii)']);
+  });
+
+  it('keeps a bare (i) as 3(i) when no lettered part came before', () => {
+    expect(parseAnsbox('\\textbf{(i)}\nx\n\n\\textbf{(ii)}\ny', 3).map((s) => s.ref)).toEqual(['3(i)', '3(ii)']);
+  });
+});
+
+describe('parseAnsbox — letters carry through a pair', () => {
+  it('files a bare (ii) under the letter of the pair before it', () => {
+    const body = '(c)(i) first\\\\[2pt]\nx\n\n\\textbf{(ii)}\ny';
+    expect(parseAnsbox(body, 1).map((s) => s.ref)).toEqual(['1(c)(i)', '1(c)(ii)']);
+  });
+
+  it('does not re-case the sentence after "For (a),"', () => {
+    expect(parseAnsbox('For (a), g is the field strength.', 2)[0].html).toBe('g is the field strength.');
+  });
+});

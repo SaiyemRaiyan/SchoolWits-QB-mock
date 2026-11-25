@@ -17,6 +17,13 @@ import type { SolutionSegment } from './types.js';
 const MARKER = /^\s*(\((?:[a-z]+|[ivx]+)\)(?:\((?:[ivx]+)\))?)\s*/;
 
 /**
+ * "For (b)(i)2, ..." at the start of a line: the same part marker written as
+ * the opening words of a sentence, which is how the page-layout papers do it.
+ * The digit after the label numbers the mark being explained, not a new part.
+ */
+const FOR_MARKER = /^\s*For\s+(\([a-z]+\))(\([ivx]+\))?\d*\s*[,:]\s*/;
+
+/**
  * Split an ansbox body into segments.
  *
  * `questionNumber` prefixes the refs so they match the mark scheme's
@@ -41,14 +48,44 @@ export function parseAnsbox(body: string, questionNumber: number): SolutionSegme
     buffer = [];
   };
 
-  for (const line of lines) {
+  // A bare (i) after a lettered part is that part's subpart, so it takes the
+  // letter with it: the mark scheme calls it 1(c)(i), never 1(i).
+  let lastLetter = '';
+  // (i), (v) and (x) are read as numerals: a paper that reaches part (i) of
+  // the alphabet is far rarer than one that numbers its subparts.
+  const ROMAN = /^\((?:i{1,3}|iv|vi{0,3}|ix|x)\)$/;
+  const qualify = (label: string): string => {
+    const pair = /^(\([a-z]\))(\([ivx]+\))$/.exec(label);
+    if (pair) {
+      lastLetter = pair[1];
+      return label;
+    }
+    if (ROMAN.test(label)) return lastLetter ? `${lastLetter}${label}` : label;
+    if (/^\([a-z]\)$/.test(label)) lastLetter = label;
+    return label;
+  };
+
+  for (const rawLine of lines) {
+    // `\textbf{(i)}` on its own is the same marker, in bold.
+    const line = rawLine.replace(/^(\s*)\\textbf\{(\([a-z]+\)(?:\([ivx]+\))?)\}/, '$1$2');
+    const sentence = FOR_MARKER.exec(line);
+    if (sentence) {
+      flush();
+      lastLetter = sentence[1];
+      currentRef = `${questionNumber}${sentence[1]}${sentence[2] ?? ''}`;
+      currentHeading = null;
+      // Kept verbatim: the sentence is authored text, and re-casing its first
+      // word would turn "g is the field strength" into "G is".
+      buffer = [line.slice(sentence[0].length)];
+      continue;
+    }
     const m = MARKER.exec(line);
     // A marker only starts a new segment when it heads its own line — a
     // "(a)" mid-sentence inside prose must not split the box.
     if (m) {
       flush();
       const suffix = line.slice(m[0].length);
-      currentRef = `${questionNumber}${m[1]}`;
+      currentRef = `${questionNumber}${qualify(m[1])}`;
       // The heading runs to the \\[4pt] that ends the title line.
       const headingEnd = suffix.search(/\\\\/);
       const headingRaw = headingEnd === -1 ? suffix : suffix.slice(0, headingEnd);

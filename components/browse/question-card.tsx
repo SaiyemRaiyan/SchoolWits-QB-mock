@@ -1,21 +1,23 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Pencil } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, BookOpenCheck, ClipboardCheck, FileText, Pencil, PlayCircle } from "lucide-react";
+import { useId, useMemo, useState } from "react";
 
+import { MarksSeal } from "@/components/common/marks-seal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { collectMarksBreakdown, renderQuestionHtml, renderWorkedSolution, toMarkSchemeRows } from "@/lib/render";
 import { paperLabel, type Question } from "@/lib/supabase";
 
 import { MarkSchemeTable } from "./mark-scheme-table";
+import { ModePanel, ModeTabs, TONE_TINT, type Mode } from "./mode-tabs";
 import { QuestionHtml } from "./question-html";
 import { VideoPanel } from "./video-panel";
 
 type QuestionCardProps = {
   question: Question;
+  /** Where this sits in the result set, for the counter and progress bar. */
+  position?: { index: number; total: number };
   hasPrev: boolean;
   hasNext: boolean;
   onPrev: () => void;
@@ -26,6 +28,7 @@ type QuestionCardProps = {
 
 export function QuestionCard({
   question,
+  position,
   hasPrev,
   hasNext,
   onPrev,
@@ -37,6 +40,7 @@ export function QuestionCard({
   const [picked, setPicked] = useState<{ uid: string; tab: string } | null>(null);
   const tab = picked?.uid === question.uid ? picked.tab : "question";
   const hasVideo = Boolean(question.videoUrl || question.videoId);
+  const panelId = useId();
 
   const rendered = useMemo(
     () => ({
@@ -48,84 +52,123 @@ export function QuestionCard({
     [question.content],
   );
 
+  const modes: Mode[] = [
+    { value: "question", label: "Question", tone: "q", icon: <FileText className="size-4" /> },
+    { value: "markscheme", label: "Mark scheme", tone: "ms", icon: <ClipboardCheck className="size-4" /> },
+    { value: "worked-solution", label: "Worked solution", tone: "sol", icon: <BookOpenCheck className="size-4" /> },
+    ...(hasVideo
+      ? [{ value: "video", label: "Video", tone: "video", icon: <PlayCircle className="size-4" /> } as Mode]
+      : []),
+  ];
+  const mode = modes.find((m) => m.value === tab) ?? modes[0];
+  const progress = position ? ((position.index + 1) / position.total) * 100 : 0;
+
   return (
-    <Card className="gap-0 py-0 overflow-hidden">
-      {/* A fixed two-column grid, not flex-wrap: the topic line varies from a
-          few words to three clauses, and wrapping moved the controls around. */}
-      <CardHeader className="grid gap-4 border-b p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-        <div className="min-w-0">
-          <h2 className="font-serif text-2xl font-bold">Question {question.id}</h2>
-          <p className="mt-0.5 font-mono text-xs break-words text-muted-foreground">
-            {question.ref || `${paperLabel(question)} · Q${question.id}`}
-            {question.topic && ` · Topic: ${question.topic}`}
-          </p>
-        </div>
+    <article className="sw-sheet-in overflow-hidden rounded-3xl bg-card shadow-[var(--sw-shadow-sheet)] ring-1 ring-white/10">
+      {/* Header band: which question, from which paper, and what it is worth. */}
+      <header className="relative overflow-hidden bg-[image:var(--sw-grad-q)] px-5 py-5 text-white sm:px-8">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-6 right-24 font-serif text-[9rem] leading-none font-bold text-white/[0.04] select-none"
+        >
+          {question.id}
+        </span>
 
-        <div className="flex shrink-0 items-start gap-4 sm:justify-self-end">
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-full border-2 border-[var(--sw-marker)] font-mono leading-none">
-              <span className="text-lg font-bold text-[var(--sw-marker)]">
-                {question.marks ?? "·"}
-              </span>
-              <span className="text-[8px] tracking-wider text-muted-foreground uppercase">
-                {question.marks === 1 ? "mark" : "marks"}
-              </span>
+        <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] tracking-[0.16em] break-words text-[var(--sw-brass-light)] uppercase">
+              {question.ref || `${paperLabel(question)} · Q${question.id}`}
+            </p>
+            <h2 className="mt-1 font-serif text-3xl font-bold">Question {question.id}</h2>
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <Badge className="border-white/20 bg-white/10 font-normal text-white">
+                {question.kind === "mcq" ? "Multiple choice" : "Structured"}
+              </Badge>
+              {question.topics.map((t) => (
+                <Badge key={t} className="border-white/20 bg-white/10 font-normal text-white">
+                  {t}
+                </Badge>
+              ))}
             </div>
-            {rendered.breakdown.length > 1 && (
-              <div className="flex max-w-40 flex-wrap justify-center gap-1">
-                {rendered.breakdown.map((part) => (
-                  <Badge key={part.label} variant="outline" className="px-1.5 font-mono text-[10px]">
-                    ({part.label}) {part.marks}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
 
-          <div className="flex gap-2 pt-4">
-            {onEdit && (
-              <Button variant="outline" size="sm" onClick={onEdit}>
-                <Pencil className="size-3.5" />
-                Edit
-              </Button>
+          <div className="flex items-center gap-4">
+            {rendered.breakdown.length > 1 && (
+              <ul className="hidden max-w-44 flex-wrap justify-end gap-1 sm:flex">
+                {rendered.breakdown.map((part) => (
+                  <li
+                    key={part.label}
+                    className="rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[10px] text-white/80"
+                  >
+                    ({part.label}) {part.marks}
+                  </li>
+                ))}
+              </ul>
             )}
-            <Button variant="outline" size="sm" disabled={!hasPrev} onClick={onPrev}>
-              <ArrowLeft className="size-3.5" />
-              Prev
-            </Button>
-            <Button variant="outline" size="sm" disabled={!hasNext} onClick={onNext}>
-              Next
-              <ArrowRight className="size-3.5" />
-            </Button>
+            <MarksSeal marks={question.marks} size={84} className="size-16 sm:size-[84px]" />
           </div>
         </div>
-      </CardHeader>
+      </header>
 
-      <Tabs value={tab} onValueChange={(next) => setPicked({ uid: question.uid, tab: next })}>
-        <TabsList className="m-4 mb-0">
-          <TabsTrigger value="question">Question</TabsTrigger>
-          <TabsTrigger value="markscheme">Mark Scheme</TabsTrigger>
-          <TabsTrigger value="worked-solution">Worked Solution</TabsTrigger>
-          {hasVideo && <TabsTrigger value="video">Video</TabsTrigger>}
-        </TabsList>
+      {position && (
+        <div className="h-1 bg-muted" role="presentation">
+          <div
+            className="h-full bg-[image:var(--sw-grad-sol)] transition-[width] duration-500 ease-[var(--sw-ease)]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
 
-        <CardContent className="p-5">
-          <TabsContent value="question">
-            <QuestionHtml html={rendered.question} className="question-body" />
-          </TabsContent>
-          <TabsContent value="markscheme">
-            <MarkSchemeTable rows={rendered.markScheme} />
-          </TabsContent>
-          <TabsContent value="worked-solution">
-            <QuestionHtml html={rendered.solution} className="worked-solution" />
-          </TabsContent>
-          {hasVideo && (
-            <TabsContent value="video">
-              <VideoPanel question={question} />
-            </TabsContent>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6">
+        <ModeTabs
+          modes={modes}
+          value={mode.value}
+          onChange={(next) => setPicked({ uid: question.uid, tab: next })}
+          panelId={panelId}
+          label="Show the question, its mark scheme or its worked solution"
+        />
+
+        <div className="flex items-center gap-2">
+          {position && (
+            <span className="mr-1 font-mono text-xs text-muted-foreground tabular-nums">
+              {position.index + 1} / {position.total}
+            </span>
           )}
-        </CardContent>
-      </Tabs>
-    </Card>
+          {onEdit && (
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Pencil className="size-3.5" />
+              Edit
+            </Button>
+          )}
+          <Button variant="outline" size="sm" disabled={!hasPrev} onClick={onPrev} aria-label="Previous question">
+            <ArrowLeft className="size-3.5" />
+            Prev
+          </Button>
+          <Button size="sm" disabled={!hasNext} onClick={onNext} aria-label="Next question">
+            Next
+            <ArrowRight className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="p-3 sm:p-6 lg:p-8" style={{ background: mode.value === "question" ? undefined : TONE_TINT[mode.tone] }}>
+        <ModePanel
+          id={panelId}
+          mode={mode}
+          className={
+            mode.value === "question"
+              ? "bg-card p-1 sm:p-2"
+              : "bg-card p-3 shadow-[var(--sw-shadow-box)] sm:p-6"
+          }
+        >
+          {mode.value === "question" && <QuestionHtml html={rendered.question} className="question-body" />}
+          {mode.value === "markscheme" && <MarkSchemeTable rows={rendered.markScheme} />}
+          {mode.value === "worked-solution" && (
+            <QuestionHtml html={rendered.solution} className="worked-solution" />
+          )}
+          {mode.value === "video" && <VideoPanel question={question} />}
+        </ModePanel>
+      </div>
+    </article>
   );
 }

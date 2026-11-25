@@ -77,6 +77,7 @@ export function flattenQuestion(q: QuestionLike | null | undefined): string {
 
   return out
     .join(' ')
+    .replace(/<span>\$<\/span>/g, ' ')
     .replace(MATH, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&[a-z]+;/g, ' ')

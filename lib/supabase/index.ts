@@ -16,11 +16,23 @@ export type {
 } from "./mappers";
 
 export { deletePaper, getAllPapers, invalidatePaperCache } from "./papers";
-export { getFacets, getTopicsForSubject, type Facets } from "./facets";
+export {
+  getFacets,
+  getTopicsForSubject,
+  scopeFacets,
+  type Facets,
+  type PaperFilters,
+  type ScopedFacets,
+} from "./facets";
 export {
   activePaperKey,
+  getPaperKeysForTopic,
   getQuestionsByPaperKey,
   hasAnyFilter,
+  MIN_NARROWING,
+  narrowingCount,
+  resultsReady,
+  whatIsMissing,
   paperKeyOf,
   paperLabel,
   searchQuestions,

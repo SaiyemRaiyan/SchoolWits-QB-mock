@@ -21,6 +21,7 @@ import {
   renderWorkedSolution,
   toMarkSchemeRows,
 } from '../../../lib/render/index.js';
+import { renderBlocks } from '../../../lib/render/blocks.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPO = join(here, '..', '..', '..');
@@ -76,7 +77,10 @@ describe('toQuestionHtml', () => {
   it('marks a figure with no image so the stylesheet can dim it', () => {
     const html = renderer().toQuestionHtml(q1());
     expect(html).toContain('<figure class="qfig" data-missing="1"');
-    expect(html).toContain('Image not uploaded: 5054_21_M_J_25_fig1.png');
+    // Students see plain wording; the file name is only a tooltip for admins.
+    expect(html).toContain('Figure not available');
+    expect(html).toContain('title="5054_21_M_J_25_fig1.png"');
+    expect(html).not.toContain('Image not uploaded');
   });
 
   it('leaves math untouched for KaTeX', () => {
@@ -181,5 +185,58 @@ describe('every question in both papers renders', () => {
         expect(r.toWorkedSolutionHtml(q), `Q${q.number} worked solution`).not.toContain('undefined');
       }
     }
+  });
+});
+
+describe('figure labels and solution structure', () => {
+  const figure = { type: 'figure', file: 'a.png', src: 'https://x/a.png', caption: '' } as never;
+
+  it('folds a following "Fig. x.y" paragraph into the figure caption', () => {
+    const html = renderBlocks([figure, { type: 'text', html: '<strong>Fig. 2.2</strong>' }] as never);
+    expect(html).toContain('<figcaption><strong>Fig. 2.2</strong></figcaption>');
+    expect(html).not.toContain('<p><strong>Fig. 2.2</strong></p>');
+  });
+
+  it('centres a lone figure label and leaves ordinary text as a paragraph', () => {
+    const html = renderBlocks([
+      { type: 'text', html: 'Fig. 1.1 (not to scale)' },
+      { type: 'text', html: 'Fig. 1.1 shows a skydiver.' },
+    ] as never);
+    expect(html).toContain('<p class="fig-label">Fig. 1.1 (not to scale)</p>');
+    expect(html).toContain('<p>Fig. 1.1 shows a skydiver.</p>');
+  });
+
+  it('groups solution segments by part and splits paragraphs', () => {
+    const html = renderWorkedSolution({
+      answer: {
+        workedSolution: [
+          { ref: '3(a)(i)', html: 'one\n\ntwo' },
+          { ref: '3(a)(i)', html: 'three' },
+          { ref: '3(b)', html: 'four' },
+        ],
+      },
+    } as never);
+    expect(html.match(/worked-solution-part"/g)).toHaveLength(2);
+    expect(html).toContain('<span class="ws-ref">(a)(i)</span>');
+    expect(html).toContain('<p>one</p><p>two</p><p>three</p>');
+  });
+});
+
+describe('figure alt text and solution casing', () => {
+  it('keeps markup out of a figure\'s alt text', () => {
+    const html = renderBlocks([
+      { type: 'figure', file: 'a.png', src: 'https://x/a.png', caption: '' },
+      { type: 'text', html: '<strong>Fig. 1.1</strong>' },
+    ] as never);
+    expect(html).toContain('alt="Fig. 1.1"');
+  });
+
+  it('raises the first letter for an ordinary word but not for a unit or symbol', () => {
+    const word = renderWorkedSolution({ answer: { workedSolution: [{ ref: '1(a)', html: 'the force is 6 N' }] } } as never);
+    const unit = renderWorkedSolution({ answer: { workedSolution: [{ ref: '1(a)', html: 'mg is the weight' }] } } as never);
+    const symbol = renderWorkedSolution({ answer: { workedSolution: [{ ref: '1(a)', html: 'g is the field strength' }] } } as never);
+    expect(word).toContain('ws-body ws-cap');
+    expect(unit).not.toContain('ws-cap');
+    expect(symbol).not.toContain('ws-cap');
   });
 });

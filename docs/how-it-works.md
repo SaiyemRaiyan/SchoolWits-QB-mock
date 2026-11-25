@@ -498,3 +498,21 @@ Two things that are easy to forget:
 | A parser fix works in tests but not on the site | The function was not redeployed | `npm run deploy:function` |
 | Login returns to the wrong site | The address is missing from Supabase's allowed redirect URLs | Supabase > Authentication > URL Configuration |
 | A question cannot be found by search | Search uses `q_text`, and maths is not indexed | section 6 |
+
+---
+
+## 15. Things the parser now removes or rewrites
+
+Found by running every sample paper through parser and renderer and looking
+for text that should not be on a page.
+
+| In the `.tex` | What reaches the page | Why |
+|---|---|---|
+| `\$` in prose | a literal dollar sign in its own `<span>` | A bare `$` shared a text node with the next one, and KaTeX read the pair as maths |
+| `\begin{itemize}[leftmargin=2em]` / `enumerate` | a real list; the option block is dropped | It used to print `itemize[leftmargin=...]` as text |
+| `tikzpicture`, `pgfpicture`, `picture` | nothing, plus a non-blocking `diagram-omitted` warning | A browser cannot draw them, and the code printed as text. Use a figure image or a PDF clip for anything that must show |
+
+The filters on `/browse` cascade: Paper, Variant, Session and Year list only
+values that exist for the other choices (`scopeFacets` in
+`lib/supabase/facets.ts`), so no combination of dropdowns reaches an empty page.
+

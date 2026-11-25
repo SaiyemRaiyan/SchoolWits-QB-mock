@@ -325,6 +325,22 @@ function protectMath(src) {
       i += 2;
       continue;
     }
+    if (ch === "\\" && src.startsWith("\\begin{", i)) {
+      const env = /^\\begin\{(align|equation|gather)(\*?)\}/.exec(src.slice(i, i + 24));
+      if (env) {
+        const close = `\\end{${env[1]}${env[2]}}`;
+        const end = src.indexOf(close, i);
+        if (end !== -1) {
+          const body = src.slice(i + env[0].length, end);
+          const inner = env[1] === "align" ? "aligned" : env[1] === "gather" ? "gathered" : "";
+          const raw = inner ? `\\[\\begin{${inner}}${body}\\end{${inner}}\\]` : `\\[${body}\\]`;
+          slots.push({ raw });
+          out += `${MATH_OPEN}${slots.length - 1}${MATH_CLOSE}`;
+          i = end + close.length;
+          continue;
+        }
+      }
+    }
     if (ch === "\\" && (next === "(" || next === "[")) {
       const closer = next === "[" ? "\\]" : "\\)";
       const end = src.indexOf(closer, i + 2);
@@ -414,9 +430,38 @@ var SYMBOLS = [
   [/\\le\b/g, "\u2264"],
   [/\\pm\b/g, "\xB1"]
 ];
+var DIAGRAM_ENV = /\\begin\{(tikzpicture|pgfpicture|picture)\*?\}[\s\S]*?\\end\{\1\*?\}/g;
+function stripDiagrams(src) {
+  return src.replace(DIAGRAM_ENV, "");
+}
+function countDiagrams(src) {
+  return (src.match(DIAGRAM_ENV) ?? []).length;
+}
+function listsToHtml(src) {
+  const token = /\s*\\(begin|end)\{(itemize|enumerate)\}(?:\[[^\]]*\])?\s*|\s*\\item\b(?:\[[^\]]*\])?\s*/g;
+  const stack = [];
+  const out = src.replace(token, (m, kind, env) => {
+    if (kind === "begin") {
+      const tag = env === "enumerate" ? "ol" : "ul";
+      stack.push({ tag, open: false });
+      return `<${tag}>`;
+    }
+    if (kind === "end") {
+      const top2 = stack.pop();
+      if (!top2) return "";
+      return `${top2.open ? "</li>" : ""}</${top2.tag}>`;
+    }
+    const top = stack[stack.length - 1];
+    if (!top) return "";
+    const prefix = top.open ? "</li>" : "";
+    top.open = true;
+    return `${prefix}<li>`;
+  });
+  return out + stack.reverse().map((t) => `${t.open ? "</li>" : ""}</${t.tag}>`).join("");
+}
 function inlineToHtml(src) {
-  const { text, slots } = protectMath(src);
-  let out = escapeHtml(text);
+  const { text, slots } = protectMath(stripDiagrams(src));
+  let out = listsToHtml(escapeHtml(text));
   out = out.replace(/\\newline\b/g, "<br>");
   out = out.replace(/\\\\(\[[^\]]*\])?/g, "<br>");
   out = wrapCommand(out, "textbf", "<strong>", "</strong>");
@@ -433,12 +478,20 @@ function inlineToHtml(src) {
   out = wrapCommand(out, "text", "", "");
   for (const [re, rep] of SYMBOLS) out = out.replace(re, rep);
   out = out.replace(/\\&amp;/g, "&amp;");
-  out = out.replace(/\\([%$#_{}])/g, "$1");
+  out = out.replace(/\\\$/g, "<span>$</span>");
+  out = out.replace(/\\([%#_{}])/g, "$1");
   out = out.replace(/\\[,;:!]/g, " ");
+  out = out.replace(/\\[ \t\n]/g, " ");
+  out = out.replace(/\\[\/@-]/g, "");
   out = out.replace(/\\quad\b/g, " ");
   out = out.replace(/\\qquad\b/g, " ");
   out = out.replace(/~/g, " ");
   out = out.replace(/---/g, "\u2014").replace(/--/g, "\u2013");
+  out = out.replace(/\\(?:begin|end)\{(?:minipage|tabularx?\*?|multicols)\}(?:\[[^\]]*\])?(?:\{[^{}]*\})?/g, "");
+  out = out.replace(/\\(?:begin|end)\{[a-zA-Z*]+\}(?:\[[^\]]*\])?/g, "");
+  out = out.replace(/\\(?:makebox|framebox)\[[^\]]*\](?:\[[^\]]*\])?\{\s*(?:\\(?:dotfill|hrulefill))?\s*\}/g, "");
+  out = out.replace(/\\rule(?:\[[^\]]*\])?\{[^{}]*\}\{[^{}]*\}/g, "");
+  out = out.replace(/\\(?:dotfill|hrulefill|hfill)\b/g, "");
   out = out.replace(/\\[a-zA-Z]+\*?\s?/g, "");
   out = out.replace(/[{}]/g, "");
   out = out.replace(/[ \t]{2,}/g, " ").trim();
@@ -518,7 +571,11 @@ function tabularToHtml(body) {
   return `<table>${html}</table>`;
 }
 function paragraphs(raw) {
-  return raw.split(/\n\s*\n/).map((p) => inlineToHtml(p)).filter((html) => html.length > 0).map((html) => ({ type: "text", html }));
+  const joined = raw.replace(
+    /\\begin\{(itemize|enumerate)\}[\s\S]*?\\end\{\1\}/g,
+    (list2) => list2.replace(/\n\s*\n/g, "\n")
+  );
+  return joined.split(/\n\s*\n/).map((p) => inlineToHtml(p)).filter((html) => html.length > 0).map((html) => ({ type: "text", html }));
 }
 function figureBlock(arg, optional, caption, images) {
   const clip = parseClipOptions(optional);
@@ -1190,9 +1247,10 @@ function stripRowDecoration(row) {
 }
 function parseLabelCellDetailed(cell) {
   const cleaned = stripRowDecoration(cell);
+  const spaced = (label) => label.replace(/\\[,;:! ]|~/g, " ").replace(/\s+/g, " ").trim();
   const mr = /\\multirow\{(-?)\d+\}\{[^}]*\}\{([^}]*)\}/.exec(cleaned);
-  if (mr) return { label: mr[2].trim(), direction: mr[1] === "-" ? "up" : "down" };
-  const plain2 = cleaned.replace(/\\[a-zA-Z]+\s*/g, "").trim();
+  if (mr) return { label: spaced(mr[2]), direction: mr[1] === "-" ? "up" : "down" };
+  const plain2 = spaced(cleaned.replace(/\\[a-zA-Z]+\s*/g, ""));
   return { label: plain2.length > 0 ? plain2 : null, direction: "down" };
 }
 function parseLabelCell(cell) {
@@ -1269,6 +1327,7 @@ function extractMarkScheme(body, columns = 3, images = {}) {
 
 // src/latex/solutions.ts
 var MARKER = /^\s*(\((?:[a-z]+|[ivx]+)\)(?:\((?:[ivx]+)\))?)\s*/;
+var FOR_MARKER = /^\s*For\s+(\([a-z]+\))(\([ivx]+\))?\d*\s*[,:]\s*/;
 function parseAnsbox(body, questionNumber) {
   const lines = body.split("\n");
   const segments = [];
@@ -1285,12 +1344,34 @@ function parseAnsbox(body, questionNumber) {
     });
     buffer = [];
   };
-  for (const line of lines) {
+  let lastLetter = "";
+  const ROMAN3 = /^\((?:i{1,3}|iv|vi{0,3}|ix|x)\)$/;
+  const qualify = (label) => {
+    const pair = /^(\([a-z]\))(\([ivx]+\))$/.exec(label);
+    if (pair) {
+      lastLetter = pair[1];
+      return label;
+    }
+    if (ROMAN3.test(label)) return lastLetter ? `${lastLetter}${label}` : label;
+    if (/^\([a-z]\)$/.test(label)) lastLetter = label;
+    return label;
+  };
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/^(\s*)\\textbf\{(\([a-z]+\)(?:\([ivx]+\))?)\}/, "$1$2");
+    const sentence = FOR_MARKER.exec(line);
+    if (sentence) {
+      flush();
+      lastLetter = sentence[1];
+      currentRef = `${questionNumber}${sentence[1]}${sentence[2] ?? ""}`;
+      currentHeading = null;
+      buffer = [line.slice(sentence[0].length)];
+      continue;
+    }
     const m = MARKER.exec(line);
     if (m) {
       flush();
       const suffix = line.slice(m[0].length);
-      currentRef = `${questionNumber}${m[1]}`;
+      currentRef = `${questionNumber}${qualify(m[1])}`;
       const headingEnd = suffix.search(/\\\\/);
       const headingRaw = headingEnd === -1 ? suffix : suffix.slice(0, headingEnd);
       currentHeading = headingRaw.trim() ? inlineToHtml(headingRaw) : null;
@@ -1350,7 +1431,7 @@ function flattenQuestion(q) {
     if (seg.heading) out.push(seg.heading);
     out.push(seg.html ?? "");
   }
-  return out.join(" ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
+  return out.join(" ").replace(/<span>\$<\/span>/g, " ").replace(MATH, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_LENGTH);
 }
 
 // src/latex/index.ts
@@ -1363,9 +1444,19 @@ function looksLikeMcqPaper(questions) {
   const allSingleMark = questions.every((q) => q.parts.length === 0 && q.marks <= 1);
   return allSingleMark && real >= Math.max(3, questions.length * 0.5);
 }
+function diagramWarning(body, file) {
+  const n = countDiagrams(body);
+  if (!n) return [];
+  return [
+    {
+      code: "diagram-omitted",
+      message: `${n} TikZ diagram${n === 1 ? "" : "s"} in the ${file} file cannot be shown in the browser and ${n === 1 ? "was" : "were"} left out. Use a figure image or a PDF clip for anything that must appear.`
+    }
+  ];
+}
 function parseQuestionPaper(tex, images = {}) {
   const { body } = splitDocument(tex);
-  const cleaned = normalizeWhitespace(stripLayoutNoise(body));
+  const cleaned = normalizeWhitespace(stripLayoutNoise(stripDiagrams(body)));
   const blocks = splitQuestions(cleaned);
   const warnings = [];
   if (blocks.length === 0) {
@@ -1445,13 +1536,14 @@ function parseQuestionPaper(tex, images = {}) {
   for (const problem of problems) {
     if (problem) warnings.unshift(problem);
   }
+  warnings.push(...diagramWarning(body, "questions"));
   const sourcePdf = findSourcePdf(tex);
   return { paper, questions, warnings, ...sourcePdf ? { sourcePdf } : null };
 }
 function parseAnswerPaper(tex, images = {}) {
   const { preamble, body } = splitDocument(tex);
   const columns = detectMstabColumns(preamble);
-  const cleaned = normalizeWhitespace(stripLayoutNoise(body));
+  const cleaned = normalizeWhitespace(stripLayoutNoise(stripDiagrams(body)));
   const blocks = splitQuestions(cleaned);
   const warnings = [];
   if (blocks.length === 0) {
@@ -1468,6 +1560,7 @@ function parseAnswerPaper(tex, images = {}) {
       correct: extractCorrectOption(block.body)
     });
   }
+  warnings.push(...diagramWarning(body, "answers"));
   return {
     paper: blocks.length > 0 ? parsePaperId(blocks[0].paperId) : null,
     byNumber,

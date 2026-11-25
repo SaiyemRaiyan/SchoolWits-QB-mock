@@ -1,15 +1,7 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { paperLabel, type Question } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 
 type QuestionPickerProps = {
   questions: Question[];
@@ -17,8 +9,14 @@ type QuestionPickerProps = {
   onSelect: (index: number) => void;
 };
 
-/** One row per paper, each with its own dropdown. A strip of pills ran to
-    forty entries on an MCQ paper and had to scroll sideways. */
+/**
+ * Every question in the result set as a numbered tile, grouped by paper.
+ *
+ * A dropdown hid how many questions there were and made you open it to move;
+ * the grid shows all forty at once, marks on each, and the current one lit.
+ * Tiles are buttons in a labelled group, so the keyboard and screen readers
+ * get the same overview.
+ */
 export function QuestionPicker({ questions, activeIndex, onSelect }: QuestionPickerProps) {
   if (!questions.length) return null;
 
@@ -26,49 +24,59 @@ export function QuestionPicker({ questions, activeIndex, onSelect }: QuestionPic
   const activeUid = questions[activeIndex]?.uid;
 
   return (
-    <Card className="gap-0 py-0">
-      <CardContent className="grid gap-0 p-0">
-        {groups.map((group, i) => {
-          const items = Object.fromEntries(
-            group.items.map(({ question: q }) => [q.uid, `Q${q.id} · ${q.marks ?? "·"} marks`]),
-          );
-          const selected = group.items.find(({ question }) => question.uid === activeUid);
+    <section
+      aria-label="Questions"
+      className="sw-sheet-in grid gap-4 rounded-2xl bg-card p-4 shadow-[0_30px_60px_-28px_rgba(0,0,0,0.7)] ring-1 ring-white/10"
+    >
+      {groups.map((group) => (
+        <div key={group.paperKey} className="grid gap-2.5">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="font-mono text-xs font-semibold tracking-wide text-[var(--sw-ink)]">
+              {group.label}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {group.items.length} question{group.items.length === 1 ? "" : "s"}
+            </p>
+          </div>
 
-          return (
-            <div key={group.paperKey}>
-              {i > 0 && <Separator />}
-              <div className="grid gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                <div className="min-w-0">
-                  <p className="font-mono text-sm font-medium">{group.label}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {group.items.length} question{group.items.length === 1 ? "" : "s"}
-                  </p>
-                </div>
-                <Select
-                  items={items}
-                  value={selected?.question.uid ?? null}
-                  onValueChange={(uid) => {
-                    const hit = group.items.find(({ question }) => question.uid === uid);
-                    if (hit) onSelect(hit.index);
-                  }}
+          <div
+            role="group"
+            aria-label={group.label}
+            className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto sm:max-h-none sm:overflow-visible"
+          >
+            {group.items.map(({ question: q, index }) => {
+              const active = q.uid === activeUid;
+              return (
+                <button
+                  key={q.uid}
+                  type="button"
+                  onClick={() => onSelect(index)}
+                  aria-current={active ? "true" : undefined}
+                  aria-label={`Question ${q.id}, ${q.marks ?? "unmarked"} ${q.marks === 1 ? "mark" : "marks"}`}
+                  title={`${q.marks ?? "·"} ${q.marks === 1 ? "mark" : "marks"}${q.topic ? ` · ${q.topic}` : ""}`}
+                  className={cn(
+                    "sw-key group relative flex h-11 min-w-11 flex-col items-center justify-center rounded-xl border px-2 font-mono",
+                    active
+                      ? "border-[var(--sw-ink)] bg-[var(--sw-ink)] text-white"
+                      : "border-border bg-background text-foreground hover:border-[var(--sw-brass)]",
+                  )}
                 >
-                  <SelectTrigger className="w-full sm:w-60">
-                    <SelectValue placeholder="Jump to a question" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {group.items.map(({ question: q }) => (
-                      <SelectItem key={q.uid} value={q.uid}>
-                        Q{q.id} &middot; {q.marks ?? "·"} marks
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          );
-        })}
-      </CardContent>
-    </Card>
+                  <span className="text-sm leading-none font-bold">{q.id}</span>
+                  <span
+                    className={cn(
+                      "mt-0.5 text-[9px] leading-none",
+                      active ? "text-[var(--sw-brass-light)]" : "text-muted-foreground",
+                    )}
+                  >
+                    {q.marks ?? "·"}m
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </section>
   );
 }
 

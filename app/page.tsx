@@ -1,6 +1,7 @@
 import { LandingGateway } from "@/components/landing/landing-gateway";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingHeader } from "@/components/landing/landing-header";
+import { LandingStage } from "@/components/landing/landing-stage";
 
 import "@/styles/landing.css";
 
@@ -18,13 +19,14 @@ export default function LandingPage() {
         <LandingHeader />
 
         <main className="landing-hero">
+          <div className="landing-hero-grid">
           <div className="landing-hero-inner">
             <span className="landing-eyebrow">
               <span className="dot" />
               Cambridge O Level &amp; IGCSE
             </span>
             <h1 className="landing-title">
-              Past papers, mark schemes
+              Past papers, mark schemes{" "}
               <br />
               and <em>worked solutions</em>
             </h1>
@@ -35,6 +37,8 @@ export default function LandingPage() {
             </p>
 
             <LandingGateway />
+          </div>
+          <LandingStage />
           </div>
         </main>
 

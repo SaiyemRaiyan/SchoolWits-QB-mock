@@ -16,7 +16,7 @@ type ModuleCardProps = { module: Module; owned: boolean; onOpen: () => void };
 /** One pack in the storefront grid. Flat surfaces, one accent: the price. */
 export function ModuleCard({ module, owned, onOpen }: ModuleCardProps) {
   return (
-    <Card className="group gap-0 py-0 transition-colors hover:border-primary/50">
+    <Card className="group gap-0 py-0 shadow-[0_26px_50px_-26px_rgba(0,0,0,0.75)] ring-1 ring-white/10 transition-shadow duration-300 hover:shadow-[0_40px_70px_-26px_rgba(0,0,0,0.85)]">
       <CardHeader className="gap-2 p-5 pb-3">
         <div className="flex items-start justify-between gap-3">
           <p className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground uppercase">

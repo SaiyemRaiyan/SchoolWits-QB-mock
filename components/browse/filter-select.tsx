@@ -1,6 +1,7 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -39,7 +40,7 @@ export function FilterSelect({
     <div className="grid gap-1.5">
       <Label
         htmlFor={id}
-        className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground uppercase"
+        className="font-mono text-[10px] tracking-[0.12em] text-[var(--sidebar-foreground)]/70 uppercase"
       >
         {label}
       </Label>
@@ -49,7 +50,15 @@ export function FilterSelect({
         onValueChange={(next) => onChange(next === ANY ? "" : String(next))}
         disabled={disabled}
       >
-        <SelectTrigger id={id} size="sm" className="w-full bg-muted/60">
+        <SelectTrigger
+          id={id}
+          size="sm"
+          className={cn(
+            "w-full border-white/15 bg-white/[0.06] text-white hover:bg-white/10",
+            "data-[size=sm]:h-9 data-placeholder:text-white/50 [&_svg]:text-white/60",
+            value && "border-[var(--sw-brass)]/60 bg-[var(--sw-brass)]/10",
+          )}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

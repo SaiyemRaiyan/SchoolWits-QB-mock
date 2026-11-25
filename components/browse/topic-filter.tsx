@@ -41,12 +41,15 @@ export function TopicFilter({ topics, value, onChange, loading, disabled }: Topi
             role="combobox"
             aria-expanded={open}
             disabled={disabled || loading}
-            className="w-full justify-between bg-muted/60 font-normal"
+            className={cn(
+              "h-9 w-full justify-between border-white/15 bg-white/[0.06] font-normal text-white hover:bg-white/10 hover:text-white",
+              value && "border-[var(--sw-brass)]/60 bg-[var(--sw-brass)]/10",
+            )}
           >
-            <span className={cn("truncate", !value && "text-muted-foreground")}>
+            <span className={cn("truncate", !value && "text-white/60")}>
               {loading ? "Loading topics…" : value || "Any"}
             </span>
-            <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
+            <ChevronsUpDown className="size-3.5 shrink-0 text-white/60" />
           </Button>
         }
       />

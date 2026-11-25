@@ -4,6 +4,7 @@ Stopped on 25 Nov 2026, part way through the first round, to continue on
 another machine. Branch: `paper-extractor`.
 
 - `../paper-extractor.md`: the design and its 8 rules. Read it first.
+- `PROMPT.md`: the prompt to continue with.
 - `writer-notes.md`: the state of the code, symbol findings, next steps.
 - `tester-notes.md`: the tests, the PDF pages looked at, uncertain values.
 
@@ -17,24 +18,31 @@ another machine. Branch: `paper-extractor`.
    Two Chemistry papers (S26 41 and 42) have no answers file.
 3. Install `pdftotext` and `pdftoppm` (package `poppler-utils`), and Python 3
    with Pillow and numpy.
-4. `cd backend && npm install && npm run typecheck && npm test`
+4. `cd backend && npm install && npm test` (see "State" for what should fail)
 
 ## Prompt to paste
 
-> Read `docs/extractor-handoff/README.md`, then `docs/paper-extractor.md`,
-> `docs/extractor-handoff/writer-notes.md` and
-> `docs/extractor-handoff/tester-notes.md`. Continue building the generic
-> PaperExtractor from where it stopped, on branch `paper-extractor`. Use one
-> agent to write the code and one to write and update the tests. Loop: run the
-> tests, look at the printed PDF page to decide whether the code or the test is
-> wrong, fix the right one, repeat. Do not fake tests to get green. Never
-> special-case a paper. Do not deploy, push, or run `npm run build`. Do not
-> switch the upload page or `parse-paper` to the new extractor until I have seen
-> the results. Use simple language with me.
+The whole of [`PROMPT.md`](PROMPT.md).
+
+## State when it stopped
+
+- `src/extract` compiles. Written: macros, metrics, encodings, typesetter,
+  symbols, to-math, flow, and the equation chain (typed, symbol, underline, root,
+  fraction, script, pass).
+- `roles.ts`, `bands.ts` and `questions.ts` were written in the last minutes.
+  They compile, and nothing else about them has been checked.
+- Not written: `paper-extractor.ts`, the subject classes, `index.ts`,
+  `scripts/check-papers.ts`, and equation readers for brackets, matrices, limits
+  and relations.
+- Tests: the 209 existing ones pass. In `tests/extract`, 142 pass (helpers,
+  macros, typesetter, no-cheating). `physics`, `chemistry`, `maths`, `text` and
+  `extractor` cannot load until `index.ts` exists, and `npm run typecheck`
+  reports that missing file too. Both are expected.
+- `writer-notes.md` was last updated just before `roles`, `bands` and `questions`.
 
 ## What is left, in order
 
-1. **Text:** symbols for Chemistry, lines and words, parts, marks, options.
+1. **Text:** check `roles.ts`, `bands.ts` and `questions.ts` (parts, marks, options).
 2. **Classes:** `PaperExtractor` (template method), `PhysicsExtractor`,
    `ChemistryExtractor`, `MathsExtractor`, `GenericExtractor`,
    `createExtractor()` (factory).

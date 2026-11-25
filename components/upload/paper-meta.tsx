@@ -20,7 +20,7 @@ export function PaperMeta({ paper, subject, onSubject }: PaperMetaProps) {
           id="m-subject"
           value={subject}
           onChange={(e) => onSubject(e.target.value)}
-          placeholder="Physics"
+          placeholder="Type the subject"
         />
       </Field>
       <Field label="Subject code" id="m-code">

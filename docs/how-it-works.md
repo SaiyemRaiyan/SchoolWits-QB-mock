@@ -378,8 +378,8 @@ used exactly as it is, so nothing has to change here.
   is flagged.**
 - A sentence is sometimes split into two paragraphs (roughly 155 questions).
 - Underlines may be lost; those questions are flagged.
-- The upload page keeps the **subject** of the previous paper. Check it before
-  saving, or refresh the page between subjects.
+- The subject name identifies a paper in the database (the code does not), so a
+  wrong subject can overwrite another paper. Names are in `config/subjects.ts`.
 - A preview is not a check. Compare flagged questions with the PDF before saving.
 
 ---

@@ -2,7 +2,7 @@
 
 import { CheckCircle2, FileText, FileType, ImageIcon, Loader2, Check } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AdminGate } from "@/components/modules/admin-gate";
 import { Step } from "@/components/common/step";
@@ -13,6 +13,7 @@ import { PreviewPanel } from "@/components/upload/preview-panel";
 import { WarningsList } from "@/components/upload/warnings-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { subjectForCode } from "@/config/subjects";
 import { useAuth } from "@/hooks/use-auth";
 import { closePdf, cropToFile, openPdf } from "@/lib/pdf/clip";
 import { collectFigureClips } from "@/lib/pdf/collect-clips";
@@ -27,14 +28,6 @@ import {
   type Paper,
   type ParseResult,
 } from "@/lib/supabase";
-
-// The .tex carries a syllabus code, not a subject name. These cover the
-// papers in hand; anything else the admin types in.
-const SUBJECT_BY_CODE: Record<string, string> = {
-  "5054": "Physics",
-  "4037": "Add Maths",
-  "4024": "Maths D",
-};
 
 type TexFile = { name: string; text: string };
 
@@ -67,6 +60,8 @@ function UploadWorkspace() {
   const [figureUrls, setFigureUrls] = useState<Record<string, string>>({});
   const [sourcePdf, setSourcePdf] = useState<File | null>(null);
   const [subject, setSubject] = useState("");
+  // The syllabus code the subject above was filled in for.
+  const subjectCode = useRef("");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -126,8 +121,13 @@ function UploadWorkspace() {
         }
 
         setResult(parsed);
-        // Only guess the subject if nothing has been typed; never overwrite.
-        setSubject((current) => current || SUBJECT_BY_CODE[parsed.paper?.subjectCode ?? ""] || "");
+        // A paper of another syllabus takes its own subject: one left over from
+        // the last paper would file it under, and overwrite, the wrong paper.
+        // Within a syllabus, what the admin typed stays.
+        const code = parsed.paper?.subjectCode ?? "";
+        const changed = code !== subjectCode.current;
+        subjectCode.current = code;
+        setSubject((current) => (changed ? "" : current) || subjectForCode(code));
       } catch (err) {
         setResult(null);
         setError((err as Error).message);

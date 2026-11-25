@@ -145,7 +145,10 @@ interface Notes {
  * word in two for search.
  */
 function cleanInline(src: string, notes: Notes): string {
-  let s = src;
+  // Typed maths is already what we want: KaTeX reads it, so it is set aside
+  // and nothing below (kern stripping, the unknown-command check) touches it.
+  const maths: string[] = [];
+  let s = src.replace(/\$(?:\\[\s\S]|[^\\$])*\$/g, (m) => `\u0002${maths.push(m) - 1}\u0003`);
 
   // \swclip sets a small picture in the line ("appears like this [compass]"):
   // a figure. \swglyph is one symbol of an equation: not readable.
@@ -157,6 +160,7 @@ function cleanInline(src: string, notes: Notes): string {
   s = s.replace(/\\swglyph\{[^{}]*\}\{[^{}]*\}/g, '');
 
   s = s
+    .replace(/\\(?:begingroup|endgroup|null)(?![a-zA-Z])\s*/g, '')
     .replace(/\\vadjust\{[^{}]*\}/g, '')
     .replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, '')
     .replace(/\\x?spaceskip=-?[\d.]+bp/g, '')
@@ -183,12 +187,18 @@ function cleanInline(src: string, notes: Notes): string {
     .replace(/\\textendash(?:\{\})?/g, '–')
     .replace(/\\textminus(?:\{\})?/g, '−')
     .replace(/\\textdegree(?:\{\})?/g, '°')
-    .replace(/\\swbul\b/g, '•');
+    .replace(/\\(?:swbul|textbullet)\b/g, '•')
+    .replace(/\\texttimes\b/g, '×')
+    .replace(/\\textdiv\b/g, '÷')
+    .replace(/\\pounds\b/g, '£');
 
   for (const m of s.matchAll(/\\([a-zA-Z]+)/g)) {
     if (!KNOWN_INLINE.has(m[1])) notes.unknown.add(m[1]);
   }
-  return s.replace(/[ \t]{2,}/g, ' ').trim();
+  return s
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim()
+    .replace(/\u0002(\d+)\u0003/g, (_, i: string) => maths[Number(i)]);
 }
 
 /** Bare text of a label such as `\textbf{(a)}` or `\textbf{1 }`. */

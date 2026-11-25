@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isBlocking, parseQuestionPaper } from '../../src/latex/index.js';
+import { isSerious, parseQuestionPaper } from '../../src/latex/index.js';
 import { parseLayoutQuestion } from '../../src/latex/layout.js';
 
 const text = (blocks: { type: string; html?: string }[]) =>
@@ -22,7 +22,7 @@ A constant force of friction of 20\,N acts on the sledge.
   const paper = parseQuestionPaper(MCQ);
 
   it('is accepted, with the measurements gone', () => {
-    expect(paper.warnings.some(isBlocking)).toBe(false);
+    expect(paper.warnings.some(isSerious)).toBe(false);
     expect(text(paper.questions[0].stem)).toEqual(['Which set of quantities are all vectors?']);
   });
 
@@ -127,5 +127,14 @@ describe('the page-layout reader: positioned lines', () => {
   it('reports a command it does not know rather than guessing', () => {
     const q = parseLayoutQuestion(String.raw`\row{26.0}{94.9}{Some \mystery{12.5} text.}`, 1);
     expect(q.unknown).toEqual(['mystery']);
+  });
+});
+
+describe('the page-layout reader: typed maths', () => {
+  it('keeps $...$ exactly as written and does not call its commands unknown', () => {
+    const maths = String.raw`$y = \dfrac{2x - 5}{\sqrt{x}} \leq \begin{pmatrix}n\\1\end{pmatrix}$`;
+    const q = parseLayoutQuestion(`\\row{26.0}{94.9}{A curve has equation\\kern2.24bp ${maths}.}`, 1);
+    expect(q.unknown).toEqual([]);
+    expect(text(q.stem)).toEqual([`A curve has equation ${maths}.`]);
   });
 });

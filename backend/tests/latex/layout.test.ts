@@ -138,3 +138,94 @@ describe('the page-layout reader: typed maths', () => {
     expect(text(q.stem)).toEqual([`A curve has equation ${maths}.`]);
   });
 });
+
+describe('the page-layout reader: typesetting that must not print', () => {
+  const stemOf = (line: string) => text(parseLayoutQuestion(String.raw`\row{0}{72}{${line}}`, 1).stem)[0];
+
+  it.each([
+    ['end-of-line spacing', String.raw`better than oil.{\parfillskip0pt\par}`, 'better than oil.'],
+    ['stretch after a word', String.raw`$t$ s after\nobreak\hskip0pt plus-1fil\null`, '$t$ s after'],
+    ['word spacing', String.raw`{\advance\spaceskip-0.11bp\advance\xspaceskip-0.11bp\textls[-10]{Take it.}}`, 'Take it.'],
+    ['a sized bullet', String.raw`\lab{22.6}{\smash{\fontsize{12.00bp}{12.00bp}\selectfont •}}The student`, '• The student'],
+    ['a list label', String.raw`\plab{21.3}{P}the force on the Moon`, 'P the force on the Moon'],
+    ['a list bullet', String.raw`\plab{21.3}{\swbul{}}in space`, '• in space'],
+    ['a tick', String.raw`a tick ({\usefont{U}{pzd}{m}{n}\char"33})`, 'a tick (✓)'],
+    [
+      'a slanted symbol',
+      String.raw`density \mbox{\pdfsave\pdfsetmatrix{1 0 0.342 1}\rlap{$\rho$}\pdfrestore\phantom{$\rho$}}.`,
+      String.raw`density $\rho$.`,
+    ],
+    ['answer dots', String.raw`measures {\font\swell=uhvr8r at 11.00bp\swell\char"85}`, 'measures …'],
+  ])('%s', (_, source, expected) => {
+    expect(stemOf(source)).toBe(expected);
+  });
+
+  it('reads a fraction stacked inside a line', () => {
+    const line = String.raw`$R$ = \rlap{\kern0.00bp\raisebox{5.80bp}[0pt][0pt]{$V$}}\rlap{\kern1.35bp\raisebox{-7.20bp}[0pt][0pt]{\makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}}}\rlap{\kern0.00bp\raisebox{3.08bp}[0pt][0pt]{\rule{7.34bp}{0.50bp}}}\kern7.34bp`;
+    expect(stemOf(line)).toBe(String.raw`$R$ = $\dfrac{V}{I}$`);
+  });
+
+  it('reads the lines of a multi-line block in order', () => {
+    const { stem } = parseLayoutQuestion(
+      String.raw`\freerow{0}{%
+  \at{70}{0.00}{The speed is $v$}%
+  \at{150}{0.00}{at first and then}%
+  \at{70}{-13.00}{the object slows down}%
+  \at{70}{-26.00}{and comes to rest.}}`,
+      1,
+    );
+    expect(text(stem)).toEqual(['The speed is $v$ at first and then the object slows down and comes to rest.']);
+  });
+});
+
+describe('the page-layout reader: options set as a column', () => {
+  const options = (body: string) =>
+    parseLayoutQuestion(String.raw`\mcq{0}{\textbf{2 }}{Which?}` + body, 2).options?.items.map((o) => `${o.label} ${o.content}`);
+
+  it('gives each option the line it sits on', () => {
+    expect(
+      options(String.raw`\freerow{24.3}{%
+  \at{70.86}{-7.04}{\textbf{A}}%
+  \at{92.09}{-7.04}{speed $= \dfrac{d}{t}$}%
+  \at{70.86}{-41.06}{\textbf{B}}%
+  \at{92.09}{-41.06}{density $= \dfrac{m}{V}$}}
+\choice{38}{\textbf{C }}{volume}
+\freerow{22.4}{%
+  \at{70.92}{-7.00}{\textbf{D}}%
+  \at{92.09}{-7.00}{mass}}`),
+    ).toEqual([String.raw`A speed $= \dfrac{d}{t}$`, String.raw`B density $= \dfrac{m}{V}$`, 'C volume', 'D mass']);
+  });
+
+  it('rebuilds fractions drawn piece by piece, with their small numbers', () => {
+    expect(
+      options(String.raw`\freerow{24.7}{%
+  \at{95.41}{-0.02}{{\itshape p}}%
+  \at{101.99}{-1.12}{{\fontsize{6.99bp}{6.99bp}\selectfont 1}}%
+  \at{70.90}{-7.53}{\textbf{A}}%
+  \at{93.57}{-16.91}{{\itshape V}}%
+  \at{102.16}{-18.05}{{\fontsize{6.99bp}{6.99bp}\selectfont 1}}%
+  \at{94}{-40.98}{height × weight}%
+  \at{70.90}{-48.53}{\textbf{B}}%
+  \at{100}{-57.91}{time}%
+  \ruleat{93}{108}{-4.7}{0.5}%
+  \ruleat{93}{168}{-45.7}{0.5}}`),
+    ).toEqual([
+      String.raw`A $\dfrac{p_{1}}{V_{1}}$`,
+      String.raw`B $\dfrac{\mathrm{height}\,×\,\mathrm{weight}}{\mathrm{time}}$`,
+    ]);
+  });
+
+  it('puts a drawn minus in the gap left for it, and reports one with no gap', () => {
+    const body = (kern: string) => String.raw`\freerow{0}{%
+  \at{220.3}{-0.04}{\_}%
+  \at{94.4}{-4.54}{full${kern} empty}%
+  \at{70.9}{-4.54}{\textbf{A}}}`;
+    expect(options(body(String.raw`\kern11.04bp`))).toEqual(['A full − empty']);
+    expect(parseLayoutQuestion(body(''), 1).unreadable).toBe(true);
+  });
+
+  it('does not take a bold letter in a structured question for an option', () => {
+    const q = parseLayoutQuestion(String.raw`\freerow{0}{\at{70}{0}{\textbf{A}}\at{80}{0}{is a point.}}`, 1);
+    expect(q.options).toBeNull();
+  });
+});

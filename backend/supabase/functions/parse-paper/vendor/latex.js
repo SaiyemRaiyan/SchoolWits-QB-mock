@@ -837,7 +837,7 @@ function positionedMaths(numbers) {
 function visibleText(html) {
   return html.replace(/\$\$[\s\S]*?\$\$|\$[^$]*\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]/g, " ").replace(/<[^>]+>/g, " ");
 }
-var LEAKED_LENGTH = /\d(?:\.\d+)?bp\b/;
+var LEAKED_LENGTH = /\d(?:\.\d+)?(?:bp|pt)\b/;
 function blocksText(blocks) {
   return blocks.map((b) => b.type === "figure" ? b.caption : b.html).join(" ");
 }
@@ -960,6 +960,10 @@ var SYMBOL = {
   A5: "\u221E",
   B5: "\u221D"
 };
+var DINGBAT = { "33": "\u2713", "34": "\u2714", "35": "\u2715", "36": "\u2716", "37": "\u2717", "38": "\u2718" };
+var INNER = String.raw`(?:[^{}]|\{[^{}]*\})*`;
+var PLAB = new RegExp(String.raw`\\plab\{[^{}]*\}\{(${INNER})\}`, "g");
+var PHANTOM = new RegExp(String.raw`\\phantom\{${INNER}\}`, "g");
 var KNOWN_INLINE = /* @__PURE__ */ new Set([
   "textbf",
   "textit",
@@ -985,16 +989,49 @@ var KNOWN_INLINE = /* @__PURE__ */ new Set([
   "dfrac",
   "mathrm"
 ]);
+function inlineFractions(src, notes) {
+  const OPEN = /^\\rlap(?=\{)/;
+  let out = "";
+  let i = 0;
+  while (i < src.length) {
+    const pieces = [];
+    let j = i;
+    while (OPEN.test(src.slice(j, j + 6))) {
+      const group = readGroup(src, j + 5);
+      const m = group && /^\s*(?:\\kern-?[\d.]+bp\s*)?\\raisebox\{(-?[\d.]+)bp\}(?:\[[^\]]*\])*(\{[\s\S]*\})\s*$/.exec(group.value);
+      if (!group || !m) break;
+      pieces.push({ y: Number(m[1]), raw: m[2].slice(1, -1) });
+      j = group.end;
+    }
+    const rule = pieces.find((p) => /^\s*\\rule\{/.test(p.raw));
+    const side = (above) => pieces.filter((p) => p !== rule && p.y > rule.y === above).map((p) => cleanInline(p.raw, notes).replace(/\$/g, "")).join(" ");
+    const [top, bottom] = rule ? [toMath(side(true)), toMath(side(false))] : [null, null];
+    if (top && bottom) {
+      out += `$\\dfrac{${top}}{${bottom}}$`;
+      i = j;
+    } else {
+      out += src[i];
+      i++;
+    }
+  }
+  return out;
+}
 function cleanInline(src, notes) {
   const maths = [];
-  let s = src.replace(/\$(?:\\[\s\S]|[^\\$])*\$/g, (m) => `${maths.push(m) - 1}`);
+  let s = inlineFractions(src, notes).replace(/\$(?:\\[\s\S]|[^\\$])*\$/g, (m) => `${maths.push(m) - 1}`);
   s = s.replace(
     /\\swclip\{([^{}]*)\}\{([^{}]*)\}/g,
     (_, page, trim) => `\\qfig[page=${page.trim()},trim=${trim.trim()},clip]{source.pdf}{}`
   );
   if (/\\(?:swglyph|swpath)\b/.test(s)) notes.unreadable = true;
   s = s.replace(/\\swglyph\{[^{}]*\}\{[^{}]*\}/g, "");
-  s = s.replace(/\\(?:begingroup|endgroup|null)(?![a-zA-Z])\s*/g, "").replace(/\\vadjust\{[^{}]*\}/g, "").replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, "").replace(/\\x?spaceskip=-?[\d.]+bp/g, "").replace(/\\hskip-?[\d.]+pt(?:\s*minus\s*[\d.]+bp)?/g, "").replace(/\\(?:relax|nobreak|strut|ignorespaces|unskip|hfill)\b ?/g, "").replace(/\\linebreak\b/g, " ").replace(/\\kern(-?[\d.]+)(?:bp|pt) ?/g, (_, n) => Number(n) >= 2 ? " " : "").replace(/\\raisebox\{[^{}]*\}(?:\[[^\]]*\])*/g, "").replace(/\\(?:makebox|rlap|llap)(?:\[[^\]]*\])*/g, "").replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t) => t === "I" ? "\\textit{I}" : t).replace(/\\vI\b/g, "\\textit{I}").replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}\\selectfont\s*/g, "").replace(/\{\\itshape\s*/g, "\\textit{").replace(/\{\\bfseries\s*/g, "\\textbf{").replace(/\\(?:stack(?:\[[^\]]*\])?|nuc)\{([^{}]*)\}\{([^{}]*)\}/g, "\\textsuperscript{$1}\\textsubscript{$2}").replace(/\\sub\{/g, "\\textsubscript{").replace(/\\swsy\{([0-9A-Fa-f]+)\}/g, (_, hex) => {
+  s = s.replace(/\\(?:begingroup|endgroup|null)(?![a-zA-Z])\s*/g, "").replace(/\\parfillskip-?[\d.]+pt/g, "").replace(/\\par(?![a-zA-Z])/g, "").replace(/\\advance\\x?spaceskip-?[\d.]+bp/g, "").replace(/\\textls(?:\[[^\]]*\])?(?=\{)/g, "").replace(/\\smash(?=\{)/g, "").replace(/\\pdfsetmatrix\{[^{}]*\}|\\pdfsave(?![a-zA-Z])|\\pdfrestore(?![a-zA-Z])/g, "").replace(PHANTOM, "").replace(PLAB, "$1 ").replace(/\\usefont\{U\}\{pzd\}\{m\}\{n\}\\char"([0-9A-Fa-f]{2})/g, (_, hex) => {
+    if (!DINGBAT[hex]) notes.unknown.add(`pzd{${hex}}`);
+    return DINGBAT[hex] ?? "";
+  }).replace(/\\font\\(\w+)=\w+ at [\d.]+bp\\\1\\char"85/g, "\u2026").replace(/\\vadjust\{[^{}]*\}/g, "").replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, "").replace(/\\x?spaceskip=-?[\d.]+bp/g, "").replace(/\\hskip-?[\d.]+pt(?:\s*(?:plus|minus)\s*-?[\d.]+(?:bp|pt|fil+))*/g, "").replace(/\\(?:relax|nobreak|strut|ignorespaces|unskip|hfill)\b ?/g, "").replace(/\\linebreak\b/g, " ").replace(/\\kern(-?[\d.]+)(?:bp|pt) ?/g, (_, n) => Number(n) >= 2 ? " " : "").replace(/\\raisebox\{[^{}]*\}(?:\[[^\]]*\])*/g, "").replace(/\\(?:makebox|rlap|llap)(?:\[[^\]]*\])*/g, "").replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t) => {
+    const letter = t.replace(/^\\itshape\s*/, "");
+    return letter === "I" || letter !== t ? `\\textit{${letter}}` : t;
+  }).replace(/\\vI\b/g, "\\textit{I}").replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}\\selectfont\s*/g, "").replace(/\{\\itshape\s*/g, "\\textit{").replace(/\{\\bfseries\s*/g, "\\textbf{").replace(/\\(?:stack(?:\[[^\]]*\])?|nuc)\{([^{}]*)\}\{([^{}]*)\}/g, "\\textsuperscript{$1}\\textsubscript{$2}").replace(/\\sub\{/g, "\\textsubscript{").replace(/\\swsy\{([0-9A-Fa-f]+)\}/g, (_, hex) => {
     const symbol = SYMBOL[hex.toUpperCase()];
     if (!symbol) notes.unknown.add(`swsy{${hex}}`);
     return symbol ?? "";
@@ -1005,7 +1042,7 @@ function cleanInline(src, notes) {
   return s.replace(/[ \t]{2,}/g, " ").trim().replace(/\u0002(\d+)\u0003/g, (_, i) => maths[Number(i)]);
 }
 function plain(raw) {
-  return raw.replace(/\\kern-?[\d.]+bp ?/g, "").replace(/\\[a-zA-Z]+/g, "").replace(/[{}\s]/g, "");
+  return raw.replace(/\\kern-?[\d.]+bp ?/g, "").replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}/g, "").replace(/\\[a-zA-Z]+/g, "").replace(/[{}\s]/g, "");
 }
 var ROMAN2 = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
 function takeLabel(text) {
@@ -1021,8 +1058,16 @@ function takeLabel(text) {
   }
   return null;
 }
+function isSmallPiece(p) {
+  return Number(/\\fontsize\{([\d.]+)bp\}/.exec(p.raw)?.[1] ?? 99) <= 8.5;
+}
 function toMath(text) {
-  const m = text.replace(/\\textit\{([^{}]*)\}/g, "$1").replace(/\\textsuperscript\{([^{}]*)\}/g, "^{$1}").replace(/\\textsubscript\{([^{}]*)\}/g, "_{$1}").replace(/\\pow\{([^{}]*)\}/g, "^{$1}").replace(/\\,/g, " ");
+  let flat = text;
+  for (let was = ""; was !== flat; ) {
+    was = flat;
+    flat = flat.replace(/\\textit\{([^{}]*)\}/g, "$1").replace(/(^|[^\\a-zA-Z^_])\{([^{}]*)\}/g, "$1$2");
+  }
+  const m = flat.replace(/\\textsuperscript\{([^{}]*)\}/g, "^{$1}").replace(/\\textsubscript\{([^{}]*)\}/g, "_{$1}").replace(/\\pow\{([^{}]*)\}/g, "^{$1}").replace(/\\,/g, " ");
   if (/[\\$]/.test(m)) return null;
   return m.trim().replace(/[A-Za-z]{2,}/g, (word) => `\\mathrm{${word}}`).replace(/\s+/g, "\\,");
 }
@@ -1032,6 +1077,7 @@ function parseLayoutQuestion(body, questionNumber, images = {}) {
   const stem = [];
   const parts = [];
   const options = [];
+  const isMcq = /\\mcq\s*\{/.test(body);
   let hasFigure = false;
   let part = null;
   let sub = null;
@@ -1086,7 +1132,7 @@ function parseLayoutQuestion(body, questionNumber, images = {}) {
       text = found.rest;
       if (inner) openLabel(inner[1]);
       else if (!/^\d+$/.test(found.label)) {
-        text = `\\textbf{${found.label}} ${found.rest}`;
+        text = found.label === "\u2022" ? `\u2022 ${found.rest}` : `\\textbf{${found.label}} ${found.rest}`;
         break;
       }
     }
@@ -1097,7 +1143,14 @@ function parseLayoutQuestion(body, questionNumber, images = {}) {
   const compose = (pieces, rules, base) => {
     const used = /* @__PURE__ */ new Set();
     const tokens = [];
-    const join = (list2) => list2.sort((a, b) => a.x - b.x).map((p) => cleanInline(p.raw, notes)).join(" ");
+    const scripted = (p, text, line) => {
+      const raised = isSmallPiece(p) ? p.y - line : 0;
+      return raised > 2.5 ? `\\textsuperscript{${text}}` : raised < -0.8 ? `\\textsubscript{${text}}` : text;
+    };
+    const join = (list2) => {
+      const line = list2.find((p) => !isSmallPiece(p))?.y ?? list2[0].y;
+      return list2.sort((a, b) => a.x - b.x).map((p) => scripted(p, cleanInline(p.raw, notes), line)).join(" ").replace(/ (\\textsuperscript|\\textsubscript)/g, "$1");
+    };
     for (const rule of rules) {
       const over = pieces.filter((p) => p.x >= rule.x1 - 6 && p.x <= rule.x2 + 3);
       const top = over.filter((p) => p.y > rule.y);
@@ -1110,14 +1163,8 @@ function parseLayoutQuestion(body, questionNumber, images = {}) {
     }
     for (const p of pieces) {
       if (used.has(p)) continue;
-      const small = /\\fontsize\{([\d.]+)bp\}/.exec(p.raw);
       const text = cleanInline(p.raw, notes);
-      if (!text) continue;
-      const raised = small && Number(small[1]) <= 8.5 ? p.y - base : 0;
-      tokens.push({
-        x: p.x,
-        text: raised > 2.5 ? `\\textsuperscript{${text}}` : raised < -1.2 ? `\\textsubscript{${text}}` : text
-      });
+      if (text) tokens.push({ x: p.x, text: scripted(p, text, base) });
     }
     return tokens.sort((a, b) => a.x - b.x).map((t) => t.text).join(" ").replace(/ (\\textsuperscript|\\textsubscript)/g, "$1").replace(/\s+([,.;:)])/g, "$1");
   };
@@ -1133,19 +1180,33 @@ function parseLayoutQuestion(body, questionNumber, images = {}) {
       if (m[1] === "at") pieces.push({ x: Number(a), y: Number(b), raw: c });
       else rules.push({ x1: Number(a), x2: Number(b), y: Number(c) });
     }
+    for (const minus of pieces.filter((p) => p.raw.trim() === "\\_")) {
+      const GAP = /\\kern(?:[89]|\d{2,})(?:\.\d+)?bp ?/g;
+      const under = pieces.filter(
+        (p) => p.x < minus.x && minus.y - p.y > 2 && minus.y - p.y < 7 && p.raw.match(GAP)?.length === 1
+      );
+      if (under.length === 1) {
+        under[0].raw = under[0].raw.replace(GAP, " \u2212 ");
+        pieces.splice(pieces.indexOf(minus), 1);
+      } else notes.unreadable = true;
+    }
     const isLetter = (p) => /^\\textbf\{\s*[A-D]\s*\}$/.test(p.raw.trim());
-    const letters = pieces.filter(isLetter).sort((a, b) => a.x - b.x);
-    if (letters.length >= 2) {
-      letters.forEach((letter, i) => {
-        const end = letters[i + 1]?.x ?? Infinity;
-        const within = (x) => x >= letter.x && x < end;
+    const letters = pieces.filter(isLetter).sort((a, b) => b.y - a.y || a.x - b.x);
+    const first = Math.min(...pieces.map((p) => p.x));
+    if (letters.length >= 2 || isMcq && letters.length === 1 && letters[0].x === first) {
+      const owner = (x, y) => {
+        const near = Math.min(...letters.map((l) => Math.abs(l.y - y)));
+        const line = letters.filter((l) => Math.abs(l.y - y) < near + 3);
+        return line.filter((l) => l.x <= x).sort((a, b) => b.x - a.x)[0] ?? line[0];
+      };
+      for (const letter of letters) {
         const content = compose(
-          pieces.filter((p) => !isLetter(p) && within(p.x)),
-          rules.filter((r) => within(r.x1)),
+          pieces.filter((p) => !isLetter(p) && owner(p.x, p.y) === letter),
+          rules.filter((r) => owner(r.x1, r.y) === letter),
           letter.y
         );
         options.push({ label: plain(letter.raw), content: inlineToHtml(content) });
-      });
+      }
       append = null;
       return;
     }
@@ -1162,7 +1223,27 @@ function parseLayoutQuestion(body, questionNumber, images = {}) {
       else if (/^\d+$/.test(label) && Number(label) === questionNumber) continue;
       else body2.push(p);
     }
-    addPara(compose(body2, rules, base));
+    const readLines = (block, lineRules, line) => {
+      const ys = [...new Set(block.filter((p) => !isSmallPiece(p)).map((p) => p.y))].sort((a, b) => b - a);
+      const gap = ys.findIndex((y, n) => n > 0 && ys[n - 1] - y > 10);
+      if (gap > 0) {
+        const cut = (ys[gap - 1] + ys[gap]) / 2;
+        const upper = block.filter((p) => p.y > cut);
+        const lower = block.filter((p) => p.y <= cut);
+        const left = (l) => Math.min(...l.map((p) => p.x));
+        const isText = (l) => l.some((p) => /[a-z]{3,}.*\s.*[a-z]{2,}/.test(cleanInline(p.raw, notes)));
+        const crossed = lineRules.some((r) => {
+          const over = block.filter((p) => p.x >= r.x1 - 6 && p.x <= r.x2 + 3);
+          return Math.abs(r.y - cut) < 4 || r.y <= cut && over.some((p) => p.y > cut && p.y - r.y < 10);
+        });
+        if (Math.abs(left(upper) - left(lower)) < 3 && isText(upper) && isText(lower) && !crossed) {
+          const top = compose(upper, lineRules.filter((r) => r.y > cut), ys[0]);
+          return `${top} ${readLines(lower, lineRules.filter((r) => r.y <= cut), ys[gap])}`;
+        }
+      }
+      return compose(block, lineRules, line);
+    };
+    addPara(readLines(body2, rules, base));
     pendingMarks.splice(0).forEach(addMarks);
   };
   for (const token of tokenize(body)) {
@@ -1399,6 +1480,10 @@ function extractCorrectOption(body) {
   for (const env of findEnvironments(body, "ansbox")) {
     const letter = parseCorrectOption(env.body);
     if (letter) return letter;
+  }
+  for (const env of findEnvironments(body, "mstab")) {
+    const m = /^\s*(?:\{[^{}]*\})?\s*\d+\s*&\s*([A-D])\s*&[^&]*\\\\\s*(?:\\hline\s*)?$/.exec(env.body);
+    if (m) return m[1];
   }
   return null;
 }

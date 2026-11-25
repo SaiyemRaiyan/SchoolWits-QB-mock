@@ -126,6 +126,14 @@ const SYMBOL: Record<string, string> = {
   B9: '≠', AE: '→', D6: '√', A5: '∞', B5: '∝',
 };
 
+// ZapfDingbats codes, as \usefont{U}{pzd}{m}{n}\char"33 writes them.
+const DINGBAT: Record<string, string> = { '33': '✓', '34': '✔', '35': '✕', '36': '✖', '37': '✗', '38': '✘' };
+
+// A group's contents, allowing one more level of braces inside it.
+const INNER = String.raw`(?:[^{}]|\{[^{}]*\})*`;
+const PLAB = new RegExp(String.raw`\\plab\{[^{}]*\}\{(${INNER})\}`, 'g');
+const PHANTOM = new RegExp(String.raw`\\phantom\{${INNER}\}`, 'g');
+
 // Commands inlineToHtml (or KaTeX) deals with; anything else is reported.
 const KNOWN_INLINE = new Set([
   'textbf', 'textit', 'emph', 'textsuperscript', 'textsubscript', 'pow', 'ohms', 'degC', 'dg',
@@ -139,6 +147,44 @@ interface Notes {
 }
 
 /**
+ * Fractions stacked inside a line:
+ *   \rlap{\kern0bp\raisebox{5bp}[..]{V}}\rlap{..{-7bp}..{I}}\rlap{..{\rule{..}{..}}}
+ * What is raised above the rule is the top, what sits below it the bottom.
+ * Without this the pieces run together and V/I silently reads "VI".
+ */
+function inlineFractions(src: string, notes: Notes): string {
+  const OPEN = /^\\rlap(?=\{)/;
+  let out = '';
+  let i = 0;
+  while (i < src.length) {
+    const pieces: { y: number; raw: string }[] = [];
+    let j = i;
+    while (OPEN.test(src.slice(j, j + 6))) {
+      const group = readGroup(src, j + 5);
+      const m = group && /^\s*(?:\\kern-?[\d.]+bp\s*)?\\raisebox\{(-?[\d.]+)bp\}(?:\[[^\]]*\])*(\{[\s\S]*\})\s*$/.exec(group.value);
+      if (!group || !m) break;
+      pieces.push({ y: Number(m[1]), raw: m[2].slice(1, -1) });
+      j = group.end;
+    }
+    const rule = pieces.find((p) => /^\s*\\rule\{/.test(p.raw));
+    const side = (above: boolean) =>
+      pieces
+        .filter((p) => p !== rule && p.y > rule!.y === above)
+        .map((p) => cleanInline(p.raw, notes).replace(/\$/g, ''))
+        .join(' ');
+    const [top, bottom] = rule ? [toMath(side(true)), toMath(side(false))] : [null, null];
+    if (top && bottom) {
+      out += `$\\dfrac{${top}}{${bottom}}$`;
+      i = j;
+    } else {
+      out += src[i];
+      i++;
+    }
+  }
+  return out;
+}
+
+/**
  * Strip the typesetting out of a run of text, leaving the documented
  * format's inline commands. The kerns matter most: the paper nudges letters
  * mid-word ("f\kern-0.33bp orce"), and left in they would split every such
@@ -148,7 +194,7 @@ function cleanInline(src: string, notes: Notes): string {
   // Typed maths is already what we want: KaTeX reads it, so it is set aside
   // and nothing below (kern stripping, the unknown-command check) touches it.
   const maths: string[] = [];
-  let s = src.replace(/\$(?:\\[\s\S]|[^\\$])*\$/g, (m) => `\u0002${maths.push(m) - 1}\u0003`);
+  let s = inlineFractions(src, notes).replace(/\$(?:\\[\s\S]|[^\\$])*\$/g, (m) => `\u0002${maths.push(m) - 1}\u0003`);
 
   // \swclip sets a small picture in the line ("appears like this [compass]"):
   // a figure. \swglyph is one symbol of an equation: not readable.
@@ -161,17 +207,36 @@ function cleanInline(src: string, notes: Notes): string {
 
   s = s
     .replace(/\\(?:begingroup|endgroup|null)(?![a-zA-Z])\s*/g, '')
+    // Spacing and letter-fit settings: they print nothing, so their numbers go too.
+    .replace(/\\parfillskip-?[\d.]+pt/g, '')
+    .replace(/\\par(?![a-zA-Z])/g, '')
+    .replace(/\\advance\\x?spaceskip-?[\d.]+bp/g, '')
+    .replace(/\\textls(?:\[[^\]]*\])?(?=\{)/g, '')
+    .replace(/\\smash(?=\{)/g, '')
+    // A slanted symbol: the \phantom only reserves the width already used.
+    .replace(/\\pdfsetmatrix\{[^{}]*\}|\\pdfsave(?![a-zA-Z])|\\pdfrestore(?![a-zA-Z])/g, '')
+    .replace(PHANTOM, '')
+    .replace(PLAB, '$1 ')
+    .replace(/\\usefont\{U\}\{pzd\}\{m\}\{n\}\\char"([0-9A-Fa-f]{2})/g, (_, hex: string) => {
+      if (!DINGBAT[hex]) notes.unknown.add(`pzd{${hex}}`);
+      return DINGBAT[hex] ?? '';
+    })
+    // Dots for the student to write on, set as ellipses from a named font.
+    .replace(/\\font\\(\w+)=\w+ at [\d.]+bp\\\1\\char"85/g, '…')
     .replace(/\\vadjust\{[^{}]*\}/g, '')
     .replace(/\\rule\{[^{}]*\}\{[^{}]*\}/g, '')
     .replace(/\\x?spaceskip=-?[\d.]+bp/g, '')
-    .replace(/\\hskip-?[\d.]+pt(?:\s*minus\s*[\d.]+bp)?/g, '')
+    .replace(/\\hskip-?[\d.]+pt(?:\s*(?:plus|minus)\s*-?[\d.]+(?:bp|pt|fil+))*/g, '')
     .replace(/\\(?:relax|nobreak|strut|ignorespaces|unskip|hfill)\b ?/g, '')
     .replace(/\\linebreak\b/g, ' ')
     // A kern eats the space after its unit. A wide one is a real word gap.
     .replace(/\\kern(-?[\d.]+)(?:bp|pt) ?/g, (_, n: string) => (Number(n) >= 2 ? ' ' : ''))
     .replace(/\\raisebox\{[^{}]*\}(?:\[[^\]]*\])*/g, '')
     .replace(/\\(?:makebox|rlap|llap)(?:\[[^\]]*\])*/g, '')
-    .replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t: string) => (t === 'I' ? '\\textit{I}' : t))
+    .replace(/\\swf\{[^{}]*\}\{[^{}]*\}\{([^{}]*)\}/g, (_, t: string) => {
+      const letter = t.replace(/^\\itshape\s*/, '');
+      return letter === 'I' || letter !== t ? `\\textit{${letter}}` : t;
+    })
     .replace(/\\vI\b/g, '\\textit{I}')
     .replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}\\selectfont\s*/g, '')
     .replace(/\{\\itshape\s*/g, '\\textit{')
@@ -205,6 +270,7 @@ function cleanInline(src: string, notes: Notes): string {
 function plain(raw: string): string {
   return raw
     .replace(/\\kern-?[\d.]+bp ?/g, '')
+    .replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}/g, '')
     .replace(/\\[a-zA-Z]+/g, '')
     .replace(/[{}\s]/g, '');
 }
@@ -242,10 +308,20 @@ interface Piece {
   raw: string;
 }
 
+/** Set in the small type of an index or suffix. */
+function isSmallPiece(p: Piece): boolean {
+  return Number(/\\fontsize\{([\d.]+)bp\}/.exec(p.raw)?.[1] ?? 99) <= 8.5;
+}
+
 /** TeX for a fraction's top or bottom, or null when it is not simple enough. */
 function toMath(text: string): string | null {
-  const m = text
-    .replace(/\\textit\{([^{}]*)\}/g, '$1')
+  // Italics and bare groups first, inside out: maths letters are italic anyway.
+  let flat = text;
+  for (let was = ''; was !== flat; ) {
+    was = flat;
+    flat = flat.replace(/\\textit\{([^{}]*)\}/g, '$1').replace(/(^|[^\\a-zA-Z^_])\{([^{}]*)\}/g, '$1$2');
+  }
+  const m = flat
     .replace(/\\textsuperscript\{([^{}]*)\}/g, '^{$1}')
     .replace(/\\textsubscript\{([^{}]*)\}/g, '_{$1}')
     .replace(/\\pow\{([^{}]*)\}/g, '^{$1}')
@@ -268,6 +344,7 @@ export function parseLayoutQuestion(
   const stem: string[] = [];
   const parts: Draft[] = [];
   const options: Options['items'] = [];
+  const isMcq = /\\mcq\s*\{/.test(body);
   let hasFigure = false;
   let part: Draft | null = null;
   let sub: Draft | null = null;
@@ -343,7 +420,7 @@ export function parseLayoutQuestion(
       // The question number is dropped; "1." numbers a point inside a
       // subpart and stays in the text.
       else if (!/^\d+$/.test(found.label)) {
-        text = `\\textbf{${found.label}} ${found.rest}`;
+        text = found.label === '•' ? `• ${found.rest}` : `\\textbf{${found.label}} ${found.rest}`;
         break;
       }
     }
@@ -356,11 +433,19 @@ export function parseLayoutQuestion(
   const compose = (pieces: Piece[], rules: { x1: number; x2: number; y: number }[], base: number) => {
     const used = new Set<Piece>();
     const tokens: { x: number; text: string }[] = [];
-    const join = (list: Piece[]) =>
-      list
+    /** Raised and lowered small print is read against `line`, its own baseline. */
+    const scripted = (p: Piece, text: string, line: number) => {
+      const raised = isSmallPiece(p) ? p.y - line : 0;
+      return raised > 2.5 ? `\\textsuperscript{${text}}` : raised < -0.8 ? `\\textsubscript{${text}}` : text;
+    };
+    const join = (list: Piece[]) => {
+      const line = list.find((p) => !isSmallPiece(p))?.y ?? list[0].y;
+      return list
         .sort((a, b) => a.x - b.x)
-        .map((p) => cleanInline(p.raw, notes))
-        .join(' ');
+        .map((p) => scripted(p, cleanInline(p.raw, notes), line))
+        .join(' ')
+        .replace(/ (\\textsuperscript|\\textsubscript)/g, '$1');
+    };
 
     for (const rule of rules) {
       const over = pieces.filter((p) => p.x >= rule.x1 - 6 && p.x <= rule.x2 + 3);
@@ -375,14 +460,8 @@ export function parseLayoutQuestion(
 
     for (const p of pieces) {
       if (used.has(p)) continue;
-      const small = /\\fontsize\{([\d.]+)bp\}/.exec(p.raw);
       const text = cleanInline(p.raw, notes);
-      if (!text) continue;
-      const raised = small && Number(small[1]) <= 8.5 ? p.y - base : 0;
-      tokens.push({
-        x: p.x,
-        text: raised > 2.5 ? `\\textsuperscript{${text}}` : raised < -1.2 ? `\\textsubscript{${text}}` : text,
-      });
+      if (text) tokens.push({ x: p.x, text: scripted(p, text, base) });
     }
 
     return tokens
@@ -407,21 +486,41 @@ export function parseLayoutQuestion(
       else rules.push({ x1: Number(a), x2: Number(b), y: Number(c) });
     }
 
-    const isLetter = (p: Piece) => /^\\textbf\{\s*[A-D]\s*\}$/.test(p.raw.trim());
-    const letters = pieces.filter(isLetter).sort((a, b) => a.x - b.x);
+    // A minus drawn over other text, as a lone "_". It belongs in the one wide
+    // gap left for it; with no such gap there is no telling what it sits between.
+    for (const minus of pieces.filter((p) => p.raw.trim() === '\\_')) {
+      const GAP = /\\kern(?:[89]|\d{2,})(?:\.\d+)?bp ?/g;
+      const under = pieces.filter(
+        (p) => p.x < minus.x && minus.y - p.y > 2 && minus.y - p.y < 7 && p.raw.match(GAP)?.length === 1,
+      );
+      if (under.length === 1) {
+        under[0].raw = under[0].raw.replace(GAP, ' − ');
+        pieces.splice(pieces.indexOf(minus), 1);
+      } else notes.unreadable = true;
+    }
 
-    // A row of options: everything between one letter and the next is its option.
-    if (letters.length >= 2) {
-      letters.forEach((letter, i) => {
-        const end = letters[i + 1]?.x ?? Infinity;
-        const within = (x: number) => x >= letter.x && x < end;
+    const isLetter = (p: Piece) => /^\\textbf\{\s*[A-D]\s*\}$/.test(p.raw.trim());
+    const letters = pieces.filter(isLetter).sort((a, b) => b.y - a.y || a.x - b.x);
+    const first = Math.min(...pieces.map((p) => p.x));
+
+    // Options, in a row, a column or a grid. A single letter is one option only
+    // at the left edge of a multiple-choice question; elsewhere it is a name.
+    if (letters.length >= 2 || (isMcq && letters.length === 1 && letters[0].x === first)) {
+      // Everything belongs to the nearest line of letters, then to the last
+      // letter to its left on that line.
+      const owner = (x: number, y: number) => {
+        const near = Math.min(...letters.map((l) => Math.abs(l.y - y)));
+        const line = letters.filter((l) => Math.abs(l.y - y) < near + 3);
+        return line.filter((l) => l.x <= x).sort((a, b) => b.x - a.x)[0] ?? line[0];
+      };
+      for (const letter of letters) {
         const content = compose(
-          pieces.filter((p) => !isLetter(p) && within(p.x)),
-          rules.filter((r) => within(r.x1)),
+          pieces.filter((p) => !isLetter(p) && owner(p.x, p.y) === letter),
+          rules.filter((r) => owner(r.x1, r.y) === letter),
           letter.y,
         );
         options.push({ label: plain(letter.raw), content: inlineToHtml(content) });
-      });
+      }
       append = null;
       return;
     }
@@ -441,7 +540,31 @@ export function parseLayoutQuestion(
       else if (/^\d+$/.test(label) && Number(label) === questionNumber) continue;
       else body.push(p);
     }
-    addPara(compose(body, rules, base));
+    // Several full lines of text in one block are read one after another. A gap
+    // this deep with nothing between, both sides starting at the left, is a line
+    // break rather than the two halves of a fraction or a matrix.
+    const readLines = (block: Piece[], lineRules: typeof rules, line: number): string => {
+      const ys = [...new Set(block.filter((p) => !isSmallPiece(p)).map((p) => p.y))].sort((a, b) => b - a);
+      const gap = ys.findIndex((y, n) => n > 0 && ys[n - 1] - y > 10);
+      if (gap > 0) {
+        const cut = (ys[gap - 1] + ys[gap]) / 2;
+        const upper = block.filter((p) => p.y > cut);
+        const lower = block.filter((p) => p.y <= cut);
+        const left = (l: Piece[]) => Math.min(...l.map((p) => p.x));
+        const isText = (l: Piece[]) => l.some((p) => /[a-z]{3,}.*\s.*[a-z]{2,}/.test(cleanInline(p.raw, notes)));
+        const crossed = lineRules.some((r) => {
+          const over = block.filter((p) => p.x >= r.x1 - 6 && p.x <= r.x2 + 3);
+          return Math.abs(r.y - cut) < 4 || (r.y <= cut && over.some((p) => p.y > cut && p.y - r.y < 10));
+        });
+        if (Math.abs(left(upper) - left(lower)) < 3 && isText(upper) && isText(lower) && !crossed) {
+          const top = compose(upper, lineRules.filter((r) => r.y > cut), ys[0]);
+          return `${top} ${readLines(lower, lineRules.filter((r) => r.y <= cut), ys[gap])}`;
+        }
+      }
+      return compose(block, lineRules, line);
+    };
+
+    addPara(readLines(body, rules, base));
     pendingMarks.splice(0).forEach(addMarks);
   };
 

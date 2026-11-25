@@ -60,5 +60,5 @@ the renderer are tested against each other.
 
 ```bash
 npm run lint && npx tsc --noEmit && npm run build   # the app
-cd backend && npm run typecheck && npm test          # the parser, 196 tests
+cd backend && npm run typecheck && npm test          # the parser, 209 tests
 ```

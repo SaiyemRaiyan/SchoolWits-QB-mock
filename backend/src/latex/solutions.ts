@@ -102,11 +102,10 @@ export function parseAnsbox(body: string, questionNumber: number): SolutionSegme
 }
 
 /**
- * The correct MCQ letter.
+ * The correct MCQ letter, out of worked-solution prose.
  *
- * Physics 5054/11 records this only in the worked-solution prose (there is
- * no mark-scheme table for MCQ papers at all — templates/README.md, issue
- * 5), so it has to be read out of text like "\textbf{Answer: A}".
+ * Older papers have no mark-scheme table for MCQs (templates/README.md,
+ * issue 5), so it has to be read out of text like "\textbf{Answer: A}".
  */
 export function parseCorrectOption(body: string): string | null {
   const at = body.search(/\bAnswer\b/);
@@ -135,6 +134,11 @@ export function extractCorrectOption(body: string): string | null {
   for (const env of findEnvironments(body, 'ansbox')) {
     const letter = parseCorrectOption(env.body);
     if (letter) return letter;
+  }
+  // Newer papers put it in a one-row mark scheme instead: `5 & B & 1 \\\\ \hline`.
+  for (const env of findEnvironments(body, 'mstab')) {
+    const m = /^\s*(?:\{[^{}]*\})?\s*\d+\s*&\s*([A-D])\s*&[^&]*\\\\\s*(?:\\hline\s*)?$/.exec(env.body);
+    if (m) return m[1];
   }
   return null;
 }

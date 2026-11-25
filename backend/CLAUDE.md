@@ -48,7 +48,7 @@ and nowhere else.
 `src/latex/` has **zero dependencies and zero `node:` imports**, which is
 deliberate — it is what lets the same files run unmodified inside a Supabase
 Edge Function (Deno), which is how the browser upload path reaches them.
-Only `scripts/` and `tests/integration/` touch `node:fs`; keep it that way.
+Only `scripts/` touches `node:fs`; keep it that way.
 
 Images work the way the old notes anticipated, just keyed differently:
 figures upload to the `question-images` bucket **first**, and the resulting
@@ -119,8 +119,8 @@ backend/
   scripts/
     import-paper.ts       -- npm run import: figures -> bucket, parse, write rows
     parse-paper.ts        -- npm run parse: report + JSON, writes nothing
-  tests/                  -- vitest; latex/ unit specs, render/ drives lib/render/,
-                             integration/ parses the six real papers in place
+  tests/                  -- vitest; latex/ unit specs, render/ drives lib/render/.
+                             No question paper is kept in the repo.
   .env.example
 
 ../lib/supabase/           -- the app's data layer, NOT inside backend/:

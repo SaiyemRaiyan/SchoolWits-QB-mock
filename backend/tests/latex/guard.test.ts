@@ -1,10 +1,5 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { isSerious, parseQuestionPaper } from '../../src/latex/index.js';
-
-const PAPERS = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'Updated Latex FIles For Web');
 
 // The page-layout dialect, as it arrived in the 2016 papers.
 const LAYOUT = String.raw`\begin{document}
@@ -63,17 +58,5 @@ Find the value of k for which the curve\foo{4.91bp} y 3.14bp = 2x
 Evaluate $\hspace{2bp} x + 1$.
 \end{document}`;
     expect(parseQuestionPaper(tex).warnings.some(isSerious)).toBe(false);
-  });
-
-  it('passes every question paper already in the bank', () => {
-    const folders = readdirSync(PAPERS).filter(
-      (d) => d !== 'new_layout' && statSync(join(PAPERS, d)).isDirectory(),
-    );
-    expect(folders.length).toBeGreaterThanOrEqual(6);
-    for (const folder of folders) {
-      const qp = readdirSync(join(PAPERS, folder)).find((f) => /QP.*\.tex$/i.test(f));
-      const { warnings } = parseQuestionPaper(readFileSync(join(PAPERS, folder, qp!), 'utf8'));
-      expect(warnings.filter(isSerious), folder).toEqual([]);
-    }
   });
 });

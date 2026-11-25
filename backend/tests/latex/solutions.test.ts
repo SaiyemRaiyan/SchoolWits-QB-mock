@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseAnsbox, parseCorrectOption } from '../../src/latex/solutions.js';
+import { extractCorrectOption, parseAnsbox, parseCorrectOption } from '../../src/latex/solutions.js';
 
 describe('parseAnsbox', () => {
   const body = `
@@ -110,5 +110,22 @@ describe('parseAnsbox — letters carry through a pair', () => {
 
   it('does not re-case the sentence after "For (a),"', () => {
     expect(parseAnsbox('For (a), g is the field strength.', 2)[0].html).toBe('g is the field strength.');
+  });
+});
+
+describe('extractCorrectOption', () => {
+  const paper = (row: string) => `\\begin{mstab}{q5color}\n${row}\n\\end{mstab}\n\\begin{ansbox}{q5color}\nBy addition.\n\\end{ansbox}`;
+
+  it('reads the letter from a one-row mark scheme', () => {
+    expect(extractCorrectOption(paper('5 & B & 1 \\\\ \\hline'))).toBe('B');
+  });
+
+  it('prefers the letter the worked solution states', () => {
+    expect(extractCorrectOption('\\begin{ansbox}{q1color}\nAnswer: C\n\\end{ansbox}')).toBe('C');
+  });
+
+  it('leaves structured mark schemes alone', () => {
+    expect(extractCorrectOption(paper('5(a) & B & B1 \\\\ \\hline'))).toBeNull();
+    expect(extractCorrectOption(paper('5 & A & M1 \\\\ \\cline{2-3}\n & B & A1 \\\\ \\hline'))).toBeNull();
   });
 });

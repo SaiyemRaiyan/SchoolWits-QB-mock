@@ -65,8 +65,8 @@ function visibleText(html: string): string {
     .replace(/<[^>]+>/g, ' ');
 }
 
-// "4.91bp" never appears in a real question; it is a TeX length that leaked.
-const LEAKED_LENGTH = /\d(?:\.\d+)?bp\b/;
+// "4.91bp" and "0pt" never appear in a real question; they are leaked TeX lengths.
+const LEAKED_LENGTH = /\d(?:\.\d+)?(?:bp|pt)\b/;
 
 function blocksText(blocks: Block[]): string {
   return blocks.map((b) => (b.type === 'figure' ? b.caption : b.html)).join(' ');

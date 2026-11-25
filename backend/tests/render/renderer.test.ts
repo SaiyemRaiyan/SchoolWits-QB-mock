@@ -10,10 +10,7 @@
  * It is TypeScript modules now, so it is imported directly.
  */
 
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { mergePaper, parseAnswerPaper, parseQuestionPaper } from '../../src/latex/index.js';
 import type { ParsedPaper, Question } from '../../src/latex/types.js';
 import {
@@ -23,24 +20,69 @@ import {
 } from '../../../lib/render/index.js';
 import { renderBlocks } from '../../../lib/render/blocks.js';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const REPO = join(here, '..', '..', '..');
+// Small papers written here rather than real ones: no question paper lives in
+// the repo, and these hold one of each thing the renderer has to draw.
+const PHYSICS_QP = String.raw`\begin{document}
+\examq{5054/21/M/J/25}{1}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics}{6}
+Fig. 1.1 shows a skydiver.
 
-let physics: ParsedPaper;
-let mcq: ParsedPaper;
+\qfig[0.42\linewidth]{5054_21_M_J_25_fig1.png}{Fig. 1.1}
 
-function loadPaper(dir: string, qp: string, qa: string): ParsedPaper {
-  const base = join(REPO, 'Updated Latex FIles For Web', dir);
-  return mergePaper(
-    parseQuestionPaper(readFileSync(join(base, qp), 'utf8')),
-    parseAnswerPaper(readFileSync(join(base, qa), 'utf8')),
-  );
-}
+\begin{parts}
+  \item Sketch the speed--time graph. \markright{[2]}
+  \item Explain how the graph shows that $a = \dfrac{v}{t}$ decreases. \Alines{3}{[1]}
+  \item There is a resultant force downwards.
+  \begin{subparts}
+    \item State the name of the other vertical force. \Alines{1}{[1]}
+    \item Explain why the resultant force becomes zero. \Alines{4}{[1]}
+  \end{subparts}
+  \item State the final acceleration. \Alines{1}{[1]}
+\end{parts}
+\total
+\end{document}`;
 
-beforeAll(() => {
-  physics = loadPaper('Physics MJ25 21', 'Physics S25QP21.tex', 'Physics S25QA21.tex');
-  mcq = loadPaper('Physics MJ25 11', 'Physics S25QP11.tex', 'Physics S25QA11.tex');
-});
+const PHYSICS_QA = String.raw`\begin{document}
+\examq{5054/21/M/J/25}{1}{Motion or Kinematics \textperiodcentered\ Forces or Dynamics}{6}
+\begin{mstab}{q1color}
+ & curve upwards labelled A & B1 \\ \cline{2-3}
+\multirow{-2}{1.9cm}{1(a)} & horizontal line labelled B & B1 \\ \hline
+1(b) & gradient decreases \newline or \newline speed increase less at later times & B1 \\ \hline
+1(c)(i) & air resistance & B1 \\ \hline
+1(c)(ii) & forces balance & B1 \\ \hline
+1(d) & zero & B1 \\ \hline
+\end{mstab}
+\begin{ansbox}{q1color}
+(a) Speed--Time Graph\\[4pt]
+Draw a curve that starts at the origin.
+
+(b) Gradient\\[4pt]
+The gradient falls.
+\end{ansbox}
+\end{document}`;
+
+const choices = (n: number) => String.raw`
+\examq{5054/11/M/J/25}{${n}}{Momentum (Dynamics)}{1}
+Which is a unit for momentum?
+\begin{choices}
+  \item kg
+  \item N\,s
+  \item N\,m
+  \item J
+\end{choices}`;
+const MCQ_QP = String.raw`\begin{document}${[1, 2, 3].map(choices).join('')}
+\examq{5054/11/M/J/25}{4}{Momentum (Dynamics)}{1}
+Which graph is correct?
+\qfig[0.5\linewidth]{fig4.png}{}
+\end{document}`;
+const MCQ_QA = String.raw`\begin{document}
+\examq{5054/11/M/J/25}{1}{Momentum (Dynamics)}{1}
+\begin{ansbox}{q1color}
+\textbf{Answer: B} Momentum is force times time.
+\end{ansbox}
+\end{document}`;
+
+const physics: ParsedPaper = mergePaper(parseQuestionPaper(PHYSICS_QP), parseAnswerPaper(PHYSICS_QA));
+const mcq: ParsedPaper = mergePaper(parseQuestionPaper(MCQ_QP), parseAnswerPaper(MCQ_QA));
 
 const q1 = () => physics.questions[0];
 /* eslint-disable @typescript-eslint/no-explicit-any */

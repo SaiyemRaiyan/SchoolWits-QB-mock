@@ -394,3 +394,62 @@ describe('chemistry: ions and isotopes', () => {
     );
   });
 });
+
+describe('chemistry: round 3, from the page', () => {
+  it('an index right after a pictured l sits on it: PCl₃, PCl₅', () => {
+    // 5070/21/M/J/19 Q8(d),(e), page 13. The LaTeX puts \, between the picture and $_{3}$; the page prints PCl₃.
+    const paper = paperOf(CHEMISTRY, String.raw`\examq{5070/21/M/J/19}{8}{Equilibria}{3}
+\row{0.3}{95.0}{\lab{22.7}{\textbf{(d)}}Draw the ${'`'}dot-and-cross' diagram for a molecule of PC\swcut{3.08}{2.64}{13}{359.27bp 766.37bp 232.93bp 63.42bp}\,$_{3}$.}
+\partbreak
+\row{26.0}{95.0}{\lab{22.7}{\textbf{(e)}}PC\swcut{3.08}{2.64}{13}{110.24bp 467.36bp 481.96bp 362.43bp}\,$_{5}$ reacts with water to form hydrogen chloride and phosphoric acid, H$_{3}$PO$_{4}$.}`);
+    const q = question(paper, 8);
+    correct(paper, 8, content(part(q, 'd')), "Draw the 'dot-and-cross' diagram for a molecule of PCl$_3$.");
+    correct(paper, 8, content(part(q, 'e')),
+      'PCl$_5$ reacts with water to form hydrogen chloride and phosphoric acid, H$_3$PO$_4$.');
+    // canon ignores a space before a script; the page shows none, so it is checked on the output.
+    const shown = (p: string) => part(q, p).content.map((b) => (b.type === 'figure' ? '' : b.html)).join(' ').replace(/<[^>]+>/g, '');
+    expect(shown('d')).not.toMatch(/l\s+(\$_|_)/);
+    expect(shown('e')).not.toMatch(/l\s+(\$_|_)/);
+  });
+
+  it('a whole question in one placed block: stem, equilibrium, numbered statements, options', () => {
+    // 5070/12/M/J/26 Q15, page 6
+    const paper = paperOf(CHEMISTRY_MCQ_26, String.raw`\examq{5070/12/M/J/26}{15}{Reversible Reactions}{1}
+\freerow{41.9}{%
+  \at{49.58}{0.02}{\textbf{15}}%
+  \at{72.25}{0.02}{Elements X and Y react together in a reversible reaction to form XY\kern4.23bp .}%
+  \at{399.55}{-2.97}{{\fontsize{7.50bp}{7.50bp}\selectfont 2}}%
+  \at{232.73}{-27.62}{X\kern4.39bp +\kern4.39bp 2Y}%
+  \at{273.09}{-27.62}{\swcut{10.85}{2.64}{6}{273.09bp 358.24bp 311.06bp 471.66bp}}%
+  \at{288.34}{-27.62}{XY}%
+  \at{302.98}{-30.62}{{\fontsize{7.50bp}{7.50bp}\selectfont 2}}%
+  \at{72.25}{-54.47}{1.0\,mol\kern2.48bp of\kern2.48bp X\kern2.47bp is\kern2.48bp mixed\kern2.48bp with\kern2.47bp 1.0\,mol\kern2.48bp of\kern2.48bp Y\kern2.47bp and\kern2.48bp the\kern2.47bp mixture\kern2.47bp is\kern2.48bp left\kern2.46bp to\kern2.47bp react\kern2.47bp until\kern2.47bp an\kern2.48bp equilibrium}%
+  \at{72.25}{-67.66}{position is reached.}%
+  \at{72.25}{-94.51}{Which statements about this reaction are correct?}%
+  \at{116.17}{-121.87}{1}%
+  \at{142.11}{-121.87}{After the equilibrium position has been reached, the reaction stops.}%
+  \at{116.17}{-142.15}{2}%
+  \at{142.11}{-142.15}{At equilibrium, there is more than 0.5\,mol of X present.}%
+  \at{116.17}{-162.43}{3}%
+  \at{142.11}{-162.43}{At equilibrium, there is less than 1.0\,mol of XY\kern7.25bp present.}%
+  \at{365.41}{-165.42}{{\fontsize{7.50bp}{7.50bp}\selectfont 2}}%
+  \at{72.25}{-188.37}{\textbf{A}}%
+  \at{93.50}{-188.37}{1, 2 and 3}%
+  \at{172.84}{-188.37}{\textbf{B}}%
+  \at{194.09}{-188.37}{2\kern2.20bp and\kern2.20bp 3\kern2.20bp only}%
+  \at{273.42}{-188.37}{\textbf{C}}%
+  \at{294.67}{-188.37}{2 only}%
+  \at{374.01}{-188.37}{\textbf{D}}%
+  \at{395.26}{-188.37}{3 only}%
+  \swdepth{190.69}}`);
+    const q = question(paper, 15);
+    correct(paper, 15, stem(q), `Elements X and Y react together in a reversible reaction to form XY$_2$.
+      X + 2Y ⇌ XY$_2$
+      1.0 mol of X is mixed with 1.0 mol of Y and the mixture is left to react until an equilibrium position is reached.
+      Which statements about this reaction are correct?
+      1 After the equilibrium position has been reached, the reaction stops.
+      2 At equilibrium, there is more than 0.5 mol of X present.
+      3 At equilibrium, there is less than 1.0 mol of XY$_2$ present.`);
+    expect(options(q)).toEqual(['1, 2 and 3', '2 and 3 only', '2 only', '3 only'].map((t, i) => `${'ABCD'[i]}: ${canon(t)}`));
+  });
+});

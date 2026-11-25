@@ -17,10 +17,16 @@ import type { Block, Part, Question } from '../../src/latex/types.js';
 /**
  * A second, plain question. A file holding a single line of a paper is not a
  * paper, and deciding which dialect a file is in is allowed to count commands.
+ *
+ * The filler is a real question of the same subject as the fixture (its
+ * \examq code decides), so the factory picks that subject's class: a 4037
+ * fixture is read by MathsExtractor, a 5070 one by ChemistryExtractor. Each
+ * filler is verbatim from the paper named, renumbered 98.
  */
 const FILLER = {
-  // 5054/11/M/J/16 Q5
-  mcq: String.raw`
+  physics: {
+    // 5054/11/M/J/16 Q5
+    mcq: String.raw`
 \examq{5054/11/M/J/16}{98}{Forces or Dynamics}{1}
 \mcq{38.0}{\textbf{98}}{A man pulls a sledge with a horizontal force of 60\,N.}
 \stem{25.3}{A constant force of friction of 20\,N acts on the sledge.}
@@ -29,7 +35,7 @@ const FILLER = {
 \choice{21.6}{\textbf{B }}{downwards}
 \choice{21.6}{\textbf{C }}{forwards}
 \choice{21.7}{\textbf{D }}{upwards}`,
-  structured: String.raw`
+    structured: String.raw`
 \examq{5054/21/M/J/16}{98}{Forces or Dynamics}{2}
 \row{0.6}{72.3}{\lab{22.7}{\textbf{98}}A student pulls a sledge.}
 \partbreak
@@ -38,12 +44,50 @@ const FILLER = {
 \partbreak
 \row{26.0}{94.9}{\lab{22.6}{\textbf{(b)}}State what is meant by speed.}
 \dotline{26.0}{94.9}{}{[1]}{545.6}`,
+  },
+  chemistry: {
+    // 5070/11/M/J/16 Q38 (\choice lines: a filler set with \optrow left too few positioned lines for the
+    // file to be read as positioned, and the old reader then leaked \swcut measurements)
+    mcq: String.raw`
+\examq{5070/11/M/J/16}{98}{Alkanes}{1}
+\mcq{0.3}{\textbf{98}}{Which statement about alkanes is correct?}
+\choice{23.6}{\textbf{A }}{Ethane reacts with chlorine in an addition reaction.}
+\choice{21.7}{\textbf{B }}{Propane has a higher boiling point than butane.}
+\choice{21.6}{\textbf{C }}{The molecule of the alkane that contains 99 carbon atoms has 200 hydrogen atoms.}
+\choice{21.7}{\textbf{D }}{There are three isomers with the formula C$_{4}$H$_{10}$.}`,
+    // 5070/21/M/J/20 Q7(a)
+    structured: String.raw`
+\examq{5070/21/M/J/20}{98}{Air}{1}
+\row{36.0}{72.3}{\lab{22.7}{\textbf{98 }}Carbon dioxide is a colourless gas found in air\kern-0.60bp .}
+\partbreak
+\row{26.0}{95.0}{\lab{22.7}{\textbf{(a)}}The percentage of carbon dioxide in the air is increasing.}
+\row{26.0}{95.0}{State one environmental problem caused by this increase.}
+\dotgrid{95.45}{523.50}{3.0575}
+\dotline{26.1}{95.5}{}{[1]}{545.7}`,
+  },
+  maths: {
+    // 4037/22/M/J/17 Q3
+    structured: String.raw`
+\examq{4037/22/M/J/17}{98}{Factors of Polynomials}{5}
+\freerow{3.69}{%
+  \at{49.61}{0.01}{\textbf{98}}%
+  \at{72.28}{0.01}{\textbf{Without} \textbf{using} \textbf{a} \textbf{calculator}, factorise the expression $10x^{3} - 21x^{2} + 4$.}%
+  \at{532.26}{0.01}{\hfill\swmark{[5]}}}`,
+  },
 };
+
+/** The filler for the fixtures' subject: the code in their first \examq. */
+function fillerFor(preamble: string, questions: string[]): string {
+  const code = /\\examq\{(\d{4})\//.exec(questions.join('\n'))?.[1];
+  const mcq = /\\newcommand\{\\mcq\}/.test(preamble);
+  if (code === '4037' || code === '4024') return FILLER.maths.structured;
+  if (code === '5070') return mcq ? FILLER.chemistry.mcq : FILLER.chemistry.structured;
+  return mcq ? FILLER.physics.mcq : FILLER.physics.structured;
+}
 
 /** A whole .tex file: a paper's own definitions around real questions of it. */
 export function texOf(preamble: string, ...questions: string[]): string {
-  const filler = /\\newcommand\{\\mcq\}/.test(preamble) ? FILLER.mcq : FILLER.structured;
-  return `${preamble}\n\\begin{document}\n${filler}\n${questions.join("\n")}\n\\end{document}\n`;
+  return `${preamble}\n\\begin{document}\n${fillerFor(preamble, questions)}\n${questions.join("\n")}\n\\end{document}\n`;
 }
 
 export function paperOf(preamble: string, ...questions: string[]): ExtractedPaper {

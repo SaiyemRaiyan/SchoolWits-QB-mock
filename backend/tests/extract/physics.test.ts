@@ -407,3 +407,92 @@ and two new par\kern0.44bp ticles are f\kern-0.33bp ormed, par\kern0.44bp ticle 
       'A sample contains 16 000 atoms of $^3_1$H. Calculate the number of atoms of $^3_1$H present in the sample after 48 years.');
   });
 });
+
+describe('physics: round 3, from the page', () => {
+  it('a nuclide set as a stacked pair in an MCQ stem', () => {
+    // 5054/11/M/J/16 Q40, page 16: "Which statement about a nucleus of ¹⁵₇N is correct?"
+    const paper = paperOf(PHYSICS_MCQ, String.raw`\examq{5054/11/M/J/16}{40}{The Nuclear Atom}{1}
+\mcq{3.0}{\textbf{40}}{Which statement about a nucleus of\kern4.24bp\nuc{15}{7}\kern1.25bpN\kern4.81bp is correct?}
+\choice{24.3}{\textbf{A }}{The nucleus contains 7 neutrons and 8 protons.}
+\choice{21.6}{\textbf{B }}{The nucleus contains 7 neutrons and 15 protons.}
+\choice{21.7}{\textbf{C }}{The nucleus contains 7 protons and 8 neutrons.}
+\choice{21.6}{\textbf{D }}{The nucleus contains 7 protons and 15 neutrons.}`);
+    const q = question(paper, 40);
+    correct(paper, 40, stem(q), 'Which statement about a nucleus of $^{15}_{7}$N is correct?');
+    expect(options(q)).toEqual(lettered('The nucleus contains 7 neutrons and 8 protons.', 'The nucleus contains 7 neutrons and 15 protons.',
+      'The nucleus contains 7 protons and 8 neutrons.', 'The nucleus contains 7 protons and 15 neutrons.'));
+  });
+
+  it('R = V/I prints an italic I, though the LaTeX sets it in upright Times', () => {
+    // 5054/41/M/J/17 Q4(d), page 8 (300 dpi): the I under the bar is slanted like the V and R.
+    const paper = paperOf(PHYSICS, String.raw`\examq{5054/41/M/J/17}{4}{Electrical Quantities}{1}
+\row{25.4}{95.0}{\lab{22.7}{\textbf{(d)}}Use your readings to find the value of the resistance $R$ using the equation}
+\row{25.4}{280.8}{$R$ = \rlap{\kern0.00bp\raisebox{5.80bp}[0pt][0pt]{$V$}}\rlap{\kern1.35bp\raisebox{-7.20bp}[0pt][0pt]{\makebox[4.63bp][c]{\swf{ptm}{12.08}{I}}}}\rlap{\kern0.00bp\raisebox{3.08bp}[0pt][0pt]{\rule{7.34bp}{0.50bp}}}\kern7.34bp \kern2.09bp .}`);
+    const d = part(question(paper, 4), 'd');
+    correct(paper, 4, content(d), 'Use your readings to find the value of the resistance $R$ using the equation $R=\\frac{V}{I}$.');
+    // canon reads \mathrm{I} as I, so the shape is checked on the output itself.
+    expect(raw(d.content)).not.toMatch(/\\(mathrm|textrm|text|rm|mathup|upright)\s*\{?\s*I\b/);
+  });
+
+  it('marks printed under a figure go to the part that names it', () => {
+    // 5054/42/M/J/16 Q1(d), pages 3 to 5: (i) no mark; (ii) "On Fig. 1.6, plot ..."; (iii) [2]; (iv) [1];
+    // Fig. 1.6 is on page 5 with [4] under it. (d) is worth 7.
+    const paper = paperOf(PHYSICS, String.raw`\examq{5054/42/M/J/16}{1}{Measurement Techniques}{7}
+\row{26.0}{95.9}{\lab{22.6}{\textbf{(d)}}The student is given one square piece of card of side {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}}}. He attaches the centre of the card to\linebreak}
+the end A of the metre rule with a small piece of Blu-tack, as shown in Fig. 1.4.
+\row{30.2}{370.3}{Blu-tack}
+\qfig{3}{166.62bp 73.41bp 163.32bp 671.41bp}{}{2.7}{0}{166.62}
+\row{14.2}{279.9}{\textbf{Fig. 1.4}}
+\newpage
+\pagestart
+\row{0.6}{94.9}{The value of {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }is 19.0\,cm.\newline}
+The student repeats the e\kern-0.33bp xperiment in \textbf{(c) }to obtain a value f\kern-0.33bp or $N_{\mathrm{av}}$\kern1.03bp .\newline
+He then cuts the card to make the square smaller and repeats the e\kern-0.33bp xperiment with smaller\linebreak
+values of {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}}}. Fig. 1.5 shows the student'\kern-0.55bp s results.
+\qfig{4}{188.94bp 570.87bp 188.16bp 126.81bp}{}{14.6}{0}{188.94}
+\row{19.5}{278.9}{\textbf{Fig. 1.5}}
+\partbreak
+\row{25.9}{117.6}{\lab{21.7}{\textbf{(i) }}Complete Fig. 1.5 by recording your value f\kern-0.33bp or $N_{\mathrm{av}}$ from \textbf{(c)(ii) }f\kern-0.33bp or {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }= 0.}
+\partbreak
+\row{26.1}{117.6}{\lab{24.8}{\textbf{(ii) }}On Fig. 1.6, plot the graph of {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }/\,cm on the $y$-axis against $N_{\mathrm{av}}$ on the $x$-axis.\newline}
+Star\kern0.44bp t your ax\kern-0.33bp es from (0,0). Draw the smooth cur\kern0.33bp ve of best fit.
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iii) }}The graph shows that as {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }decreases, $N_{\mathrm{av}}$ increases.}
+\row{26.0}{117.6}{T\kern-1.32bp wo quantities $x$ and $y$ are inversely propor\kern0.44bp tional if they obey the equation}
+\qfig{4}{160.86bp 394.68bp 399.48bp 418.92bp}{}{11.3}{0}{160.86}
+\row{12.3}{117.6}{where k is a constant.}
+\row{26.0}{117.6}{By taking two pairs of values from the graph, show that $N_{\mathrm{av}}$ is \textbf{not }inversely propor\kern0.44bp tional\linebreak}
+to {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}}}.
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{65.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.92}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[2]}{545.6}
+\partbreak
+\row{26.0}{117.6}{\lab{27.8}{\textbf{(iv) }}Suggest wh\kern-0.33bp y the student star\kern0.44bp ts with {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }= 19\,cm and then reduces {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}}}, rather than star\kern0.44bp ts with\linebreak}
+{\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}} }= 3\,cm and then increases {\itshape \makebox[3.08bp][l]{\swf{ptm}{11.00}{l}}}.
+\dotgrid{119.91}{541.91}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{541.91}{3.0580}
+\dotline{26.0}{117.6}{}{}{545.0}
+\dotgrid{119.91}{529.68}{3.0580}
+\dotline{26.0}{117.6}{}{[1]}{545.6}
+\newpage
+\pagestart
+\qfig{5}{125.94bp 135.66bp 113.28bp 64.50bp}{}{-8.1}{0}{125.94}
+\row{31.1}{278.9}{\textbf{Fig. 1.6}}
+\qmark{13.0}{[4]}
+\newpage
+\pagestart`);
+    const d = part(question(paper, 1), 'd');
+    expect(d.subparts.map((p) => [p.label, p.marks])).toEqual([['i', null], ['ii', 4], ['iii', 2], ['iv', 1]]);
+    const fig16 = (blocks: { type: string; caption?: string; html?: string }[]) =>
+      blocks.some((b) => b.type === 'figure') && blocks.some((b) => /Fig\. 1\.6/.test(b.html ?? b.caption ?? ''));
+    expect(fig16(part(question(paper, 1), 'd', 'ii').content), 'Fig. 1.6 is with (ii)').toBe(true);
+    expect(fig16(part(question(paper, 1), 'd', 'iv').content), 'not with (iv)').toBe(false);
+    expect(paper.warnings.filter((w) => w.code === 'marks-mismatch' && w.questionNumber === 1)).toEqual([]);
+  });
+});

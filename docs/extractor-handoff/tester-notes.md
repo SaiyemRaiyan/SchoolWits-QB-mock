@@ -220,3 +220,49 @@ Pages actually re-rendered this round for the verdicts: 5070 S18 12 p8; 4037 W18
 W22 22 p8; 5054 S18 42 p7-8. Taken from round-1 renders: 4037 S16 21 p6, S16 12 p10, S17 21 p7. NOT re-rendered (the output
 is garbled or unlowered whatever the exact page says): 5070 S16 12 Q39 p14 (crop showed Q38 only), 4037 S18 12 Q10 p12,
 4037 S17 11 Q8 p10.
+
+## Round 3 (tester), against b9b3157
+
+### Sample (seed 20261125, truth unchanged): .../scratchpad/tester/score/score-table-r3.md
+right / flagged / wrong, new vs current reader: Physics 11/1/0 vs 9/1/2; Chemistry 9/1/2 vs 5/1/6; Maths 5/7/0 vs 3/0/9;
+all 36: 25/9/2 vs 17/2/17. WRONG (new): 5070 W18 12 Q19 page MgCl₂ / we "MgCl ₂" (spacing); 5070 S16 41 Q8 page prints
+[1][2][2][3] beside the table rows (a)-(d) / we show the table picture without them (it ends at x=532, marks at 545), no
+parts (a)-(d), and round 2's marks-mismatch warning is gone (regression from "marks before the first part count").
+
+### Chemistry on the page (scratchpad/tester/chem/: diff.ts, chem-diff.json (488 differ), chem-sample.json, seed 20261127)
+Random 15 of the 488: 14 RIGHT (3 with a stray figure label: S19 41 Q6 axis title, S25 21 Q8 "H O", none harmful; S22 22 Q1
+loses bold on the pictured l and I), 1 WRONG: 5070 S19 21 Q8 page PCl₃, PCl₅ / we "PCl ₃", "PCl ₅" (space before index).
+Named: S26 11 Q8, Q33 and S26 12 Q15, Q40 whole-question freerow splits RIGHT; two-column S18 11 Q19 RIGHT, S21 11 Q19
+FLAGGED (graph options) but "sulfuric acid." of experiment 1 is split into its own paragraph; S20 12 Q14 typed fraction with
+${}^{12}_{6}$C RIGHT, options (a table) FLAGGED; 5054 S16 11 Q40 nuclide RIGHT; S16 12 Q38 and W19 11 Q40 FLAGGED: on the
+page the passed options are words with a drawn structure in them ("The monomer is [drawing].") - not pure pictures, but
+they need the drawing, so the pass is right; S21 41 Q5: page prints [Total: 16] and its marks add to 15 because (vi) was
+removed - claim confirmed, warning honest, but "$M$ $_{\mathrm{r}}$", "$A$ $_{\mathrm{r}}$" have the same gap.
+Totals named 11: 6 right, 5 flagged, 0 wrong. The index gap appears in ~50 Chemistry questions (after the pictured l of Cl
+and after the italic M/A of Mr/Ar); gap.ts lists them.
+
+### V/I (5054 S17 41 Q4(d) p8; S21 41 Q1 p3), 300 dpi: the page prints an ITALIC serif I under the bar (slanted like V
+and R), although the LaTeX sets it \swf{ptm}{12.08}{I} with no \itshape. So `\dfrac{V}{\mathrm{I}}` is wrong; test added.
+
+### Helper change (task 5)
+texOf now picks a filler question of the fixture's own subject (from its first \examq code): 4037/4024 -> a 4037 question,
+5070 -> a 5070 question, otherwise 5054 as before; so fixtures run through MathsExtractor / ChemistryExtractor. All 320
+stayed green except one, which exposed a real fragility: with a 5070 filler set as \mcq + \optrow, a two-question file has
+too few positioned lines and is taken as the documented format; the old reader then printed "3.992.886154.60bp..." for the
+pictured II. Real papers are not affected (checked 5070 S16 11 Q15). Filler changed to a \choice question (5070 S16 11
+Q38). Writer: the dialect decision flips on two questions' worth of commands.
+
+### Tests added this round
+- symbols: ∩ and ∪ with one box (6.57 x 7.28) on 4037 W19 22 p3 -> each right or null.
+- physics: 5054 S16 11 Q40 nuclide (correct); S17 41 Q4(d) R = V/I italic I (FAILS: \mathrm{I}); S16 42 Q1(d) marks under
+  Fig. 1.6 go to (ii), (iv) keeps [1], (i) null (passes).
+- chemistry: S19 21 Q8(d),(e) PCl₃/PCl₅ with no gap (FAILS: "PCl ₃"); S26 12 Q15 whole-question freerow (passes).
+- maths: W18 23 Q1 read through MathsExtractor (factory checked); rules (made from that real line): one bar removed must
+  pass; the bars round the word "mass" must not be read as a modulus and must pass (both pass). No real line in the 84
+  papers has an odd number of bars, and none has words between a pair, so these two are labelled as rules.
+Failures now: 2 (V/I upright I, PCl gap), both code.
+Scoring time: the sample dump (18:01:06) and the Chemistry diff (18:01:43) ran on clean b9b3157, before the writer's
+uncommitted edits (questions.ts 18:01:56, answers.ts, symbols.ts, paper-extractor.ts, new equations/brackets.ts 18:11).
+With those edits in the tree, a third test fails: maths "the derivative of a product with a root" (4037, page prints
+e^{3x}(px+q)/√(4x+1)); the working tree shows "frac{e(px+q)}{√[3x]{4x+1}}", i.e. the power 3x became a cube-root index,
+wrong and not flagged. That is the writer's work in progress, not a test change.

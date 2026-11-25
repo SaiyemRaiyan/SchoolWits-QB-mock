@@ -124,6 +124,15 @@ describe('SymbolTable: pictures whose size does not say what they are', () => {
     rightOrNull(glyph(MATHS, String.raw`\swglyph{3}{265.39bp 637.96bp 321.88bp 195.69bp}`), '∩');
   });
 
+  it('a cap and a cup cut to the same box on one page', () => {
+    // 4037/22/O/N/19 Q1, page 3: caption "(A′∩B)∪(A∩B′)"; the ∩ and the ∪ are both 6.57 x 7.28 bp
+    const cap = glyph(MATHS, String.raw`\swglyph{3}{274.48bp 600.55bp 314.23bp 234.06bp}`);
+    const cup = glyph(MATHS, String.raw`\swglyph{3}{294.39bp 600.55bp 294.32bp 234.06bp}`);
+    expect(size(cap), 'the two pictures really are the same size').toBe(size(cup));
+    rightOrNull(cap, '∩');
+    rightOrNull(cup, '∪');
+  });
+
   it('brackets, which come in pictures of one size', () => {
     // 4037/21/M/J/16 Q5(b), page 6: "28 + p√3 = (q + 2√3)²"
     rightOrNull(glyph(MATHS, String.raw`\swglyph{6}{211.22bp 507.15bp 380.37bp 322.90bp}`), '(');

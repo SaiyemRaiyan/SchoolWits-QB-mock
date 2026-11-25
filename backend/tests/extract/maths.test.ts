@@ -10,7 +10,8 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Block } from '../../src/latex/types.js';
-import { canon, content, correct, correctOrPassed, everything, paperOf, part, question, stem } from './helpers.js';
+import { createExtractor, MathsExtractor } from '../../src/extract/index.js';
+import { canon, content, correct, correctOrPassed, everything, paperOf, part, passesOf, question, stem, texOf } from './helpers.js';
 import { MATHS } from './preambles.js';
 
 const raw = (blocks: Block[]) => blocks.map((b) => (b.type === 'figure' ? '' : b.html)).join('\n');
@@ -1351,5 +1352,62 @@ describe('maths: more equations from the page (round 1)', () => {
     expect(raw(part(q, 'ii').content)).toContain(String.raw`$\dfrac{\mathrm{d}^{2}y}{\mathrm{d}x^{2}}$`);
     expect(content(part(q, 'iii'))).toBe(canon('Find the coordinates of the stationary points of the curve and determine their nature.'));
     expect(everything(q)).not.toMatch(/BLANK|AGE/);
+  });
+});
+
+describe('maths: modulus through MathsExtractor (round 3)', () => {
+  it('a 4037 paper is read by MathsExtractor, bars and all', () => {
+    // 4037/23/O/N/18 Q1, page 3: "Solve the equation |5x − 3| = −3x + 13."
+    const source = { questions: texOf(MATHS, String.raw`\examq{4037/23/O/N/18}{1}{Equations, Inequalities \& Graphs}{3}
+\freerow{2.84}{%
+  \at{49.61}{-0.00}{\textbf{1}}%
+  \at{72.29}{-0.00}{Solve the equation}%
+  \at{166.19}{-0.00}{5{\itshape x}}%
+  \at{178.78}{0.48}{\swsy{2D}}%
+  \at{187.03}{-0.00}{3\kern5.69bp {\itshape =}}%
+  \at{207.41}{0.48}{\swsy{2D}}%
+  \at{215.16}{-0.00}{3{\itshape x}\kern1.48bp {\itshape +}\kern1.50bp 13\kern0.18bp .}%
+  \swpath{fill=black}{(113.90,-2.00) rectangle (114.40,9.72)}{}%
+  \swpath{fill=black}{(145.12,-2.00) rectangle (145.62,9.72)}{}%
+  \at{532.85}{-0.00}{\swmark{[3]}}}`) };
+    const ex = createExtractor(source);
+    expect(ex).toBeInstanceOf(MathsExtractor);
+    const paper = ex.extract();
+    correct(paper, 1, stem(question(paper, 1)), 'Solve the equation $|5x-3|=-3x+13$.');
+  });
+
+  it('rule: one bar of a pair taken away is not a modulus (pass)', () => {
+    // The same real line with its closing bar removed (made for the rule; no paper prints this).
+    const paper = paperOf(MATHS, String.raw`\examq{4037/23/O/N/18}{1}{Equations, Inequalities \& Graphs}{3}
+\freerow{2.84}{%
+  \at{49.61}{-0.00}{\textbf{1}}%
+  \at{72.29}{-0.00}{Solve the equation}%
+  \at{166.19}{-0.00}{5{\itshape x}}%
+  \at{178.78}{0.48}{\swsy{2D}}%
+  \at{187.03}{-0.00}{3\kern5.69bp {\itshape =}}%
+  \at{207.41}{0.48}{\swsy{2D}}%
+  \at{215.16}{-0.00}{3{\itshape x}\kern1.48bp {\itshape +}\kern1.50bp 13\kern0.18bp .}%
+  \swpath{fill=black}{(113.90,-2.00) rectangle (114.40,9.72)}{}%
+  \at{532.85}{-0.00}{\swmark{[3]}}}`);
+    expect(passesOf(paper, 1).length, 'a lone bar is flagged').toBeGreaterThan(0);
+    expect(stem(question(paper, 1))).not.toMatch(/\|5x-3\|/);
+  });
+
+  it('rule: two bars with a word between them are a table border, not a modulus (pass)', () => {
+    // The same real line with "5x − 3" between the bars replaced by the word "mass" (made for the rule; the bars'
+    // x is measured from the row's origin at 49.6 bp, so they stand at 163.5 and 194.7 on the page).
+    const paper = paperOf(MATHS, String.raw`\examq{4037/23/O/N/18}{1}{Equations, Inequalities \& Graphs}{3}
+\freerow{2.84}{%
+  \at{49.61}{-0.00}{\textbf{1}}%
+  \at{72.29}{-0.00}{Solve the equation}%
+  \at{166.19}{-0.00}{mass}%
+  \at{197.00}{-0.00}{{\itshape =}}%
+  \at{207.41}{0.48}{\swsy{2D}}%
+  \at{215.16}{-0.00}{3{\itshape x}\kern1.48bp {\itshape +}\kern1.50bp 13\kern0.18bp .}%
+  \swpath{fill=black}{(113.90,-2.00) rectangle (114.40,9.72)}{}%
+  \swpath{fill=black}{(145.12,-2.00) rectangle (145.62,9.72)}{}%
+  \at{532.85}{-0.00}{\swmark{[3]}}}`);
+    expect(stem(question(paper, 1))).not.toMatch(/\|[^|]*mass[^|]*\|/);
+    expect(passesOf(paper, 1).length, 'flagged rather than read').toBeGreaterThan(0);
   });
 });

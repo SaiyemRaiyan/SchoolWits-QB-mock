@@ -114,7 +114,8 @@ const allHtml = (q: Question): string[] => {
 };
 
 /** For comparing with the old reader: quote style and spacing are not differences of text. */
-const loose = (lines: string[]) => lines.join('\n').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ');
+// A script as $_{2}$ or as <sub>2</sub> (flattened to 2) prints the same.
+const loose = (lines: string[]) => lines.join('\n').replace(/\$([_^])\{([^{}$]*)\}\$/g, '$2').replace(/\$([_^])\{([^{}$]*)\}([_^])\{([^{}$]*)\}\$/g, '$2$4').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ');
 const spaceless = (lines: string[]) => loose(lines).replace(/ /g, '');
 
 // ---- judging one question --------------------------------------------------

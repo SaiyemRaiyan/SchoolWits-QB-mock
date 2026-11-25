@@ -179,6 +179,10 @@ class Setter {
 
   /** Stretch a box to a width, the strongest glue taking up the difference. */
   private stretch(box: Box, width: number, pos = ''): Box {
+    // Typed maths is only measured roughly; a box made to its width says what it is.
+    if (box.pieces.length === 1 && box.pieces[0].kind === 'math' && width > 0 && (pos === 'c' || pos === '')) {
+      return { pieces: [{ ...box.pieces[0], x: 0, width }], width, glue: [] };
+    }
     const glue = [...box.glue];
     if (pos === 'r' || pos === 'c') glue.push({ index: 0, order: 1 });
     if (pos === 'l' || pos === 'c') glue.push({ index: box.pieces.length, order: 1 });

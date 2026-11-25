@@ -30,31 +30,78 @@ const SMALL = 0.86;
 /** Baselines closer than this (in type sizes) are one line. */
 const SAME_LINE = 0.26;
 
-export function flow(line: Line): Flow {
+/**
+ * `loose`: for a line that is passed. What was stacked and not understood (the
+ * top or bottom of a fraction, a few characters on a row of their own) is read
+ * into the line it stands beside, left to right, where a person fixing it
+ * expects it.
+ */
+export function flow(line: Line, loose = false): Flow {
   const pieces = line.pieces.filter((p) => p.kind === 'text' || p.kind === 'math');
   if (!pieces.length) return { tex: '', rebuilt: false, ambiguous: false };
   // A group that is all small print is not small against itself.
   const largest = Math.max(...pieces.map((p) => sizeOf(p, 0)));
   const base = largest > 0 && largest < SMALL * baseSize(pieces, line.size) ? largest : baseSize(pieces, line.size);
-  const { rows, ambiguous } = toRows(pieces, base);
+  const read = toRows(pieces, base);
+  const rows = loose ? foldShortRows(read.rows, base) : read.rows;
+  // Lines of full-size type closer than a line apart, one over the other, are
+  // set out in two dimensions (molecules stacked round an arrow): not lines.
+  const span = (r: Row) => [Math.min(...r.anchors.map((p) => p.x)), Math.max(...r.anchors.map(right))];
+  const stacked = read.rows.some((r, i) => {
+    const next = read.rows[i + 1];
+    if (!next || r.y - next.y >= 0.95 * base) return false;
+    const [a, b] = [span(r), span(next)];
+    return a[0] < b[1] && b[0] < a[1];
+  });
+  const unsure = read.ambiguous || stacked;
+  const doubt = { ambiguous: unsure };
   const columns = splitColumns(rows, base);
-  const parts = columns ?? rows.map((row) => rowTex(row, base));
+  const parts = columns ?? rows.map((row) => rowTex(row, base, doubt));
   return {
     tex: parts.join(' ').replace(/ {2,}/g, ' ').trim(),
     rebuilt: rows.length > 1 || rows.some((r) => r.small.length > 0 || r.anchors.some(isComposite)),
-    ambiguous,
+    ambiguous: doubt.ambiguous,
   };
 }
 
-function toRows(pieces: Piece[], base: number): { rows: Row[]; ambiguous: boolean } {
+function foldShortRows(rows: Row[], base: number): Row[] {
+  const size = (r: Row) => [...r.anchors, ...r.small].reduce((n, p) => n + (p.kind === 'text' ? p.text.trim().length : 4), 0);
+  const kept = rows.filter((r) => size(r) > 4);
+  for (const r of rows.filter((x) => size(x) <= 4)) {
+    // Inside the line it is folded into; a row starting at that line's left edge is the next line.
+    const left = (x: Row) => Math.min(...[...x.anchors, ...x.small].map((p) => p.x));
+    const host = kept
+      .filter((k) => Math.abs(k.y - r.y) < 1.2 * base && left(r) > left(k) + 0.5 * base)
+      .sort((a, b) => Math.abs(a.y - r.y) - Math.abs(b.y - r.y))[0];
+    if (host) {
+      host.anchors.push(...r.anchors);
+      host.small.push(...r.small);
+    } else kept.push(r);
+  }
+  return kept.sort((a, b) => b.y - a.y);
+}
+
+function toRows(pieces: Piece[], base: number, sameLine = SAME_LINE): { rows: Row[]; ambiguous: boolean } {
   const isSmall = (p: Piece) => sizeOf(p, base) < SMALL * base;
   const rows: Row[] = [];
   // A sign set larger than the text (a bullet) is lowered to centre it: it
   // belongs to the line its middle stands in, not to where its foot is.
   const isSign = (p: Piece) => p.kind === 'text' && !/[\p{L}\p{N}]/u.test(p.text) && p.size > 1.2 * base;
   const anchors = pieces.filter((q) => !isSmall(q));
-  for (const p of anchors.filter((q) => !isSign(q)).sort((a, b) => b.y - a.y)) {
-    const row = rows.find((r) => Math.abs(r.y - p.y) <= SAME_LINE * base);
+  // Short typed maths is placed last: raised a little beside a word (ms and a
+  // "$-^{1}$" set 4bp up), it is that line's, typed as it stands.
+  const typed = (p: Piece) => p.kind === 'math' && !isComposite(p) && p.tex.length <= 12;
+  const ordered = anchors.filter((q) => !isSign(q)).sort((a, b) => Number(typed(a)) - Number(typed(b)) || b.y - a.y);
+  for (const p of ordered) {
+    let row = rows.find((r) => Math.abs(r.y - p.y) <= sameLine * base);
+    if (!row && typed(p)) {
+      row = rows.find(
+        (r) =>
+          p.y - r.y > 0.2 * base && p.y - r.y < 0.8 * base &&
+          // Straight after something of that line (typed maths is measured only roughly).
+          r.anchors.some((a) => p.x > a.x && p.x - right(a) < (a.kind === 'math' ? 1.5 : 0.5) * base),
+      );
+    }
     if (row) row.anchors.push(p);
     else rows.push({ y: p.y, anchors: [p], small: [] });
   }
@@ -146,7 +193,7 @@ interface Token {
   leads?: boolean;
 }
 
-function rowTex(row: Row, base: number): string {
+function rowTex(row: Row, base: number, doubt: { ambiguous: boolean } = { ambiguous: false }): string {
   const items = [
     ...row.anchors.map((p) => ({ p, script: null as 'sup' | 'sub' | null })),
     ...row.small.map((p) => {
@@ -187,7 +234,7 @@ function rowTex(row: Row, base: number): string {
       t.leads = n.leads = true;
     }
   });
-  return write(tokens, base);
+  return write(nuclides(tokens, base, doubt), base);
 }
 
 function styleOf(p: TextPiece): string {
@@ -218,11 +265,24 @@ function write(tokens: Token[], base: number): string {
     if (token.script) {
       const host = prev?.tex === 'composite' && prev.math !== undefined;
       const inner = token.text ?? '';
-      const maths = host || inner.includes('$') ? toMath(inner) : null;
+      // An index or a charge is maths, as the papers type their own (C$_{2}$H$_{4}$);
+      // \textsubscript is kept for words, which maths would set in italics.
+      const short = /^[\d+\-−–=()]+$|^[A-Za-z]$/.test(inner.trim());
+      const maths = host || short || inner.includes('$') ? toMath(inner) : null;
+      // A script straight after another (an index and a charge) joins its maths.
+      // So does one straight after typed maths that has no script of that kind
+      // at its end (NO$_{3}$ and a charge): two spans must not touch as "$$".
+      const mark = token.script === 'sup' ? '^' : '_';
+      const close = prev !== undefined && token.x - prev.end < 0.3 * base;
+      const joins =
+        close &&
+        ((prev.script !== undefined && prev.script !== token.script) ||
+          (prev.math !== undefined && !prev.script && !prev.math.trimEnd().endsWith('}') && !prev.math.includes(mark)) ||
+          (prev.math !== undefined && !prev.script && new RegExp(`[${mark === '^' ? '_' : '^'}]\\{[^{}]*\\}$`).test(prev.math.trim())));
       flush();
-      if (maths !== null && host && out.endsWith('$')) {
-        out = `${out.slice(0, -1)}${token.script === 'sup' ? '^' : '_'}{${maths}}$`;
-      } else if (maths !== null) out += `$${token.script === 'sup' ? '^' : '_'}{${maths}}$`;
+      if (maths !== null && (host || joins) && out.endsWith('$')) {
+        out = `${out.slice(0, -1)}${mark}{${maths}}$`;
+      } else if (maths !== null) out += `${out.endsWith('$') ? ' ' : ''}$${mark}{${maths}}$`;
       else out += `\\text${token.script === 'sup' ? 'superscript' : 'subscript'}{${inner}}`;
       style = '';
     } else if (token.math !== undefined) {
@@ -268,4 +328,51 @@ function needsSpace(prev: Token, token: Token, base: number, next?: Token): bool
 
 function escape(s: string): string {
   return s.replace(/([%#&_${}])/g, '\\$1');
+}
+
+// ---- nuclides -------------------------------------------------------------
+
+const ELEMENT = /^([A-Z][a-z]?)(?![a-z])/;
+const NUMBER = /^(?:\d{1,3}|[A-Za-z])$/;
+
+/**
+ * A mass number over a proton number, set in front of an element's symbol,
+ * is one piece of maths: ${}^{15}_{7}\mathrm{N}$. A charge set straight
+ * after the symbol belongs to it too. A stacked pair that is not that (no
+ * symbol after it, or not numbers) is not read at all: the line passes.
+ */
+function nuclides(tokens: Token[], base: number, doubt: { ambiguous: boolean }): Token[] {
+  const out: Token[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const [a, b, c, d] = [tokens[i], tokens[i + 1], tokens[i + 2], tokens[i + 3]];
+    // A pair hanging on what it follows (CO₃²⁻: an index and a charge) is not in front of anything.
+    const prev = tokens[i - 1];
+    const attached = prev !== undefined && !/\s$/.test(prev.text ?? '') && a.x - prev.end < WORD_GAP * base;
+    if (!a.leads || !b?.leads || attached) {
+      out.push(a);
+      continue;
+    }
+    const top = (a.script === 'sup' ? a : b).text?.trim() ?? '';
+    const bottom = (a.script === 'sup' ? b : a).text?.trim() ?? '';
+    const symbol = c && !c.script && c.text !== undefined && c.x - a.end < 0.25 * base ? ELEMENT.exec(c.text) : null;
+    if (!symbol || !NUMBER.test(top) || !NUMBER.test(bottom)) {
+      doubt.ambiguous = true;
+      out.push(a);
+      continue;
+    }
+    let tex = `{}^{${top}}_{${bottom}}\\mathrm{${symbol[1]}}`;
+    const rest = c.text!.slice(symbol[1].length);
+    // A charge straight after the symbol: "F−", "Na+", "S2−".
+    const charge = !rest && d?.script === 'sup' && d.x - c.end < 0.25 * base ? chargeOf(d.text ?? '') : null;
+    if (charge) tex += `^{${charge}}`;
+    out.push({ x: a.x, end: charge ? d.end : c.end, math: tex, tex: 'nuclide' });
+    if (rest) out.push({ ...c, x: c.end - 0.01, text: rest });
+    i += charge ? 3 : 2;
+  }
+  return out;
+}
+
+function chargeOf(text: string): string | null {
+  const m = /^(\d?)([+−–-])$/.exec(text.trim());
+  return m ? `${m[1]}${m[2] === '+' ? '+' : '-'}` : null;
 }

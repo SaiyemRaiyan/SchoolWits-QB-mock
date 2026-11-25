@@ -25,6 +25,7 @@ export interface KnownSymbol {
 }
 
 // [character, height, drop, type size, widths...]
+// An empty character is a box that more than one character prints in.
 const BOXES: [string, number, number, number, ...number[]][] = [
   // Chemistry: a letter whose font has no l or I distinct enough to set again.
   ['l', 12.04, 2.64, 11, 3.08, 4.18],
@@ -50,6 +51,9 @@ const BOXES: [string, number, number, number, ...number[]][] = [
   ['∞', 3.9, -0.9, 11.5, 6.8, 6.3],
   ['≠', 9.9, 1.2, 11.5, 7.5, 7.8],
   ['Δ', 8.5, 0.5, 11.5, 7.5],
+  // Cap and cup: the same box as each other, and within the page slack of
+  // Delta's. Known, but not nameable: it makes Delta's box uncertain too.
+  ['', 8.48, 0.5, 11.5, 7.48],
   ['′', 3.7, -4.6, 11.5, 2.2, 2.5],
   ['μ', 9.0, 2.9, 11.5, 8.0],
   ['α', 6.6, 0.6, 11.5, 7.3],
@@ -96,7 +100,7 @@ export class SymbolTable implements SymbolReader {
     });
     const off = (k: KnownSymbol) => Math.abs(glyph.width - k.width) + Math.abs(glyph.height - k.height);
     const best = [...reach].sort((a, b) => off(a) - off(b))[0];
-    if (!best) return null;
+    if (!best || best.char === '') return null;
     const rival = reach.some((k) => k.char !== best.char && off(k) < off(best) + 0.2);
     return rival ? null : best;
   }

@@ -62,6 +62,8 @@ interface Para {
   /** Where its last line ends, to tell a wrapped line from a short one. */
   end: number;
   figure?: boolean;
+  /** Where the columns after the first start, in a line set in two ("experiment 1 | text"). */
+  columns?: number[];
 }
 
 /** The inline commands this extractor writes, and inlineToHtml reads. */
@@ -115,6 +117,12 @@ export class QuestionBuilder {
       else this.loose(token.raw);
     }
     if (this.lead?.length) (this.target()?.paras ?? this.stem).push(...this.lead);
+    // Some options written out and the others not: those are in the picture beside them.
+    const letters = this.options.map((o) => o.label);
+    if (letters.length > 0 && letters.length < 4 && this.hasFigure && !this.parts.length) {
+      const missing = ['A', 'B', 'C', 'D'].filter((l) => !letters.includes(l));
+      this.pass('unknown-shape', `options ${missing.join(', ')} are printed only in a picture`);
+    }
     const parts = this.parts.map((d) => this.finish(d));
     const total = (choice: number) =>
       this.parts.filter((d) => d.choice === choice).reduce((sum, d) => sum + (marksOf(d) ?? 0), 0);
@@ -128,7 +136,8 @@ export class QuestionBuilder {
           : null,
       passes: this.passes,
       rebuilt: this.rebuilt,
-      partMarks: total(0) + Math.max(total(1), total(2)),
+      // Marks printed before the first part (against a table of tests in a figure) are the question's own.
+      partMarks: this.ownMarks + total(0) + Math.max(total(1), total(2)),
     };
   }
 
@@ -180,8 +189,35 @@ export class QuestionBuilder {
   private addMarks(n: number): void {
     this.resume();
     const t = this.target();
-    if (t) t.marks = (t.marks ?? 0) + n;
-    else this.ownMarks += n;
+    if (t) {
+      t.marks = (t.marks ?? 0) + n;
+      this.marked.set(t, t.paras.length);
+    } else this.ownMarks += n;
+  }
+
+  /** How many paragraphs a part had when its marks were last set. */
+  private readonly marked = new Map<Draft, number>();
+
+  /**
+   * Marks on their own line under a figure that came after the current part
+   * was already answered: they are the marks of the part that names the
+   * figure ("On Fig. 1.6, plot ..."), which takes the figure with them.
+   */
+  private figureMarks(n: number): boolean {
+    const t = this.target();
+    if (!t || t.marks === null) return false;
+    const tail = t.paras.slice(this.marked.get(t) ?? t.paras.length);
+    if (!tail.some((p) => p.figure)) return false;
+    const caption = tail.map((p) => /Fig(?:ure)?\.?\s*(\d+\.\d+)/.exec(p.tex)?.[1]).find((c) => c !== undefined);
+    if (!caption) return false;
+    const names = new RegExp(`Fig(?:ure)?\\.?\\s*${caption.replace('.', '\\.')}(?!\\d)`);
+    const all = this.parts.flatMap((d) => [d, ...d.subs]);
+    const owners = all.filter((d) => d !== t && d.subs.length === 0 && d.marks === null && d.paras.some((p) => !p.figure && names.test(p.tex)));
+    if (owners.length !== 1) return false;
+    t.paras.splice(t.paras.length - tail.length, tail.length);
+    owners[0].paras.push(...tail);
+    owners[0].marks = n;
+    return true;
   }
 
   /** Marks set against a question that has no parts. */
@@ -215,7 +251,7 @@ export class QuestionBuilder {
   }
 
   /** A paragraph, or the continuation of the one it wraps on from. */
-  private addPara(tex: string, x: number, end: number, gap: number, firstWord: number): void {
+  private addPara(tex: string, x: number, end: number, gap: number, firstWord: number, columns: number[] = []): void {
     const text = tex.trim();
     if (!text) return;
     if (this.furniture(text)) return;
@@ -223,13 +259,20 @@ export class QuestionBuilder {
     const prev = list[list.length - 1];
     const wraps =
       prev !== undefined && prev === this.open && !prev.figure && !/^(?:\\textbf\{)?•/.test(text) && gap > 0 && gap < 1.32 * this.setting.leading &&
-      Math.abs(prev.x - x) < 2 && prev.end + firstWord + this.setting.wordSpace > COLUMN.right - 18 && !/[.:?]$/.test(prev.tex);
+      !/[.:?]$/.test(prev.tex) &&
+      ((Math.abs(prev.x - x) < 2 &&
+        // The line above was full; or, where a paper sets a narrower measure,
+        // it was long and this one carries on the sentence in lower case.
+        (prev.end + firstWord + this.setting.wordSpace > COLUMN.right - 18 ||
+          (/^[a-z]/.test(text) && !/^[a-z]+ \d/.test(text) && prev.end - prev.x > 0.7 * (COLUMN.right - prev.x)))) ||
+        // Or it starts under the second column of the line above, in lower case: that column wraps.
+        ((prev.columns ?? []).some((c) => Math.abs(c - x) < 2) && /[a-z]$/.test(prev.tex) && /^[a-z]/.test(text) && !/^[a-z]+ \d/.test(text)));
     if (wraps) {
       prev.tex += ` ${text}`;
       prev.end = end;
       return;
     }
-    const para: Para = { tex: text, x, end };
+    const para: Para = { tex: text, x, end, ...(columns.length ? { columns } : null) };
     list.push(para);
     this.open = para;
   }
@@ -293,7 +336,8 @@ export class QuestionBuilder {
     const rest = [...pieces].sort((a, b) => a.x - b.x);
     for (;;) {
       const first = rest[0];
-      if (!first || !isText(first) || !first.bold) return rest;
+      // A label is bold, or set out in the margin left of its line.
+      if (!first || !isText(first) || !(first.bold || right(first) <= 0.5)) return rest;
       const text = first.text.trim();
       const pair = /^\(([a-z]{1,4})\)\s*\(([ivx]+)\)$/.exec(text);
       const label = LABEL.exec(text);
@@ -333,6 +377,14 @@ export class QuestionBuilder {
   // ---- elements --------------------------------------------------------
 
   private element(el: Element): void {
+    if (el.spec.role === 'skip') return;
+    const floating = this.floating;
+    this.floating = null;
+    // A few characters placed on their own just above the next line (the index
+    // of an index, set by itself): which of its letters they belong to is not sure.
+    if (floating && el.spec.role === 'line' && (Number(el.args[0]) || 0) < 0.9 * this.setting.leading) {
+      this.pass('ambiguous-layout', `${floating === '#' ? 'a drawing' : `"${floating}"`} is set by itself just above the line that follows it`);
+    }
     switch (el.spec.role) {
       case 'line':
         return this.line(el);
@@ -347,7 +399,7 @@ export class QuestionBuilder {
         return this.answer(el);
       case 'mark': {
         const m = /\[\s*(\d+)\s*\]/.exec(el.args[1]);
-        if (m) this.addMarks(Number(m[1]));
+        if (m && !this.figureMarks(Number(m[1]))) this.addMarks(Number(m[1]));
         this.open = null;
         return;
       }
@@ -424,10 +476,15 @@ export class QuestionBuilder {
     return (first.width * word.length) / Math.max(1, first.text.length);
   }
 
+  /** The text of a positioned block of a few characters only, until the next element. */
+  private floating: string | null = null;
+
   private positioned(el: Element): void {
     const taken = this.takeMarks(el.args[1]);
     const line = this.set(taken.tex);
     const all = this.textMarks(line.pieces, this.origin, taken.marks);
+    const chars = all.map((p) => (isText(p) ? p.text.trim() : p.kind === 'math' ? p.tex : '#')).join('');
+    if (all.length && chars.length <= 3) this.floating = chars;
     const list = bands({ ...line, pieces: all });
     const first = list.findIndex((band) => this.letters(band.pieces).length > 0);
     const letters = this.letters(all);
@@ -452,7 +509,12 @@ export class QuestionBuilder {
     const tex = this.read({ ...line, pieces });
     if (this.alternative(tex)) return;
     const x = this.origin + Math.min(...pieces.map((p) => p.x));
-    this.addPara(tex, x, this.origin + Math.max(...pieces.map(right)), gap, this.firstWord(pieces));
+    // A run that starts well clear of the one before it on the line opens a column.
+    const sorted = [...pieces].sort((a, b) => a.x - b.x);
+    const columns = sorted
+      .filter((p, i) => i > 0 && p.x - Math.max(...sorted.slice(0, i).map(right)) > 3 * this.setting.wordSpace)
+      .map((p) => this.origin + p.x);
+    this.addPara(tex, x, this.origin + Math.max(...pieces.map(right)), gap, this.firstWord(pieces), columns);
   }
 
   private letters(pieces: Piece[]): TextPiece[] {

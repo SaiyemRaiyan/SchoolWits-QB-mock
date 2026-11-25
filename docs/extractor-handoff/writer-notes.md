@@ -157,3 +157,55 @@ Subclasses: `PhysicsExtractor`, `ChemistryExtractor`, `MathsExtractor`, `Generic
 - **Typed maths that prints oddly** (`\mathrm{change} \mathrm{in}` -> "changeinvelocity"): rule 4 wins, never rewritten.
   The tester may record it; it is not counted as an extractor error.
 - The stricter dot test (5070 S26 21 Q5(f): •/· only, not ".") is accepted.
+
+## Round 2 (writer): Chemistry, tester's wrong-and-not-flagged list
+
+### Changes (all general rules)
+- Scripts whose content reads as maths (digits, signs, one letter) are written as typed maths `$_{4}$`, an index
+  and a charge stacked as one span (`$_{3}^{2-}$`); a script straight after typed maths joins it when that span
+  has no script of the kind at its end (no "$$"). Reason: src/latex `inlineToHtml` converts at most 5
+  `\textsubscript` per paragraph (`wrapCommand`, 5 passes) and drops the 6th silently: C2H4 lost its 4.
+  check-papers compares `$_{4}$` and a flattened <sub>4</sub> as equal.
+- Nuclides: a stacked pair (top over bottom, overlapping) with a word gap before it, followed within 0.25em by
+  an element symbol, is `${}^{A}_{Z}\mathrm{X}$`, a charge right after the symbol included. A leading stacked
+  pair that is not that makes the line ambiguous (pass). Applies to Physics too (flow.ts).
+- Typed maths alone in a centred \makebox takes the box's width (arrow in `\makebox[10.82bp][c]{$\rightarrow$}`
+  lost its space before it).
+- Fractions: reach measured with the largest type around the bar (a small "12" beside it made the long bottom
+  line fall off, wrong and unflagged); anything else close over/under the bar and not beyond another bar ->
+  the fraction is not built (pass).
+- Roots: a bar under the sign's foot that runs past it is not inside; trailing punctuation set in one run with
+  the radicand ("3.") is cut off at the bar's end when the cut lands there.
+- Modulus (equations/modulus.ts, in the BASE chain because the test fixtures put a 5054 filler first, so they
+  are read by PhysicsExtractor; modulus is general notation anyway): thin upright strokes of one height, paired
+  from the left; odd count, an empty pair, nothing between pairs, or words of 4+ letters inside (table
+  borders) -> not read (pass).
+- SymbolTable: an entry with char '' = a box more than one character prints in; cap/cup (7.48 x 8.48) added,
+  which makes Delta's box (in page slack) give null too.
+- Questions: a number label not in bold but hanging in the margin is the number (`\lab{22.7}{7}`); marks under a
+  figure that came after the current part was answered go, with the figure, to the one part that names it
+  ("On Fig. 1.6"); marks before the first part (against a table of tests in a figure) count in the total;
+  a lone short positioned run directly above the next line passes (the index of an index set by itself);
+  some options written and others not -> pass "options A, B are printed only in a picture"; wrapped lines in a
+  narrower measure (S26 11/12) join when lower-case and the line above was long; a line starting under the
+  second column of the line above, lower-case, after a line ending on a letter, continues that column.
+- Flow: full-size rows closer than a type size that overlap (molecules stacked round an arrow) -> ambiguous;
+  short typed maths raised up to 0.8em straight after something of a line joins that line ("ms $-^{1}$").
+- Passed lines: best-effort text with short rows (a fraction's top/bottom, <= 4 characters, inside the line)
+  folded into their line, left to right.
+
+### Chemistry diff vs baseline (486 differ)
+- 152 better: old text had leaked measurements (Cl/I/II pictures, ions). 114 better: furniture/labels removed
+  (Section A/B, "A1", BLANK PAGE, [Total], =0pt, pages after \total).
+- ~196 read by hand: better ~185 (equations in pieces, ions, S26 whole-question freerows split into stem and
+  options, two-column lines, nuclides); equal ~8 (table read row-wise, axis numbers from graphs, typed-maths
+  spacing like "$\Delta$ $H$"); worse found 8, all fixed or now flagged: arrow spacing, question number left in
+  stem (3), S20 12 Q14 fraction bottom dropped, S24 11 Q15 stacked molecules (now passes), last index flat,
+  bullet spacing.
+- Marks mismatches 6 -> 1: S21 41 Q5 prints 15 of 16 because 5(c)(vi) was removed from the paper ("Due to an
+  issue with question 5(c)(vi)...").
+
+### Known / next
+- The authors' own typed maths has `$x$$+$$k$` (back-to-back spans, read as $$ by the renderer) in ~60 Add
+  Maths questions; typed maths is not rewritten, so this stays (src/latex/inlineToHtml's concern).
+- 4037: 423 questions pass unknown-symbol (pictures of <=, (, ) etc.), 28 unknown-shape, 21 ambiguous-layout.

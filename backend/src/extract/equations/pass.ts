@@ -36,7 +36,9 @@ export class PassOver implements EquationReader {
         : left.every(asBar)
           ? 'ambiguous-layout'
           : 'unknown-shape';
-    return { ok: false, reason, tex: flow(line).tex };
+    // Best effort, in reading order: what stands within most of a line of
+    // the baseline is read as on it, left to right.
+    return { ok: false, reason, tex: flow(line, true).tex };
   }
 }
 

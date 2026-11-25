@@ -16,12 +16,18 @@ export class Fractions implements EquationReader {
       const near = line.pieces.filter((p) => p !== bar.piece && middle(p) > bar.x1 - 1 && middle(p) < bar.x2 + 1);
       const beside = near.filter((p) => !unresolved(p)).sort((a, b) => gap(a, bar.y, line) - gap(b, bar.y, line))[0];
       if (!beside) continue;
-      const s = sizeOf(beside, line.size);
+      // Reach is measured in the type of the fraction, not of a small index beside the bar.
+      const s = Math.max(sizeOf(beside, line.size), ...near.filter((p) => !unresolved(p)).map((p) => sizeOf(p, 0)));
       const reach = (p: Piece) => gap(p, bar.y, line) < 0.65 * s;
       const top = withScripts(near.filter((p) => centre(p, line) > bar.y && reach(p)), near, bar.y, true, line);
       const bottom = withScripts(near.filter((p) => centre(p, line) < bar.y && reach(p)), near, bar.y, false, line);
       if (!top.length || !bottom.length) continue;
       if ([...top, ...bottom].some((p) => unresolved(p) || p.x < bar.x1 - 3 || right(p) > bar.x2 + 3)) continue;
+      // Something else close over or under the bar: what belongs to it is not sure.
+      // (Not what another bar stands between: that belongs to the fraction around this one.)
+      const beyond = (p: Piece) =>
+        barsOf(line).some((b) => b.piece !== bar.piece && b.x1 < right(p) && b.x2 > p.x && (b.y - bar.y) * (centre(p, line) - b.y) > 0);
+      if (near.some((p) => !top.includes(p) && !bottom.includes(p) && !unresolved(p) && !beyond(p) && gap(p, bar.y, line) < 1.2 * s)) continue;
 
       const [over, under] = [context.read(sub(line, top)), context.read(sub(line, bottom))];
       const [n, d] = [toMath(over.tex), toMath(under.tex)];
